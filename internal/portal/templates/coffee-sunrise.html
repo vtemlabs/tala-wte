@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sunrise Bakehouse Guest Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(160deg, #fff8ee 0%, #fdeccd 100%);
+    color: #4a3320;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #ffffff; border-radius: 20px; padding: 2.5rem 2rem;
+    max-width: 420px; width: 100%;
+    box-shadow: 0 10px 44px rgba(101, 56, 25, 0.14);
+    text-align: center;
+  }
+  .logo { display: inline-flex; align-items: center; gap: 0.5rem; color: #c2410c; margin-bottom: 0.4rem; }
+  .logo svg { width: 30px; height: 30px; }
+  .wordmark { font-size: 1.7rem; font-weight: 800; color: #653819; letter-spacing: -0.01em; }
+  .tag { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: #b58a5a; margin-bottom: 1.6rem; }
+  h2 { font-size: 1.15rem; font-weight: 700; color: #653819; margin-bottom: 0.5rem; }
+  p.lead { font-size: 0.9rem; line-height: 1.55; color: #7a6450; margin-bottom: 1.6rem; }
+  .agree { display: flex; align-items: flex-start; gap: 0.65rem; text-align: left; font-size: 0.82rem; color: #6b563f; line-height: 1.5; margin-bottom: 1.4rem; }
+  .agree input { margin-top: 2px; width: 18px; height: 18px; accent-color: #c2410c; flex-shrink: 0; }
+  .btn {
+    width: 100%; padding: 0.95rem; background: #c2410c; color: #fff;
+    border: none; border-radius: 50px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn:hover:not(:disabled) { background: #9a330a; }
+  .btn:disabled { background: #e6c3a6; cursor: not-allowed; }
+  .legal { margin-top: 1.2rem; font-size: 0.72rem; color: #b39a82; }
+  .legal a { color: #c2410c; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M12 2v3"></path><circle cx="12" cy="13" r="7"></circle><path d="M9 13a3 3 0 0 1 6 0"></path>
+    </svg>
+    <span class="wordmark">Sunrise Bakehouse</span>
+  </div>
+  <div class="tag">Fresh Baked Daily</div>
+
+  <h2>Welcome in - the Wi-Fi is on us</h2>
+  <p class="lead">We hope you enjoy your visit. Grab a seat, settle in, and connect to our complimentary guest network.</p>
+
+  <form method="POST" action="/portal/accept" id="wifiForm">
+    <label class="agree">
+      <input type="checkbox" name="accepted_terms" value="yes" id="agree" onchange="document.getElementById('go').disabled = !this.checked">
+      <span>I have read and agree to the Terms of Service for Sunrise Bakehouse Wi-Fi, and I am 13 years of age or older.</span>
+    </label>
+    <button type="submit" class="btn" id="go" disabled>Accept &amp; Connect</button>
+  </form>
+
+  <p class="legal">Free Wi-Fi for lawful browsing and email. <a href="/legal/terms">Terms of Service</a></p>
+</div>
+</body>
+</html>

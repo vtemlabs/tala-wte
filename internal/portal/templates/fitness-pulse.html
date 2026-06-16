@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pulse Fitness Club Member Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: radial-gradient(circle at 20% 0%, #16202b 0%, #0a0e13 60%, #05070a 100%);
+    color: #e7edf3;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #11171f; border: 1px solid #1f2a36; border-radius: 18px;
+    padding: 2.4rem 2rem; max-width: 420px; width: 100%;
+    box-shadow: 0 18px 60px rgba(0, 0, 0, 0.55);
+  }
+  .logo { display: inline-flex; align-items: center; gap: 0.55rem; color: #b6ff3a; margin-bottom: 0.3rem; }
+  .logo svg { width: 32px; height: 32px; }
+  .wordmark { font-size: 1.6rem; font-weight: 900; letter-spacing: -0.02em; color: #ffffff; text-transform: uppercase; }
+  .tag { font-size: 0.68rem; letter-spacing: 0.24em; text-transform: uppercase; color: #6f8194; margin-bottom: 1.7rem; }
+  h2 { font-size: 1.2rem; font-weight: 800; color: #ffffff; margin-bottom: 0.45rem; }
+  p.lead { font-size: 0.88rem; line-height: 1.55; color: #9bafc1; margin-bottom: 1.6rem; }
+  label.fld { display: block; font-size: 0.7rem; letter-spacing: 0.12em; text-transform: uppercase; color: #7e93a6; margin: 0 0 0.4rem 0.15rem; }
+  input[type=text], input[type=password], input[type=email] {
+    width: 100%; padding: 0.85rem 0.9rem; margin-bottom: 1.05rem;
+    background: #0b1118; border: 1px solid #233140; border-radius: 10px;
+    color: #e7edf3; font-size: 0.95rem;
+  }
+  input::placeholder { color: #4f6373; }
+  input:focus { outline: none; border-color: #b6ff3a; box-shadow: 0 0 0 3px rgba(182, 255, 58, 0.15); }
+  .btn {
+    width: 100%; padding: 0.95rem; background: #b6ff3a; color: #0a0e13;
+    border: none; border-radius: 10px; font-size: 1rem; font-weight: 900;
+    letter-spacing: 0.02em; text-transform: uppercase; cursor: pointer; transition: background 0.15s;
+  }
+  .btn:hover { background: #c8ff66; }
+  .divider { display: flex; align-items: center; gap: 0.75rem; margin: 1.6rem 0 1.3rem; color: #4f6373; font-size: 0.72rem; letter-spacing: 0.16em; text-transform: uppercase; }
+  .divider::before, .divider::after { content: ""; flex: 1; height: 1px; background: #1f2a36; }
+  .guest { background: #0d141c; border: 1px dashed #2a3a4a; border-radius: 12px; padding: 1.1rem 1rem; }
+  .guest h3 { font-size: 0.92rem; color: #e7edf3; margin-bottom: 0.3rem; }
+  .guest p { font-size: 0.78rem; color: #8094a6; line-height: 1.5; margin-bottom: 0.9rem; }
+  .btn-ghost {
+    width: 100%; padding: 0.8rem; background: transparent; color: #b6ff3a;
+    border: 1px solid #b6ff3a; border-radius: 10px; font-size: 0.9rem; font-weight: 800;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn-ghost:hover { background: rgba(182, 255, 58, 0.08); }
+  .perk { font-size: 0.74rem; color: #6f8194; margin-bottom: 1.4rem; }
+  .perk b { color: #b6ff3a; }
+  .legal { margin-top: 1.5rem; font-size: 0.7rem; color: #5d7184; text-align: center; }
+  .legal a { color: #8fb0c9; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M3 12h3l2-6 4 12 2-6h3"></path><path d="M19 9l2 3-2 3"></path>
+    </svg>
+    <span class="wordmark">Pulse</span>
+  </div>
+  <div class="tag">Fitness Club</div>
+
+  <h2>Member sign-in</h2>
+  <p class="lead">Free high-speed Wi-Fi is a perk for active members. Sign in with your membership details to get connected.</p>
+  <p class="perk"><b>Members only:</b> unlimited Wi-Fi across every floor of the club.</p>
+
+  <form method="POST" action="/portal/accept">
+    <label class="fld" for="member_id">Membership ID</label>
+    <input type="text" id="member_id" name="member_id" placeholder="PFC-000000" autocomplete="off" required>
+
+    <label class="fld" for="pin">Member PIN</label>
+    <input type="password" id="pin" name="pin" inputmode="numeric" placeholder="4-6 digit PIN" autocomplete="off" required>
+
+    <button type="submit" class="btn">Sign In &amp; Train</button>
+
+    <div class="divider">Day pass guest?</div>
+
+    <div class="guest">
+      <h3>Continue with email</h3>
+      <p>Visiting on a day pass? Enter your email below and tap continue to use guest Wi-Fi.</p>
+      <input type="email" name="email" placeholder="you@example.com" autocomplete="off">
+      <button type="submit" class="btn-ghost">Continue as Guest</button>
+    </div>
+  </form>
+
+  <p class="legal">By connecting you agree to our <a href="/legal/terms">Terms</a> and <a href="/legal/aup">Acceptable Use Policy</a>.</p>
+</div>
+</body>
+</html>

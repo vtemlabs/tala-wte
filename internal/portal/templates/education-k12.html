@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mapleton School District - Visitor Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif; color: #213040;
+    background: linear-gradient(160deg, #e8f1f7 0%, #dceae0 100%); min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 1.25rem;
+  }
+  .card { background: #fff; border-radius: 14px; max-width: 440px; width: 100%; overflow: hidden; box-shadow: 0 10px 36px rgba(30,80,60,0.16); }
+  .top { background: #1f6f54; color: #fff; padding: 1.6rem 1.8rem; text-align: center; }
+  .top .mark { display: inline-flex; align-items: center; gap: 0.55rem; }
+  .top .mark svg { width: 30px; height: 30px; color: #f5c842; }
+  .top .brand { font-size: 1.3rem; font-weight: 700; }
+  .top .brand small { display: block; font-size: 0.66rem; font-weight: 600; letter-spacing: 0.16em; opacity: 0.85; margin-top: 0.25rem; text-transform: uppercase; }
+  .top p { font-size: 0.8rem; opacity: 0.9; margin-top: 0.7rem; line-height: 1.5; }
+  .body { padding: 1.6rem 1.8rem 1.9rem; }
+  h2 { font-size: 1.02rem; color: #1f6f54; margin-bottom: 0.9rem; }
+  label { display: block; font-size: 0.76rem; font-weight: 700; color: #4a5867; margin-bottom: 0.32rem; }
+  label .req { color: #c0392b; }
+  input, select { width: 100%; padding: 0.74rem 0.9rem; border: 1px solid #cfd9e0; border-radius: 8px; font-size: 0.92rem; font-family: inherit; margin-bottom: 1rem; background: #fff; color: #213040; }
+  input:focus, select:focus { outline: none; border-color: #1f6f54; box-shadow: 0 0 0 3px rgba(31,111,84,0.14); }
+  .notice { background: #fdf6e3; border: 1px solid #f0e2b8; border-radius: 10px; padding: 0.9rem 1rem; font-size: 0.78rem; color: #6b5a17; margin-bottom: 1.3rem; line-height: 1.55; }
+  .notice strong { display: block; color: #8a6d10; margin-bottom: 0.3rem; }
+  .terms { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.79rem; color: #4a5867; margin: 0.1rem 0 1.2rem; line-height: 1.5; }
+  .terms input { width: 17px; height: 17px; margin: 2px 0 0; accent-color: #1f6f54; flex-shrink: 0; }
+  .terms a, .footer a { color: #1f6f54; text-decoration: underline; }
+  .btn { width: 100%; padding: 0.88rem; background: #1f6f54; color: #fff; border: none; border-radius: 8px; font-size: 0.96rem; font-weight: 700; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+  .btn:hover:enabled { background: #165740; }
+  .btn:disabled { background: #b4c4bd; cursor: not-allowed; }
+  .footer { font-size: 0.74rem; color: #94a0aa; margin-top: 1.3rem; text-align: center; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3l9 4-9 4-9-4 9-4z"></path><path d="M5 9.5V14c0 1.7 3.1 3 7 3s7-1.3 7-3V9.5"></path><path d="M21 7v5"></path></svg>
+    </div>
+    <div class="brand">Mapleton School District<small>Visitor Network</small></div>
+    <p>Free wireless access for approved campus visitors.</p>
+  </div>
+  <div class="body">
+    <h2>Visitor Sign-In</h2>
+
+    <div class="notice">
+      <strong>Filtered and Monitored Network</strong>
+      This network is content-filtered and monitored in accordance with district policy and the Children's Internet Protection Act (CIPA). Access to inappropriate or harmful content is blocked, and network activity may be logged and reviewed.
+    </div>
+
+    <form method="POST" action="/portal/accept">
+      <label for="fn">Full Name <span class="req">*</span></label>
+      <input type="text" id="fn" name="full_name" placeholder="First and last name" required>
+
+      <label for="role">Visitor Role <span class="req">*</span></label>
+      <select id="role" name="visitor_role" required>
+        <option value="" disabled selected>Select your role</option>
+        <option value="Parent">Parent / Guardian</option>
+        <option value="Vendor">Vendor / Contractor</option>
+        <option value="Volunteer">Volunteer</option>
+        <option value="Other">Other</option>
+      </select>
+
+      <label class="terms">
+        <input type="checkbox" id="agree" name="accepted_terms" value="yes" onchange="document.getElementById('go').disabled = !this.checked;">
+        <span>I have read and agree to the district <a href="/legal/aup">Acceptable Use Policy</a> and understand this network is filtered and monitored.</span>
+      </label>
+
+      <button type="submit" id="go" class="btn" disabled>Accept &amp; Connect</button>
+    </form>
+
+    <div class="footer">
+      Questions? Visit the front office or contact the district technology department.<br>
+      <a href="/legal/terms">Terms of Use</a> &nbsp;&middot;&nbsp; <a href="/legal/privacy">Privacy Policy</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

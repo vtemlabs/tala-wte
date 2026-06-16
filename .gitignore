@@ -1,0 +1,98 @@
+# ─── References (local only — do not publish) ────────────────────────────────
+_references/
+.claude
+
+# ─── Go ──────────────────────────────────────────────────────────────────────
+/tala-wte
+/tala-wte-*
+*.exe
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+vendor/
+
+# ─── PocketBase ──────────────────────────────────────────────────────────────
+pb_data/
+pb_migrations/
+
+# ─── Node / pnpm ─────────────────────────────────────────────────────────────
+node_modules/
+.pnpm-debug.log
+pnpm-debug.log*
+
+# ─── SvelteKit / Vite ────────────────────────────────────────────────────────
+web/.svelte-kit/
+web/build/
+web/dist/
+.vite/
+
+# ─── Environment ─────────────────────────────────────────────────────────────
+.env
+.env.*
+!.env.example
+
+# ─── Certificates & Keys ─────────────────────────────────────────────────────
+*.pem
+*.key
+*.crt
+*.csr
+*.p12
+*.pfx
+*.der
+
+# ─── Packet Captures ─────────────────────────────────────────────────────────
+*.pcap
+*.pcapng
+*.cap
+/captures/
+
+# ─── Logs ────────────────────────────────────────────────────────────────────
+*.log
+logs/
+/tmp/
+
+# ─── hostapd / dnsmasq runtime ───────────────────────────────────────────────
+*.pid
+hostapd.conf
+dnsmasq.conf
+/run/
+/var/run/
+
+# ─── OpenLDAP runtime ────────────────────────────────────────────────────────
+slapd.conf
+ldap-data/
+*.ldif
+
+# ─── OS ──────────────────────────────────────────────────────────────────────
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# ─── IDE ─────────────────────────────────────────────────────────────────────
+.idea/
+*.iml
+*.swp
+*.swo
+*~
+
+# ─── Build artifacts ─────────────────────────────────────────────────────────
+dist/
+bin/
+
+# ─── References ──────────────────────────────────────────────────────────────
+docs/
+# Exclude root-level binary and credentials (anchor with leading slash so
+# this does not also match the cmd/server/ source directory).
+/server
+credentials.txt
+
+
+# Vendored e-terminal (pulled fresh at build time by `make eterminal`)
+internal/eterminal/assets/e-terminal/

@@ -1,0 +1,178 @@
+<!--
+  Tala WTE - Wireless Training Environment
+  Copyright (c) 2026 VTEM Labs. All rights reserved.
+  Free for personal and non-profit use. Commercial, paid training, paid CTF,
+  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+-->
+<script lang="ts">
+  import { onMount } from 'svelte';
+  import { system } from '$lib/api';
+  import { toast } from '$lib/stores/toast';
+  import HardwareCard from '$lib/HardwareCard.svelte';
+  import LicenseModal from '$lib/components/LicenseModal.svelte';
+
+  import type { WirelessInterface } from '$lib/types';
+
+  let showLicense = $state(false);
+
+  let interfaces = $state<WirelessInterface[]>([]);
+  let uplinkIface = $state('eth0');
+  let countryCode = $state('US');
+  let saving = $state(false);
+  let saved = $state(false);
+
+  // The loaded value is folded in below so a region not on this list still shows.
+  const COUNTRIES: { code: string; name: string }[] = [
+    { code: 'US', name: 'United States' },
+    { code: 'CA', name: 'Canada' },
+    { code: 'GB', name: 'United Kingdom' },
+    { code: 'IE', name: 'Ireland' },
+    { code: 'DE', name: 'Germany' },
+    { code: 'FR', name: 'France' },
+    { code: 'NL', name: 'Netherlands' },
+    { code: 'ES', name: 'Spain' },
+    { code: 'IT', name: 'Italy' },
+    { code: 'SE', name: 'Sweden' },
+    { code: 'CH', name: 'Switzerland' },
+    { code: 'JP', name: 'Japan' },
+    { code: 'AU', name: 'Australia' },
+    { code: 'NZ', name: 'New Zealand' },
+    { code: 'BR', name: 'Brazil' },
+    { code: 'ZA', name: 'South Africa' },
+    { code: 'AE', name: 'United Arab Emirates' }
+  ];
+
+  const countryOptions = $derived(
+    COUNTRIES.some(c => c.code === countryCode)
+      ? COUNTRIES
+      : [{ code: countryCode, name: countryCode }, ...COUNTRIES]
+  );
+
+  onMount(async () => {
+    try {
+      const [ifaceRes, settingsRes] = await Promise.all([
+        system.interfaces(),
+        system.getSettings()
+      ]);
+      interfaces = ifaceRes.interfaces ?? [];
+      if (settingsRes.uplink_iface) uplinkIface = settingsRes.uplink_iface;
+      if (settingsRes.country_code) countryCode = settingsRes.country_code;
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to load settings');
+    }
+  });
+
+  async function save() {
+    saving = true;
+    try {
+      await system.saveSettings({ uplink_iface: uplinkIface, country_code: countryCode });
+      saved = true;
+      toast.success('Settings saved');
+      setTimeout(() => saved = false, 3000);
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to save settings');
+    }
+    saving = false;
+  }
+</script>
+
+<svelte:head><title>Settings - Tala WTE</title></svelte:head>
+
+<div class="page-header">
+  <div>
+    <h1 class="page-title">Settings</h1>
+    <p class="page-subtitle">System configuration - regulatory domain, uplink, services</p>
+  </div>
+  <div class="header-actions">
+    {#if saved}<span class="badge badge-success">Saved</span>{/if}
+    <button class="btn btn-primary" onclick={save} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
+  </div>
+</div>
+
+<div class="grid grid-2" style="align-items:start">
+  <div class="stack">
+    <section class="panel">
+      <div class="panel-head"><h2 class="panel-title">Radio &amp; Network</h2></div>
+      <div class="panel-body">
+        <div class="field">
+          <label class="field-label" for="country">Regulatory Domain</label>
+          <select class="input" id="country" bind:value={countryCode}>
+            {#each countryOptions as c}
+              <option value={c.code}>{c.code} - {c.name}</option>
+            {/each}
+          </select>
+          <span class="field-desc">
+            Sets the country hostapd advertises and applies it with <code>iw reg set</code>. This decides
+            which channels are legal and whether 5 GHz / 6 GHz AP mode is allowed. The world domain blocks
+            5 GHz beaconing, so this must match where the box operates.
+          </span>
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="uplinkIface">Uplink Interface (Internet)</label>
+          <input class="input" id="uplinkIface" bind:value={uplinkIface} placeholder="e.g. eth0, wlan1" />
+          <span class="field-desc">The interface connected to the internet, used for NAT passthrough on networks that allow it.</span>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2 class="panel-title">Services</h2></div>
+      <div class="panel-body">
+        <div class="meta-grid">
+          <div class="meta-row"><div class="meta-key">PocketBase</div><div class="meta-val">:8090 (embedded)</div></div>
+          <div class="meta-row"><div class="meta-key">FreeRADIUS</div><div class="meta-val">:1812 / :1813</div></div>
+          <div class="meta-row"><div class="meta-key">OpenLDAP</div><div class="meta-val">127.0.0.1:3389</div></div>
+          <div class="meta-row"><div class="meta-key">Portal Server</div><div class="meta-val">:8080 (per-network)</div></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2 class="panel-title">About &amp; License</h2></div>
+      <div class="panel-body">
+        <p class="about-line">Tala WTE v0.1.0 - a VTEM Labs Wireless Training Environment.</p>
+        <p class="about-line dim">
+          &copy; 2026 VTEM Labs. Free for personal and non-profit use. Commercial and for-profit use,
+          including paid training, paid CTF, and use by any for-profit school, institution, or company,
+          requires written authorization and a license from VTEM Labs. Redistribution, rebranding, or
+          claiming this platform (or any variant or copy) as your own is prohibited.
+        </p>
+        <button class="btn btn-sm license-btn" onclick={() => showLicense = true}>View Full License</button>
+      </div>
+    </section>
+  </div>
+
+  <LicenseModal bind:open={showLicense} />
+
+  <section class="panel">
+    <div class="panel-head">
+      <h2 class="panel-title">Wireless Interfaces</h2>
+      {#if interfaces.length}<span class="count-pill">{interfaces.length}</span>{/if}
+    </div>
+    <div class="panel-body">
+      {#if interfaces.length}
+        <div class="stack">
+          {#each interfaces as iface}
+            <HardwareCard adapter={iface} />
+          {/each}
+        </div>
+      {:else}
+        <div class="empty-state" style="padding:var(--space-2xl)"><p>No wireless interfaces detected.</p></div>
+      {/if}
+    </div>
+  </section>
+</div>
+
+<style>
+  .field { margin-bottom: var(--space-xl); }
+  .field:last-child { margin-bottom: 0; }
+  .field-desc code {
+    font-family: var(--font-mono); font-size: 0.92em;
+    color: var(--text-secondary); background: var(--bg-input);
+    padding: 1px 5px; border-radius: var(--radius-sm);
+  }
+  .about-line { font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.6; margin: 0 0 var(--space-sm); }
+  .about-line.dim { font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: var(--space-md); }
+  .license-btn { align-self: flex-start; }
+</style>

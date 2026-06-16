@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>FiberNet Communities WiFi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Nunito', 'Helvetica Neue', Arial, sans-serif; color: #213a40;
+    background: #f4f8f7; min-height: 100vh;
+    display: flex; align-items: center; justify-content: center; padding: 1.25rem;
+  }
+  .card {
+    background: #ffffff; width: 100%; max-width: 430px; border-radius: 16px;
+    overflow: hidden; box-shadow: 0 12px 36px rgba(20,80,80,0.12);
+  }
+  .hero { background: linear-gradient(135deg, #f4863c 0%, #f06b2e 100%); color: #fff; padding: 1.8rem 1.9rem 1.6rem; text-align: center; }
+  .hero .brand { display: inline-flex; align-items: center; gap: 0.5rem; margin-bottom: 0.5rem; }
+  .hero svg { width: 28px; height: 28px; }
+  .hero .org { font-size: 1.25rem; font-weight: 800; letter-spacing: -0.01em; }
+  .hero .tag { font-size: 0.8rem; color: #ffe2d2; }
+  .tabs { display: flex; background: #eef4f3; }
+  .tab {
+    flex: 1; padding: 0.95rem 0.5rem; text-align: center; font-size: 0.86rem; font-weight: 700;
+    color: #6b8589; background: transparent; border: none; cursor: pointer; border-bottom: 3px solid transparent;
+  }
+  .tab.active { color: #138a8a; background: #fff; border-bottom-color: #138a8a; }
+  .panel { display: none; padding: 1.7rem 1.9rem 2rem; }
+  .panel.active { display: block; }
+  h1 { font-size: 1.02rem; font-weight: 800; color: #213a40; margin-bottom: 0.35rem; }
+  p.msg { font-size: 0.82rem; color: #6b8589; line-height: 1.5; margin-bottom: 1.3rem; }
+  .field { margin-bottom: 1rem; }
+  label { display: block; font-size: 0.76rem; font-weight: 700; color: #4f6b6f; margin-bottom: 0.3rem; }
+  input[type=email], input[type=password] {
+    width: 100%; padding: 0.78rem 0.9rem; border: 1.5px solid #d6e2e1; border-radius: 9px;
+    font-size: 0.92rem; color: #213a40;
+  }
+  input:focus { outline: none; border-color: #138a8a; box-shadow: 0 0 0 3px rgba(19,138,138,0.12); }
+  .btn {
+    width: 100%; padding: 0.85rem; background: #138a8a; color: #fff; border: none; border-radius: 9px;
+    font-size: 0.95rem; font-weight: 800; cursor: pointer; transition: background 0.15s; margin-top: 0.3rem;
+  }
+  .btn.orange { background: #f06b2e; }
+  .btn.orange:hover { background: #d85a20; }
+  .btn:hover { background: #0f7373; }
+  .forgot { display: block; text-align: right; font-size: 0.78rem; color: #138a8a; text-decoration: none; margin-top: -0.4rem; margin-bottom: 1.1rem; }
+  .plans { display: grid; gap: 0.75rem; margin-bottom: 1.3rem; }
+  .plan {
+    display: flex; align-items: center; justify-content: space-between; cursor: pointer;
+    border: 2px solid #d6e2e1; border-radius: 11px; padding: 0.85rem 1rem; transition: border-color 0.12s, background 0.12s;
+  }
+  .plan:hover { border-color: #f4863c; }
+  .plan.selected { border-color: #f06b2e; background: #fff5ef; }
+  .plan .name { font-size: 0.92rem; font-weight: 800; color: #213a40; }
+  .plan .dur { font-size: 0.74rem; color: #6b8589; }
+  .plan .price { font-size: 0.98rem; font-weight: 800; color: #f06b2e; }
+  .legal { padding: 0 1.9rem 1.6rem; text-align: center; font-size: 0.72rem; color: #9bb0b2; }
+  .legal a { color: #138a8a; text-decoration: none; }
+  .legal a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="hero">
+    <div class="brand">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5a10 10 0 0 1 14 0"></path><path d="M8.5 15.8a5 5 0 0 1 7 0"></path><circle cx="12" cy="19" r="1.2"></circle><path d="M2 9a14 14 0 0 1 20 0"></path></svg>
+      <span class="org">FiberNet Communities</span>
+    </div>
+    <div class="tag">Neighborhood WiFi powered by your neighbors</div>
+  </div>
+
+  <div class="tabs">
+    <button type="button" class="tab active" id="tabSignin" onclick="showTab('signin')">Subscriber sign-in</button>
+    <button type="button" class="tab" id="tabPass" onclick="showTab('pass')">Buy a pass</button>
+  </div>
+
+  <div class="panel active" id="panelSignin">
+    <h1>Welcome back</h1>
+    <p class="msg">FiberNet subscribers get free access on every community hotspot. Sign in with your account.</p>
+    <form method="POST" action="/portal/accept">
+      <div class="field">
+        <label for="email">Account email</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="email" required>
+      </div>
+      <div class="field">
+        <label for="password">Password</label>
+        <input type="password" id="password" name="password" autocomplete="current-password" required>
+      </div>
+      <a href="/legal/privacy" class="forgot">Forgot password?</a>
+      <button type="submit" class="btn">Sign In</button>
+    </form>
+  </div>
+
+  <div class="panel" id="panelPass">
+    <h1>Get online now</h1>
+    <p class="msg">No subscription? Pick a pass and connect in seconds. No commitment required.</p>
+    <form method="POST" action="/portal/accept">
+      <input type="hidden" name="pass_plan" id="passPlan" value="">
+      <div class="plans">
+        <div class="plan" data-plan="1_hour" onclick="selectPlan(this)">
+          <div><div class="name">1 Hour</div><div class="dur">Quick browse</div></div>
+          <div class="price">$2.99</div>
+        </div>
+        <div class="plan" data-plan="1_day" onclick="selectPlan(this)">
+          <div><div class="name">1 Day</div><div class="dur">24 hours of access</div></div>
+          <div class="price">$7.99</div>
+        </div>
+        <div class="plan" data-plan="1_week" onclick="selectPlan(this)">
+          <div><div class="name">1 Week</div><div class="dur">7 days unlimited</div></div>
+          <div class="price">$19.99</div>
+        </div>
+      </div>
+      <button type="submit" class="btn orange">Continue</button>
+    </form>
+  </div>
+
+  <div class="legal">
+    <a href="/legal/terms">Terms of Service</a> &middot; <a href="/legal/aup">Acceptable Use</a> &middot; <a href="/legal/privacy">Privacy</a>
+  </div>
+</div>
+
+<script>
+  function showTab(which) {
+    var signin = which === 'signin';
+    document.getElementById('tabSignin').classList.toggle('active', signin);
+    document.getElementById('tabPass').classList.toggle('active', !signin);
+    document.getElementById('panelSignin').classList.toggle('active', signin);
+    document.getElementById('panelPass').classList.toggle('active', !signin);
+  }
+  function selectPlan(el) {
+    var all = document.querySelectorAll('.plan');
+    for (var i = 0; i < all.length; i++) { all[i].classList.remove('selected'); }
+    el.classList.add('selected');
+    document.getElementById('passPlan').value = el.getAttribute('data-plan');
+  }
+</script>
+</body>
+</html>

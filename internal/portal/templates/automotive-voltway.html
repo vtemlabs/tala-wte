@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>VoltWay Charging Lounge Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI Variable', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: linear-gradient(155deg, #effaf1 0%, #d9f3e1 100%);
+    color: #143a2b;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #ffffff; border-radius: 22px; padding: 2.5rem 2rem 2.2rem;
+    max-width: 400px; width: 100%;
+    box-shadow: 0 14px 50px rgba(16, 70, 49, 0.16);
+  }
+  .logo { display: flex; align-items: center; gap: 0.6rem; color: #0f9d58; margin-bottom: 1.6rem; }
+  .badge { width: 44px; height: 44px; border-radius: 12px; background: #0f9d58; color: #fff; display: flex; align-items: center; justify-content: center; }
+  .badge svg { width: 26px; height: 26px; }
+  .wordmark { font-size: 1.5rem; font-weight: 800; color: #0f5132; letter-spacing: -0.01em; }
+  .wordmark span { color: #0f9d58; }
+  .sub { font-size: 0.72rem; letter-spacing: 0.14em; text-transform: uppercase; color: #5b8772; }
+  h2 { font-size: 1.25rem; font-weight: 800; color: #0f5132; margin-bottom: 0.45rem; }
+  p.lead { font-size: 0.9rem; line-height: 1.55; color: #3f6b58; margin-bottom: 1.7rem; }
+  label.fld { display: block; font-size: 0.78rem; font-weight: 700; color: #2c5d47; margin: 0 0 0.4rem 0.1rem; }
+  input[type=email], input[type=text] {
+    width: 100%; padding: 0.9rem; margin-bottom: 1.15rem;
+    background: #f3faf5; border: 1.5px solid #cbe8d6; border-radius: 12px;
+    color: #143a2b; font-size: 0.95rem;
+  }
+  input::placeholder { color: #8fb6a3; }
+  input:focus { outline: none; border-color: #0f9d58; background: #fff; box-shadow: 0 0 0 3px rgba(15, 157, 88, 0.14); }
+  .optin { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.82rem; color: #3f6b58; line-height: 1.5; margin-bottom: 1.5rem; }
+  .optin input { margin-top: 2px; width: 18px; height: 18px; accent-color: #0f9d58; flex-shrink: 0; }
+  .btn {
+    width: 100%; padding: 0.95rem; background: #0f9d58; color: #fff;
+    border: none; border-radius: 12px; font-size: 1rem; font-weight: 800;
+    cursor: pointer; transition: background 0.15s; display: inline-flex; align-items: center; justify-content: center; gap: 0.45rem;
+  }
+  .btn:hover { background: #0c7e46; }
+  .btn svg { width: 18px; height: 18px; }
+  .legal { margin-top: 1.4rem; font-size: 0.72rem; color: #6f9685; text-align: center; line-height: 1.5; }
+  .legal a { color: #0f9d58; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo" aria-hidden="true">
+    <div class="badge">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"></path>
+      </svg>
+    </div>
+    <div>
+      <div class="wordmark">Volt<span>Way</span></div>
+      <div class="sub">Charging Network</div>
+    </div>
+  </div>
+
+  <h2>Stay connected while you charge</h2>
+  <p class="lead">Top off your battery and your inbox. Enter your details to get on the lounge Wi-Fi for the length of your session.</p>
+
+  <form method="POST" action="/portal/accept">
+    <label class="fld" for="email">Email address</label>
+    <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="off" required>
+
+    <label class="fld" for="station_id">Charging stall</label>
+    <input type="text" id="station_id" name="station_id" placeholder="Stall #" autocomplete="off" required>
+
+    <label class="optin">
+      <input type="checkbox" name="marketing_optin" value="yes">
+      <span>Send me VoltWay charging offers, free-session promos, and network updates.</span>
+    </label>
+
+    <button type="submit" class="btn">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M13 2L4 14h6l-1 8 9-12h-6l1-8z"></path></svg>
+      Connect
+    </button>
+  </form>
+
+  <p class="legal">Complimentary Wi-Fi for charging guests. See our <a href="/legal/terms">Terms</a>, <a href="/legal/aup">Acceptable Use</a>, and <a href="/legal/privacy">Privacy Policy</a>.</p>
+</div>
+</body>
+</html>

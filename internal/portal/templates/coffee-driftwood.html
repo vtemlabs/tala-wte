@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Driftwood Coffee Co. - Free Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+    background: #f7f5f0;
+    color: #27251f;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #ffffff; border-radius: 18px; padding: 2.25rem 1.75rem;
+    max-width: 400px; width: 100%;
+    box-shadow: 0 8px 40px rgba(0, 56, 37, 0.10);
+    text-align: center;
+  }
+  .emblem {
+    width: 76px; height: 76px; border-radius: 50%;
+    background: #00704a; color: #ffffff;
+    display: inline-flex; align-items: center; justify-content: center;
+    margin-bottom: 1.1rem;
+  }
+  .emblem svg { width: 40px; height: 40px; }
+  .brand { font-size: 1.05rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #1e3932; }
+  .brand-sub { font-size: 0.7rem; letter-spacing: 0.22em; text-transform: uppercase; color: #9c958a; margin-top: 0.2rem; }
+  h1 {
+    font-size: 1.45rem; font-weight: 700; color: #1e3932;
+    margin: 1.6rem 0 0.6rem; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  }
+  h1 svg { width: 22px; height: 22px; color: #00704a; }
+  .welcome { font-size: 0.9rem; line-height: 1.55; color: #4a4a45; margin-bottom: 1.6rem; }
+  .field { margin-bottom: 0.7rem; text-align: left; }
+  input {
+    width: 100%; padding: 0.85rem 1rem;
+    border: 1px solid #d8d8d8; border-radius: 8px;
+    font-size: 0.95rem; color: #27251f; background: #fff;
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+  input::placeholder { color: #9a9a95; }
+  input:focus { outline: none; border-color: #00704a; box-shadow: 0 0 0 3px rgba(0, 112, 74, 0.12); }
+  .consent { font-size: 0.72rem; color: #8a857c; line-height: 1.5; margin: 0.9rem 0 1.1rem; }
+  .btn {
+    width: 100%; padding: 0.95rem; background: #00704a; color: #fff;
+    border: none; border-radius: 50px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: background 0.15s, transform 0.1s; letter-spacing: 0.02em;
+  }
+  .btn:hover { background: #015c3d; }
+  .btn:active { transform: translateY(1px); }
+  .legal { margin-top: 1.3rem; font-size: 0.72rem; }
+  .legal a { color: #00704a; text-decoration: none; }
+  .legal a:hover { text-decoration: underline; }
+  .legal span { color: #c8c4bc; margin: 0 0.4rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="emblem" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M18 8h1a4 4 0 0 1 0 8h-1"></path>
+      <path d="M2 8h16v9a4 4 0 0 1-4 4H6a4 4 0 0 1-4-4Z"></path>
+      <line x1="6" y1="1" x2="6" y2="4"></line><line x1="10" y1="1" x2="10" y2="4"></line><line x1="14" y1="1" x2="14" y2="4"></line>
+    </svg>
+  </div>
+  <div class="brand">Driftwood Coffee</div>
+  <div class="brand-sub">Roasters &amp; Roastery</div>
+
+  <h1>
+    Wi-Fi + Coffee =
+    <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true"><path d="M12 21s-7.5-4.9-10-9.3C.5 9 1.4 5.5 4.3 4.6 6.3 4 8.2 4.9 9.3 6.4L12 9.9l2.7-3.5c1.1-1.5 3-2.4 5-1.8 2.9.9 3.8 4.4 2.3 7.1C19.5 16.1 12 21 12 21Z"/></svg>
+  </h1>
+  <p class="welcome">Welcome to Driftwood. Log on to our network once, and this device will automatically reconnect at participating Driftwood locations everywhere you go.</p>
+
+  <form method="POST" action="/portal/accept" id="wifiForm">
+    <div class="field"><input type="text" name="first_name" placeholder="First name" maxlength="50" required></div>
+    <div class="field"><input type="text" name="last_name" placeholder="Last name" maxlength="50" required></div>
+    <div class="field"><input type="email" name="email" placeholder="Email address" maxlength="255" required></div>
+    <div class="field"><input type="text" name="postal_code" placeholder="Postal code" maxlength="12" required></div>
+
+    <p class="consent">By accepting, I agree to receive emails about Driftwood news, promotions and offers.</p>
+
+    <button type="submit" class="btn">Accept &amp; Connect</button>
+  </form>
+
+  <div class="legal">
+    <a href="/legal/privacy">Privacy Statement</a><span>|</span><a href="/legal/terms">Terms of Service</a>
+  </div>
+</div>
+</body>
+</html>

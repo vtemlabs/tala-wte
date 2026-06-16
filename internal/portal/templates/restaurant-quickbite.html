@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>QuickBite Burgers - Free Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: #e4002b;
+    background-image: radial-gradient(circle at 50% 18%, #ff1f47 0%, #c00021 100%);
+    color: #2b2b2b;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #ffffff; border-radius: 22px; padding: 2.2rem 1.9rem 2rem;
+    max-width: 380px; width: 100%; text-align: center;
+    box-shadow: 0 16px 50px rgba(0,0,0,0.3);
+    border: 5px solid #ffc20e;
+  }
+  .badge {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 78px; height: 78px; border-radius: 50%;
+    background: #ffc20e; color: #e4002b; margin-bottom: 0.8rem;
+    box-shadow: 0 6px 0 #d99e00;
+  }
+  .badge svg { width: 44px; height: 44px; }
+  .name { font-size: 1.7rem; font-weight: 900; color: #e4002b; letter-spacing: -0.02em; line-height: 1; }
+  .name span { color: #ffc20e; -webkit-text-stroke: 1px #d99e00; }
+  .tag { font-size: 0.74rem; font-weight: 700; letter-spacing: 0.16em; text-transform: uppercase; color: #888; margin: 0.4rem 0 1.4rem; }
+  h2 { font-size: 1.35rem; font-weight: 800; color: #222; margin-bottom: 0.4rem; }
+  .lead { font-size: 0.9rem; color: #666; line-height: 1.5; margin-bottom: 1.5rem; }
+  .promo {
+    background: #fff7da; border: 2px dashed #ffc20e; border-radius: 12px;
+    padding: 0.9rem 1rem 1rem; margin-bottom: 1.3rem; text-align: left;
+  }
+  .promo .ph { font-size: 0.78rem; font-weight: 800; color: #c47b00; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 0.5rem; display: flex; align-items: center; gap: 0.4rem; }
+  .promo .ph svg { width: 16px; height: 16px; }
+  .promo input {
+    width: 100%; padding: 0.7rem 0.8rem; border: 2px solid #f0d680;
+    border-radius: 8px; font-size: 1rem; font-weight: 700; text-align: center;
+    letter-spacing: 0.18em; text-transform: uppercase; background: #fff; color: #c00021;
+  }
+  .promo input:focus { outline: none; border-color: #ffc20e; }
+  .promo .hint { font-size: 0.72rem; color: #a78230; margin-top: 0.45rem; }
+  .terms { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.76rem; color: #777; text-align: left; line-height: 1.45; margin-bottom: 1.2rem; }
+  .terms input { width: 18px; height: 18px; margin-top: 1px; accent-color: #e4002b; flex-shrink: 0; }
+  .terms a { color: #e4002b; text-decoration: none; font-weight: 600; }
+  .btn {
+    width: 100%; padding: 1.05rem; background: #e4002b; color: #fff;
+    border: none; border-radius: 50px; font-size: 1.1rem; font-weight: 900;
+    cursor: pointer; text-transform: uppercase; letter-spacing: 0.03em;
+    box-shadow: 0 6px 0 #a8001f; transition: transform 0.08s, box-shadow 0.08s;
+  }
+  .btn:active { transform: translateY(4px); box-shadow: 0 2px 0 #a8001f; }
+  .legal { margin-top: 1rem; font-size: 0.7rem; color: #aaa; }
+  .legal a { color: #e4002b; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="badge" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M4 9a8 8 0 0 1 16 0"></path>
+      <line x1="3" y1="13" x2="21" y2="13"></line>
+      <path d="M4 17h16a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"></path>
+    </svg>
+  </div>
+  <div class="name">Quick<span>Bite</span></div>
+  <div class="tag">Burgers &amp; More</div>
+
+  <h2>Free Wi-Fi, Hot &amp; Fast</h2>
+  <p class="lead">Tap below to hop on our guest network. No account needed.</p>
+
+  <form method="POST" action="/portal/accept">
+    <input type="hidden" name="accepted_terms" value="yes">
+    <div class="promo">
+      <div class="ph">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 7V5a2 2 0 0 1 2-2h2"></path><path d="M16 3h2a2 2 0 0 1 2 2v2"></path><path d="M20 17v2a2 2 0 0 1-2 2h-2"></path><path d="M8 21H6a2 2 0 0 1-2-2v-2"></path><line x1="8" y1="8" x2="8" y2="16"></line><line x1="12" y1="8" x2="12" y2="16"></line><line x1="16" y1="8" x2="16" y2="16"></line></svg>
+        Got a receipt? Score a free item
+      </div>
+      <input type="text" name="survey_code" placeholder="SURVEY CODE" autocomplete="off">
+      <div class="hint">Optional - enter the survey code from your receipt for a free small fry.</div>
+    </div>
+
+    <label class="terms">
+      <input type="checkbox" name="confirm_terms" value="yes" required>
+      <span>I agree to the <a href="/legal/terms">Terms of Service</a> and <a href="/legal/aup">Acceptable Use Policy</a>.</span>
+    </label>
+
+    <button type="submit" class="btn">Get Free Wi-Fi</button>
+  </form>
+
+  <p class="legal">Complimentary Wi-Fi for QuickBite guests. <a href="/legal/privacy">Privacy</a></p>
+</div>
+</body>
+</html>

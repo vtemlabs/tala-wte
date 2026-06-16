@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>RestEasy Inn &amp; Suites - Guest Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: #eef7f4;
+    color: #213733;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #ffffff; border-radius: 16px; max-width: 420px; width: 100%;
+    overflow: hidden; box-shadow: 0 10px 35px rgba(20, 110, 90, 0.16);
+  }
+  .top {
+    background: linear-gradient(135deg, #1aa179 0%, #0f8a72 100%);
+    color: #fff; padding: 1.9rem 1.75rem 1.6rem; text-align: center;
+  }
+  .mark { display: inline-flex; align-items: center; gap: 0.55rem; }
+  .mark svg { width: 30px; height: 30px; }
+  .brand { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.02em; }
+  .brand span { font-weight: 300; }
+  .top .tag { font-size: 0.82rem; opacity: 0.92; margin-top: 0.5rem; }
+  .body { padding: 1.7rem 1.75rem 1.9rem; }
+  .welcome {
+    background: #e6f6f0; border-radius: 10px; padding: 0.95rem 1.05rem;
+    font-size: 0.85rem; color: #14745d; line-height: 1.5; margin-bottom: 1.5rem;
+    text-align: center;
+  }
+  .welcome strong { display: block; font-size: 0.95rem; margin-bottom: 0.2rem; }
+  label { display: block; font-size: 0.76rem; font-weight: 600; color: #4f6661; margin-bottom: 0.4rem; }
+  .opt { color: #94a8a3; font-weight: 500; }
+  input {
+    width: 100%; padding: 0.82rem 0.95rem; border: 1.5px solid #d4e3de;
+    border-radius: 9px; font-size: 0.95rem; color: #213733; margin-bottom: 1.1rem;
+    background: #fbfdfc;
+  }
+  input:focus { outline: none; border-color: #1aa179; box-shadow: 0 0 0 3px rgba(26, 161, 121, 0.15); background: #fff; }
+  .btn {
+    width: 100%; padding: 0.92rem; background: #f6a623; color: #3a2700;
+    border: none; border-radius: 10px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: background 0.15s; letter-spacing: 0.01em;
+  }
+  .btn:hover { background: #e89712; }
+  .footer { text-align: center; font-size: 0.74rem; color: #9bafaa; margin-top: 1.4rem; line-height: 1.7; }
+  .footer a { color: #0f8a72; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21V11l9-6 9 6v10M3 21h18M7 21v-6h4v6M14 14h3v3h-3z"></path></svg>
+      <div class="brand">Rest<span>Easy</span></div>
+    </div>
+    <div class="tag">Inn &amp; Suites - Complimentary Guest Wi-Fi</div>
+  </div>
+  <div class="body">
+    <div class="welcome">
+      <strong>Welcome to your stay</strong>
+      Free basic internet is complimentary for all guests. Just verify your room to connect.
+    </div>
+
+    <form method="POST" action="/portal/accept">
+      <label for="rm">Room Number</label>
+      <input type="text" id="rm" name="room_number" placeholder="e.g. 214" autocomplete="off">
+
+      <label for="ln">Last Name</label>
+      <input type="text" id="ln" name="last_name" placeholder="Last name on reservation" autocomplete="off">
+
+      <label for="rw">RestEasy Rewards Number <span class="opt">(optional)</span></label>
+      <input type="text" id="rw" name="loyalty_id" placeholder="Member number for bonus points" autocomplete="off">
+
+      <button type="submit" class="btn">Connect</button>
+    </form>
+
+    <div class="footer">
+      Need a hand? Dial 0 for the Front Desk.<br>
+      <a href="/legal/terms">Terms of Use</a> &nbsp;|&nbsp; <a href="/legal/aup">Acceptable Use</a> &nbsp;|&nbsp; <a href="/legal/privacy">Privacy</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

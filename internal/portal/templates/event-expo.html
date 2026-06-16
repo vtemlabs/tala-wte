@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Convene Expo Center - Event Wi-Fi Access</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: #1f2733;
+    background: #eef1f5;
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem 1rem;
+  }
+  .card { background: #fff; border-radius: 12px; max-width: 440px; width: 100%; overflow: hidden; box-shadow: 0 14px 44px rgba(31,39,51,0.16); border: 1px solid #e3e8ef; }
+  .head { padding: 1.5rem 1.7rem 1.3rem; border-bottom: 1px solid #eef1f5; }
+  .brand { display: flex; align-items: center; gap: 0.7rem; }
+  .brand .logo { width: 38px; height: 38px; border-radius: 8px; background: #0f4c81; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+  .brand .logo svg { width: 22px; height: 22px; color: #fff; }
+  .brand .name { font-weight: 700; font-size: 1.08rem; color: #0f2942; letter-spacing: -0.01em; }
+  .brand .name small { display: block; font-weight: 500; font-size: 0.66rem; letter-spacing: 0.16em; color: #7c8696; text-transform: uppercase; margin-top: 0.15rem; }
+  .head h1 { margin-top: 1.2rem; font-size: 1.3rem; font-weight: 700; color: #0f2942; }
+  .head p { font-size: 0.84rem; color: #5e6878; margin-top: 0.35rem; line-height: 1.5; }
+  .badge-note { display: flex; align-items: center; gap: 0.55rem; margin-top: 1rem; background: #eef5fb; border: 1px solid #cfe2f2; color: #0f4c81; border-radius: 8px; padding: 0.6rem 0.8rem; font-size: 0.78rem; }
+  .badge-note svg { width: 18px; height: 18px; flex-shrink: 0; }
+  .body { padding: 1.4rem 1.7rem 1.8rem; }
+  label { display: block; font-size: 0.74rem; font-weight: 600; color: #5e6878; margin-bottom: 0.4rem; }
+  label .req { color: #c0392b; }
+  input { width: 100%; padding: 0.82rem 0.95rem; border: 1px solid #d4dbe4; border-radius: 7px; font-size: 0.94rem; }
+  input:focus { outline: none; border-color: #0f4c81; box-shadow: 0 0 0 3px rgba(15,76,129,0.12); }
+  .field { margin-bottom: 1.05rem; }
+  #access_code { letter-spacing: 0.18em; text-transform: uppercase; font-weight: 700; }
+  .hint { font-size: 0.72rem; color: #9099a8; margin-top: 0.35rem; }
+  .btn { width: 100%; margin-top: 0.6rem; padding: 0.9rem; background: #0f4c81; color: #fff; border: none; border-radius: 7px; font-size: 0.97rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .btn:hover { background: #0b3a64; }
+  .footer { font-size: 0.7rem; color: #9099a8; text-align: center; margin-top: 1.3rem; line-height: 1.6; }
+  .footer a { color: #0f4c81; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <div class="brand">
+      <span class="logo"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 3h8v8H3V3zm10 0h8v5h-8V3zM3 13h8v8H3v-8zm10 3h8v5h-8v-5zm0-3h8v1.5h-8V13z"/></svg></span>
+      <span class="name">Convene<small>Expo Center</small></span>
+    </div>
+    <h1>Event Wi-Fi Access</h1>
+    <p>Welcome to the show floor. Sign in with your event credentials to get online.</p>
+    <div class="badge-note">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 4h12a1 1 0 0 1 1 1v3H5V5a1 1 0 0 1 1-1z"/><rect x="5" y="8" width="14" height="12" rx="1"/><path d="M9 13h6M9 16h4"/></svg>
+      <span>Enter the code printed on your badge.</span>
+    </div>
+  </div>
+
+  <div class="body">
+    <form method="POST" action="/portal/accept">
+      <div class="field">
+        <label for="access_code">Event access code <span class="req">*</span></label>
+        <input type="text" id="access_code" name="access_code" placeholder="XXXX-XXXX" required>
+        <p class="hint">Printed on the front of your lanyard badge.</p>
+      </div>
+
+      <div class="field">
+        <label for="badge_number">Badge number (optional)</label>
+        <input type="text" id="badge_number" name="badge_number" placeholder="e.g. 004821">
+      </div>
+
+      <div class="field">
+        <label for="company">Company</label>
+        <input type="text" id="company" name="company" placeholder="Your organization">
+      </div>
+
+      <button type="submit" class="btn">Join Event Wi-Fi</button>
+    </form>
+
+    <div class="footer">
+      Access is provided to registered attendees for the duration of the event.<br>
+      <a href="/legal/terms">Terms of Service</a> &nbsp;&middot;&nbsp; <a href="/legal/aup">Acceptable Use</a> &nbsp;&middot;&nbsp; <a href="/legal/privacy">Privacy</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

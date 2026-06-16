@@ -1,0 +1,110 @@
+Tala WTE License
+Copyright (c) 2026 VTEM Labs. All rights reserved.
+
+This software and its associated source code, assets, documentation, and design
+(collectively, the "Software") are the property of VTEM Labs and are made
+available under the terms below. By downloading, copying, installing, running,
+or otherwise using the Software, you agree to these terms. If you do not agree,
+you may not use the Software.
+
+------------------------------------------------------------------------------
+1. DEFINITIONS
+------------------------------------------------------------------------------
+"VTEM Labs" means the author and sole rights holder of the Software.
+
+"Permitted Use" means (a) use by an individual for their own private learning,
+experimentation, or skills practice, and (b) use by or on behalf of a bona fide
+non-profit or not-for-profit school, university, institution, or organization
+for non-commercial educational purposes, in each case where the Software is not
+used to generate profit or revenue.
+
+"For-Profit Use" means any use that is not Permitted Use, including but not
+limited to any use by, for, or on behalf of any for-profit business, employer,
+client, for-profit school, university, training provider, bootcamp,
+certification program, company, agency, institution, or organization, and any
+use that generates or is intended to generate profit or revenue, directly or
+indirectly.
+
+"Derivative" means any copy, fork, port, variant, rebrand, adaptation,
+translation, or modified version of the Software, in whole or in part.
+
+------------------------------------------------------------------------------
+2. GRANT (PERSONAL AND NON-PROFIT USE)
+------------------------------------------------------------------------------
+Subject to these terms, VTEM Labs grants you a non-exclusive, non-transferable,
+revocable license to download, install, run, and modify the Software solely for
+Permitted Use.
+
+------------------------------------------------------------------------------
+3. RESTRICTIONS
+------------------------------------------------------------------------------
+Without the prior written authorization of VTEM Labs and a separate commercial
+license from VTEM Labs, you may NOT, and may not permit others to:
+
+  a. Use the Software or any Derivative for any For-Profit Use.
+
+  b. Use the Software or any Derivative for any paid, fee-based, tuition-based,
+     sponsored, or otherwise compensated for-profit training, course, class,
+     workshop, bootcamp, lab, or certification program.
+
+  c. Use the Software or any Derivative as part of, or as the infrastructure,
+     platform, lab environment, courseware, or training material for, any paid
+     or for-profit Capture-the-Flag (CTF) event, wireless penetration testing
+     course, security course, or similar offering.
+
+  d. Use the Software or any Derivative within, for, or on behalf of any
+     for-profit school, university, institution, company, agency, or
+     organization.
+
+  e. Sell, resell, rent, lease, sublicense, host as a service, or otherwise
+     monetize the Software or any Derivative, or use it to generate revenue,
+     directly or indirectly.
+
+  f. Rebrand the Software or any Derivative, remove or alter its notices or
+     branding, claim authorship or ownership of it, or otherwise represent it
+     (or any Derivative) as your own or your organization's product or asset.
+
+For clarity: standing up a for-profit wireless penetration testing course,
+security program, or CTF, and using the Software or any Derivative as its
+infrastructure or training material, is expressly prohibited without a paid
+license from VTEM Labs. VTEM Labs does not authorize anyone to make money from
+the Software, in any shape, form, or fashion, without such a license.
+
+------------------------------------------------------------------------------
+4. COMMERCIAL LICENSING
+------------------------------------------------------------------------------
+Any use described in Section 3 requires a separate commercial license. To obtain
+authorization and licensing for commercial or other for-profit use, contact VTEM
+Labs.
+
+------------------------------------------------------------------------------
+5. RESERVATION OF RIGHTS
+------------------------------------------------------------------------------
+All rights not expressly granted are reserved by VTEM Labs. No rights are
+granted by implication, estoppel, or otherwise. The names "Tala", "Tala WTE",
+"VTEM Labs", and associated logos and marks are the property of VTEM Labs and
+may not be used without prior written permission.
+
+------------------------------------------------------------------------------
+6. TERMINATION
+------------------------------------------------------------------------------
+This license terminates automatically and immediately if you breach any of its
+terms. On termination you must cease all use of the Software and any Derivative
+and destroy all copies in your possession or control.
+
+------------------------------------------------------------------------------
+7. DISCLAIMER OF WARRANTY
+------------------------------------------------------------------------------
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY, FITNESS
+FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT. IN NO EVENT SHALL VTEM LABS BE
+LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
+CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION WITH THE
+SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
+
+------------------------------------------------------------------------------
+8. LAWFUL USE
+------------------------------------------------------------------------------
+The Software is intended for authorized wireless security training and testing
+only. You are solely responsible for ensuring your use is lawful and authorized
+on any network or system you operate it against.

@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Riverside Public Library - Free Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Palatino Linotype', 'Book Antiqua', Palatino, Georgia, serif; color: #2a2d33;
+    background: #e7eeec; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.25rem;
+  }
+  .card { background: #fffdf8; border-radius: 6px; max-width: 440px; width: 100%; overflow: hidden; box-shadow: 0 6px 28px rgba(30,60,55,0.18); border: 1px solid #e0d8c8; }
+  .top { background: #1d4e4a; color: #f4efe4; padding: 1.6rem 1.8rem; display: flex; align-items: center; gap: 0.8rem; }
+  .top svg { width: 36px; height: 36px; color: #d9a441; flex-shrink: 0; }
+  .top .brand { font-size: 1.28rem; font-weight: 700; line-height: 1.15; }
+  .top .brand small { display: block; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.16em; opacity: 0.82; margin-top: 0.35rem; text-transform: uppercase; }
+  .body { padding: 1.5rem 1.8rem 1.9rem; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .banner { background: #f3ede0; border: 1px solid #e6dcc6; border-radius: 6px; padding: 0.85rem 1rem; font-size: 0.79rem; color: #6a5f48; margin-bottom: 1.4rem; line-height: 1.55; }
+  .tabs { display: flex; border-bottom: 2px solid #e6dcc6; margin-bottom: 1.4rem; }
+  .tab { flex: 1; text-align: center; padding: 0.7rem 0; font-size: 0.85rem; font-weight: 700; color: #9a907c; cursor: pointer; border-bottom: 3px solid transparent; margin-bottom: -2px; }
+  .tab.active { color: #1d4e4a; border-bottom-color: #d9a441; }
+  .pane { display: none; }
+  .pane.active { display: block; }
+  .lead { font-size: 0.82rem; color: #6a6557; margin-bottom: 1.2rem; line-height: 1.55; }
+  label { display: block; font-size: 0.74rem; font-weight: 700; color: #50574a; margin-bottom: 0.32rem; }
+  label .req { color: #b5562a; }
+  input { width: 100%; padding: 0.74rem 0.9rem; border: 1px solid #d7cdb9; border-radius: 5px; font-size: 0.92rem; font-family: inherit; margin-bottom: 1rem; background: #fffdf8; }
+  input:focus { outline: none; border-color: #1d4e4a; box-shadow: 0 0 0 3px rgba(29,78,74,0.12); }
+  .terms { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.79rem; color: #50574a; margin: 0.2rem 0 1.2rem; line-height: 1.5; }
+  .terms input { width: 17px; height: 17px; margin: 2px 0 0; accent-color: #1d4e4a; flex-shrink: 0; }
+  .terms a, .footer a, .lead a, .banner a { color: #1d4e4a; text-decoration: underline; }
+  .btn { width: 100%; padding: 0.86rem; background: #1d4e4a; color: #f4efe4; border: none; border-radius: 5px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.15s; font-family: inherit; }
+  .btn:hover { background: #143733; }
+  .footer { font-size: 0.73rem; color: #a39a86; margin-top: 1.4rem; text-align: center; line-height: 1.7; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5a2 2 0 0 1 2-2h5v16H6a2 2 0 0 0-2 2V5z"></path><path d="M20 5a2 2 0 0 0-2-2h-5v16h5a2 2 0 0 1 2 2V5z"></path></svg>
+    <div class="brand">Riverside Public Library<small>Public Wireless Access</small></div>
+  </div>
+  <div class="body">
+    <div class="banner">
+      Free public Wi-Fi is provided as a community service. Sessions are time-limited and content is filtered for all ages. Please review our <a href="/legal/aup">Acceptable Use Policy</a>.
+    </div>
+
+    <div class="tabs">
+      <div class="tab active" data-pane="card" onclick="tab(this)">Library Card</div>
+      <div class="tab" data-pane="guest" onclick="tab(this)">Guest</div>
+    </div>
+
+    <div class="pane active" id="card">
+      <p class="lead">Cardholders enjoy extended session times. Sign in with your library card to get started.</p>
+      <form method="POST" action="/portal/accept">
+        <label for="cn">Library Card Number <span class="req">*</span></label>
+        <input type="text" id="cn" name="card_number" placeholder="14-digit card number" autocomplete="off" required>
+        <label for="ln">Last Name <span class="req">*</span></label>
+        <input type="text" id="ln" name="last_name" placeholder="Last name on card" required>
+        <input type="hidden" name="access_method" value="cardholder">
+        <button type="submit" class="btn">Connect</button>
+      </form>
+    </div>
+
+    <div class="pane" id="guest">
+      <p class="lead">No card? Continue as a guest. Guest sessions are limited to 60 minutes per day and use the same filtered, time-limited public access.</p>
+      <form method="POST" action="/portal/accept">
+        <label class="terms">
+          <input type="checkbox" name="accepted_terms" value="yes" required>
+          <span>I agree to the <a href="/legal/terms">Terms of Use</a> and <a href="/legal/aup">Acceptable Use Policy</a> for public access.</span>
+        </label>
+        <input type="hidden" name="access_method" value="guest">
+        <button type="submit" class="btn">Connect</button>
+      </form>
+    </div>
+
+    <div class="footer">
+      Need help? Ask at the front desk or call your local branch.<br>
+      <a href="/legal/privacy">Privacy Policy</a> &nbsp;&middot;&nbsp; <a href="/legal/aup">Acceptable Use</a>
+    </div>
+  </div>
+</div>
+<script>
+  function tab(el) {
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.pane').forEach(function(p){ p.classList.remove('active'); });
+    el.classList.add('active');
+    document.getElementById(el.getAttribute('data-pane')).classList.add('active');
+  }
+</script>
+</body>
+</html>

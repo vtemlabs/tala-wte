@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Coastline Rail - Onboard Internet</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif; color: #1a2230;
+    background: radial-gradient(circle at 20% 0%, #1b3a5c, #0c1825 60%);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.5rem 1rem;
+  }
+  .card { background: #fff; border-radius: 18px; max-width: 480px; width: 100%; overflow: hidden; box-shadow: 0 24px 64px rgba(0,0,0,0.5); }
+  .hero { background: linear-gradient(120deg, #0c1825, #1b3a5c); color: #fff; padding: 1.4rem 1.6rem 1.5rem; }
+  .brandline { display: flex; align-items: center; gap: 0.6rem; }
+  .brandline svg { width: 24px; height: 24px; color: #36c6c0; }
+  .brandline .b { font-weight: 700; letter-spacing: 0.22em; font-size: 0.74rem; text-transform: uppercase; }
+  .chip { margin-top: 1.1rem; display: inline-flex; align-items: center; gap: 0.5rem; background: rgba(54,198,192,0.16); border: 1px solid rgba(54,198,192,0.4); color: #aef1ee; border-radius: 30px; padding: 0.35rem 0.85rem; font-size: 0.78rem; }
+  .chip b { color: #fff; font-weight: 700; }
+  .hero h1 { margin-top: 1rem; font-size: 1.55rem; font-weight: 700; letter-spacing: -0.01em; }
+  .hero p { font-size: 0.84rem; opacity: 0.82; margin-top: 0.3rem; }
+  .body { padding: 1.5rem 1.6rem 1.9rem; }
+  .step-label { font-size: 0.72rem; font-weight: 700; color: #36988f; letter-spacing: 0.08em; text-transform: uppercase; }
+  .tiers { display: grid; grid-template-columns: 1fr 1fr; gap: 0.7rem; margin: 0.6rem 0 1.4rem; }
+  .tier { border: 1.5px solid #dde3ea; border-radius: 12px; padding: 1rem 0.95rem; cursor: pointer; position: relative; transition: border-color 0.15s, background 0.15s; }
+  .tier:hover { border-color: #1b3a5c; }
+  .tier.sel { border-color: #1b3a5c; border-width: 2px; background: #f3f8fb; }
+  .tier .tname { font-weight: 800; color: #0c1825; font-size: 0.98rem; }
+  .tier .tprice { font-size: 0.78rem; color: #36988f; font-weight: 700; margin-top: 0.2rem; }
+  .tier .tdesc { font-size: 0.74rem; color: #6a7484; margin-top: 0.5rem; line-height: 1.4; }
+  .tier .tag { position: absolute; top: -9px; right: 10px; background: #36c6c0; color: #06241f; font-size: 0.56rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; padding: 0.15rem 0.5rem; border-radius: 4px; }
+  label { display: block; font-size: 0.74rem; font-weight: 700; color: #5c6573; margin: 1.1rem 0 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  input, select { width: 100%; padding: 0.82rem 0.95rem; border: 1.5px solid #dde3ea; border-radius: 9px; font-size: 0.94rem; background: #fff; color: #1a2230; }
+  input:focus, select:focus { outline: none; border-color: #36c6c0; box-shadow: 0 0 0 3px rgba(54,198,192,0.16); }
+  .btn { width: 100%; margin-top: 1.5rem; padding: 0.95rem; background: #1b3a5c; color: #fff; border: none; border-radius: 10px; font-size: 1rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .btn:hover { background: #122941; }
+  .footer { font-size: 0.7rem; color: #9aa3b1; text-align: center; margin-top: 1.3rem; line-height: 1.6; }
+  .footer a { color: #36988f; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="hero">
+    <div class="brandline">
+      <svg viewBox="0 0 24 24" fill="currentColor"><path d="M7 2h10a4 4 0 0 1 4 4v8a4 4 0 0 1-4 4l2 3h-2.4l-1.3-2H8.7l-1.3 2H5l2-3a4 4 0 0 1-4-4V6a4 4 0 0 1 4-4zm5 2a8 8 0 0 0-6 1.5V8h12V5.5A8 8 0 0 0 12 4zM6 10v4h12v-4H6zm2.5 5.5a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3zm9 0a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></svg>
+      <span class="b">Coastline Rail</span>
+    </div>
+    <div class="chip">Train 612 <b>&nbsp;Bayshore &rarr; Harbor Central&nbsp;</b> &middot; Car 4</div>
+    <h1>Onboard Internet</h1>
+    <p>Welcome aboard. Choose your connection and verify your ticket to get online.</p>
+  </div>
+
+  <div class="body">
+    <form method="POST" action="/portal/accept">
+      <div class="step-label">Step 1 &middot; Choose your service</div>
+      <input type="hidden" name="service_tier" id="tierField" value="Standard">
+      <div class="tiers">
+        <div class="tier sel" data-tier="Standard" onclick="pickTier(this)">
+          <div class="tname">Standard</div>
+          <div class="tprice">Free</div>
+          <div class="tdesc">Browsing and email for all passengers.</div>
+        </div>
+        <div class="tier" data-tier="First Class" onclick="pickTier(this)">
+          <span class="tag">Ticket perk</span>
+          <div class="tname">First Class</div>
+          <div class="tprice">Included</div>
+          <div class="tdesc">Priority speeds, included with your fare.</div>
+        </div>
+      </div>
+
+      <div class="step-label">Step 2 &middot; Verify your journey</div>
+      <label for="ticket">Ticket number</label>
+      <input type="text" id="ticket" name="ticket_number" placeholder="e.g. CR-8841092" required>
+
+      <label for="coach">Coach class</label>
+      <select id="coach" name="coach_class">
+        <option value="Coach">Coach</option>
+        <option value="Business">Business</option>
+        <option value="First">First</option>
+      </select>
+
+      <button type="submit" class="btn">Connect Onboard</button>
+    </form>
+
+    <div class="footer">
+      Service availability depends on signal coverage along the route.<br>
+      <a href="/legal/terms">Terms</a> &nbsp;&middot;&nbsp; <a href="/legal/aup">Acceptable Use</a> &nbsp;&middot;&nbsp; <a href="/legal/privacy">Privacy</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function pickTier(el) {
+    document.querySelectorAll('.tier').forEach(function(t){ t.classList.remove('sel'); });
+    el.classList.add('sel');
+    document.getElementById('tierField').value = el.getAttribute('data-tier');
+  }
+</script>
+</body>
+</html>

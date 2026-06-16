@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Aria Hotels - Wi-Fi Sign In</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+    background: #f4f6fa; color: #1b1b1b;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card { background: #fff; border-radius: 12px; max-width: 440px; width: 100%; overflow: hidden; box-shadow: 0 8px 40px rgba(0, 48, 135, 0.15); }
+  .top { background: #003087; color: #fff; padding: 1.6rem 1.75rem; text-align: center; }
+  .top .mark { display: inline-flex; align-items: center; gap: 0.5rem; }
+  .top .mark svg { width: 26px; height: 26px; }
+  .brand { font-size: 1.5rem; font-weight: 300; letter-spacing: 0.3em; text-transform: uppercase; }
+  .top p { font-size: 0.78rem; opacity: 0.85; margin-top: 0.45rem; }
+  .body { padding: 1.6rem 1.75rem 1.9rem; }
+  .tabs { display: flex; border-bottom: 1px solid #e3e7ef; margin-bottom: 1.4rem; }
+  .tab { flex: 1; text-align: center; padding: 0.75rem 0; font-size: 0.85rem; font-weight: 600; color: #8a90a0; cursor: pointer; border-bottom: 2px solid transparent; margin-bottom: -1px; }
+  .tab.active { color: #003087; border-bottom-color: #003087; }
+  .pane { display: none; }
+  .pane.active { display: block; }
+  .upsell { background: #eef3fc; border: 1px solid #d4e0f5; border-radius: 8px; padding: 0.8rem 0.95rem; font-size: 0.8rem; color: #1f4ba0; margin-bottom: 1.2rem; line-height: 1.5; }
+  label { display: block; font-size: 0.74rem; font-weight: 600; color: #5a6172; margin-bottom: 0.35rem; }
+  input { width: 100%; padding: 0.78rem 0.9rem; border: 1px solid #d8dee8; border-radius: 6px; font-size: 0.92rem; color: #1b1b1b; margin-bottom: 0.95rem; }
+  input:focus { outline: none; border-color: #1668e3; box-shadow: 0 0 0 3px rgba(22, 104, 227, 0.12); }
+  .btn { width: 100%; padding: 0.85rem; background: #003087; color: #fff; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .btn:hover { background: #00256a; }
+  .join { text-align: center; font-size: 0.8rem; color: #5a6172; margin-top: 1rem; }
+  .join a { color: #1668e3; text-decoration: none; font-weight: 600; }
+  .footer { text-align: center; font-size: 0.72rem; color: #a7adba; margin-top: 1.3rem; line-height: 1.6; }
+  .footer a { color: #1668e3; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 21h18M5 21V8l7-5 7 5v13M9 21v-5h6v5"></path></svg>
+    </div>
+    <div class="brand">Aria</div>
+    <p>Complimentary Guest Internet</p>
+  </div>
+  <div class="body">
+    <div class="tabs">
+      <div class="tab active" data-pane="guest" onclick="tab(this)">I'm a Guest</div>
+      <div class="tab" data-pane="member" onclick="tab(this)">Aria Rewards</div>
+    </div>
+
+    <form method="POST" action="/portal/accept">
+      <div class="pane active" id="guest">
+        <label for="ln">Last Name</label>
+        <input type="text" id="ln" name="last_name" placeholder="Last name on reservation" autocomplete="off">
+        <label for="rm">Room Number</label>
+        <input type="text" id="rm" name="room_number" placeholder="Room number" autocomplete="off">
+        <input type="hidden" name="method" value="guest">
+        <button type="submit" class="btn">Connect</button>
+      </div>
+
+      <div class="pane" id="member">
+        <div class="upsell">Aria Rewards members enjoy complimentary Premium Wi-Fi. Sign in for high-speed access on every device.</div>
+        <label for="mid">Rewards Number or Username</label>
+        <input type="text" id="mid" name="rewards_number" placeholder="Member number or username">
+        <label for="pw">Password</label>
+        <input type="password" id="pw" name="password" placeholder="Password">
+        <label for="rm2">Room Number</label>
+        <input type="text" id="rm2" name="room_number" placeholder="Room number">
+        <input type="hidden" name="method" value="member">
+        <button type="submit" class="btn">Sign In</button>
+        <p class="join">Not a member yet? <a href="#">Join Aria Rewards for free</a></p>
+      </div>
+    </form>
+
+    <div class="footer">
+      Standard Wi-Fi is complimentary. Premium available for $9.99/day.<br>
+      For assistance, please contact the Front Desk.<br>
+      <a href="/legal/terms">Terms of Use</a> &nbsp;|&nbsp; <a href="/legal/privacy">Privacy Statement</a>
+    </div>
+  </div>
+</div>
+<script>
+  function tab(el) {
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.pane').forEach(function(p){ p.classList.remove('active'); });
+    el.classList.add('active');
+    document.getElementById(el.getAttribute('data-pane')).classList.add('active');
+  }
+</script>
+</body>
+</html>

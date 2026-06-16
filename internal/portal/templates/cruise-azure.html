@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Azure Seas Cruise Line - Internet Packages</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif;
+    background: #07233f;
+    background-image: linear-gradient(180deg, #0a2c4d 0%, #051a30 100%);
+    color: #eaf2fb;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #0d3257; border-radius: 14px; max-width: 480px; width: 100%;
+    overflow: hidden; box-shadow: 0 16px 50px rgba(0, 0, 0, 0.5);
+    border: 1px solid #15466f;
+  }
+  .top {
+    background: linear-gradient(135deg, #0a3a66 0%, #062544 100%);
+    color: #fff; padding: 2rem 1.9rem 1.7rem; text-align: center;
+    border-bottom: 2px solid #c9a24b;
+  }
+  .mark { display: inline-flex; align-items: center; gap: 0.6rem; color: #c9a24b; }
+  .mark svg { width: 32px; height: 32px; }
+  .brand { font-size: 1.55rem; font-weight: 400; letter-spacing: 0.14em; text-transform: uppercase; color: #fff; }
+  .top .tag { font-size: 0.8rem; color: #b9cee4; margin-top: 0.55rem; letter-spacing: 0.04em; font-style: italic; }
+  .body { padding: 1.7rem 1.9rem 2rem; }
+  .section-title { font-size: 0.72rem; letter-spacing: 0.18em; text-transform: uppercase; color: #c9a24b; margin-bottom: 0.95rem; text-align: center; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .plans { display: flex; flex-direction: column; gap: 0.75rem; margin-bottom: 1.7rem; }
+  .plan {
+    border: 1.5px solid #1c517d; border-radius: 11px; padding: 1rem 1.1rem;
+    cursor: pointer; transition: border-color 0.15s, background 0.15s;
+    display: flex; justify-content: space-between; align-items: center;
+    background: #0a2b4b;
+  }
+  .plan:hover { border-color: #3a78aa; }
+  .plan.selected { border-color: #c9a24b; background: #103a61; box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.18); }
+  .plan .name { font-size: 1.05rem; font-weight: 700; color: #fff; }
+  .plan .desc { font-size: 0.76rem; color: #9fb8d2; margin-top: 0.2rem; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .plan .price { text-align: right; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .plan .price .amt { font-size: 1.2rem; font-weight: 700; color: #c9a24b; }
+  .plan .price .per { font-size: 0.68rem; color: #9fb8d2; display: block; }
+  .verify { border-top: 1px solid #1c517d; padding-top: 1.5rem; }
+  label { display: block; font-size: 0.74rem; font-weight: 700; color: #9fb8d2; margin-bottom: 0.4rem; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  input {
+    width: 100%; padding: 0.82rem 0.95rem; border: 1.5px solid #1c517d;
+    border-radius: 8px; font-size: 0.95rem; color: #fff; margin-bottom: 1.1rem;
+    background: #0a2b4b; font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  input::placeholder { color: #5d7d9d; }
+  input:focus { outline: none; border-color: #c9a24b; box-shadow: 0 0 0 3px rgba(201, 162, 75, 0.18); }
+  .folio { background: #0a2b4b; border: 1px solid #1c517d; border-radius: 8px; padding: 0.8rem 0.95rem; font-size: 0.78rem; color: #b9cee4; line-height: 1.5; margin-bottom: 1.3rem; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .btn {
+    width: 100%; padding: 0.95rem; background: #c9a24b; color: #062544;
+    border: none; border-radius: 8px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: background 0.15s; letter-spacing: 0.04em;
+    font-family: 'Helvetica Neue', Arial, sans-serif;
+  }
+  .btn:hover { background: #d7b15c; }
+  .footer { text-align: center; font-size: 0.72rem; color: #6c89a6; margin-top: 1.4rem; line-height: 1.7; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .footer a { color: #c9a24b; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="5" r="2"></circle><path d="M12 7v13M8 10h8M12 20c-4 0-6.5-3-6.5-6h13c0 3-2.5 6-6.5 6zM5.5 14H4M18.5 14H20"></path></svg>
+    </div>
+    <div class="brand">Azure Seas</div>
+    <div class="tag">Stay connected across the open ocean</div>
+  </div>
+  <div class="body">
+    <form method="POST" action="/portal/accept">
+      <div class="section-title">Choose your internet package</div>
+      <div class="plans" id="plans">
+        <div class="plan selected" data-plan="surf" data-price="14.99" onclick="pick(this)">
+          <div>
+            <div class="name">Surf</div>
+            <div class="desc">Browse, email, and chat apps</div>
+          </div>
+          <div class="price"><span class="amt">$14.99</span><span class="per">per day</span></div>
+        </div>
+        <div class="plan" data-plan="surf_stream" data-price="24.99" onclick="pick(this)">
+          <div>
+            <div class="name">Surf &amp; Stream</div>
+            <div class="desc">Adds music and video streaming</div>
+          </div>
+          <div class="price"><span class="amt">$24.99</span><span class="per">per day</span></div>
+        </div>
+        <div class="plan" data-plan="premium" data-price="34.99" onclick="pick(this)">
+          <div>
+            <div class="name">Premium</div>
+            <div class="desc">Fastest speeds, video calls, up to 4 devices</div>
+          </div>
+          <div class="price"><span class="amt">$34.99</span><span class="per">per day</span></div>
+        </div>
+      </div>
+
+      <input type="hidden" name="plan" id="plan_field" value="surf">
+      <input type="hidden" name="plan_price" id="plan_price_field" value="14.99">
+
+      <div class="verify">
+        <div class="folio">Charges for your selected package will be billed to your onboard folio account.</div>
+        <label for="sr">Stateroom Number</label>
+        <input type="text" id="sr" name="stateroom" placeholder="e.g. 8124" autocomplete="off">
+        <label for="ln">Last Name</label>
+        <input type="text" id="ln" name="last_name" placeholder="Last name on the reservation" autocomplete="off">
+        <button type="submit" class="btn">Connect at Sea</button>
+      </div>
+    </form>
+
+    <div class="footer">
+      Coverage may vary by region and weather at sea.<br>
+      <a href="/legal/terms">Terms</a> &nbsp;|&nbsp; <a href="/legal/aup">Acceptable Use</a> &nbsp;|&nbsp; <a href="/legal/privacy">Privacy</a>
+    </div>
+  </div>
+</div>
+<script>
+  function pick(el) {
+    document.querySelectorAll('.plan').forEach(function(p){ p.classList.remove('selected'); });
+    el.classList.add('selected');
+    document.getElementById('plan_field').value = el.getAttribute('data-plan');
+    document.getElementById('plan_price_field').value = el.getAttribute('data-price');
+  }
+</script>
+</body>
+</html>

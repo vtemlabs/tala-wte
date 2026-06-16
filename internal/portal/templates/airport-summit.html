@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Summit International Airport - Free Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: #2b2b2b;
+    min-height: 100vh;
+    background: linear-gradient(rgba(11, 27, 51, 0.55), rgba(11, 27, 51, 0.78)),
+      linear-gradient(135deg, #0b5fa5 0%, #16284f 100%);
+    display: flex; flex-direction: column;
+  }
+  .bar { background: #16284f; color: #fff; padding: 0.85rem 1.25rem; display: flex; align-items: center; gap: 0.7rem; }
+  .bar svg { width: 22px; height: 22px; color: #f2a900; }
+  .bar .name { font-weight: 700; font-size: 0.95rem; letter-spacing: 0.04em; }
+  .iata { background: #f2a900; color: #16284f; font-weight: 800; font-size: 0.72rem; padding: 0.15rem 0.45rem; border-radius: 4px; letter-spacing: 0.06em; }
+  .bar .lang { margin-left: auto; font-size: 0.75rem; opacity: 0.85; }
+  .wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.5rem 1.25rem; }
+  .card { background: #fff; border-radius: 14px; max-width: 460px; width: 100%; padding: 2rem 1.85rem; box-shadow: 0 18px 56px rgba(0, 0, 0, 0.35); }
+  h1 { font-size: 1.5rem; font-weight: 700; color: #16284f; margin-bottom: 0.35rem; }
+  .sub { font-size: 0.9rem; color: #6b7280; margin-bottom: 1.4rem; }
+  .seclabel { font-size: 0.68rem; letter-spacing: 0.12em; text-transform: uppercase; color: #9aa3b0; margin-bottom: 0.6rem; }
+  .plan { border: 1px solid #e2e6ea; border-radius: 10px; padding: 0.95rem 1.05rem; margin-bottom: 0.7rem; cursor: pointer; display: flex; align-items: center; gap: 0.85rem; transition: border-color 0.15s, background 0.15s; }
+  .plan:hover { border-color: #0b5fa5; }
+  .plan.sel { border-color: #0b5fa5; border-width: 2px; background: #f3f9ff; }
+  .radio { width: 18px; height: 18px; border-radius: 50%; border: 2px solid #c4cbd4; flex-shrink: 0; position: relative; }
+  .plan.sel .radio { border-color: #0b5fa5; }
+  .plan.sel .radio::after { content: ''; position: absolute; inset: 3px; border-radius: 50%; background: #0b5fa5; }
+  .plan-main { flex: 1; }
+  .plan-name { font-weight: 700; color: #16284f; font-size: 0.95rem; display: flex; align-items: center; gap: 0.5rem; }
+  .pill { background: #eaf5ff; color: #0b5fa5; font-size: 0.62rem; font-weight: 700; letter-spacing: 0.08em; padding: 0.12rem 0.4rem; border-radius: 4px; text-transform: uppercase; }
+  .plan-desc { font-size: 0.78rem; color: #6b7280; margin-top: 0.2rem; }
+  .plan-price { font-weight: 700; color: #16284f; font-size: 0.95rem; }
+  .field { margin: 1rem 0; }
+  label.fl { display: block; font-size: 0.74rem; font-weight: 600; color: #555; margin-bottom: 0.35rem; }
+  input[type=email] { width: 100%; padding: 0.78rem 0.9rem; border: 1px solid #dde2e8; border-radius: 8px; font-size: 0.92rem; }
+  input[type=email]:focus { outline: none; border-color: #0b5fa5; box-shadow: 0 0 0 3px rgba(11, 95, 165, 0.12); }
+  .micro { font-size: 0.72rem; color: #9aa3b0; margin-top: 0.3rem; }
+  .terms { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.8rem; color: #555; margin: 1rem 0 1.2rem; line-height: 1.5; }
+  .terms input { margin-top: 2px; width: 17px; height: 17px; accent-color: #0b5fa5; flex-shrink: 0; }
+  .terms a { color: #0b5fa5; text-decoration: none; }
+  .btn { width: 100%; padding: 0.9rem; background: #0b5fa5; color: #fff; border: none; border-radius: 8px; font-size: 0.98rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .btn:hover:not(:disabled) { background: #094c85; }
+  .btn:disabled { background: #c4cbd4; cursor: not-allowed; }
+  .sponsor { margin-top: 1.1rem; border: 1px dashed #d6dbe1; border-radius: 8px; padding: 0.7rem; text-align: center; font-size: 0.72rem; color: #9aa3b0; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M17.8 19.2 16 11l3.5-3.5a2 2 0 0 0-2.8-2.8L13 8 4.8 6.2a.5.5 0 0 0-.5.8L8 11l-3 3H3l-1 2 3 1 1 3 2-1v-2l3-3 3.6 3.7a.5.5 0 0 0 .8-.5Z"></path></svg>
+  <span class="name">Summit International Airport</span>
+  <span class="iata">SMT</span>
+  <span class="lang">EN | ES | FR</span>
+</div>
+
+<div class="wrap">
+  <div class="card">
+    <h1>Free Airport Wi-Fi</h1>
+    <p class="sub">Choose a connection to get online while you wait for your flight.</p>
+
+    <form method="POST" action="/portal/accept" id="wifiForm">
+      <input type="hidden" name="plan" id="planField" value="Free">
+      <div class="seclabel">Choose your connection</div>
+
+      <div class="plan sel" data-plan="Free" onclick="pick(this)">
+        <div class="radio"></div>
+        <div class="plan-main">
+          <div class="plan-name">Free Wi-Fi <span class="pill">Free</span></div>
+          <div class="plan-desc">Up to 10 Mbps - 45 minute session</div>
+        </div>
+      </div>
+
+      <div class="plan" data-plan="Premium" onclick="pick(this)">
+        <div class="radio"></div>
+        <div class="plan-main">
+          <div class="plan-name">Premium High-Speed</div>
+          <div class="plan-desc">Up to 100 Mbps - unlimited, all day</div>
+        </div>
+        <div class="plan-price">$7.95</div>
+      </div>
+
+      <div class="field">
+        <label class="fl" for="email">Email address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com">
+        <p class="micro">We'll send a connection reminder. Required to receive your access code.</p>
+      </div>
+
+      <label class="terms">
+        <input type="checkbox" id="agree" onchange="document.getElementById('go').disabled=!this.checked">
+        <span>I agree to the <a href="/legal/terms">Terms of Use</a> and <a href="/legal/privacy">Privacy Policy</a>. This open network is provided as a courtesy; avoid transmitting sensitive information.</span>
+      </label>
+
+      <button type="submit" class="btn" id="go" disabled>Connect</button>
+    </form>
+
+    <div class="sponsor">Free Wi-Fi sponsored by Summit Travel Rewards</div>
+  </div>
+</div>
+
+<script>
+  function pick(el) {
+    document.querySelectorAll('.plan').forEach(function(p){ p.classList.remove('sel'); });
+    el.classList.add('sel');
+    document.getElementById('planField').value = el.getAttribute('data-plan');
+  }
+</script>
+</body>
+</html>

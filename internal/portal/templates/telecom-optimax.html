@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Optimax Mobile WiFi - Sign In</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', system-ui, Arial, sans-serif; color: #1a1a24;
+    background: linear-gradient(160deg, #d6006e 0%, #99004f 100%);
+    min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.25rem;
+  }
+  .card {
+    background: #ffffff; width: 100%; max-width: 400px; border-radius: 14px;
+    padding: 2.25rem 2rem 2rem; box-shadow: 0 18px 50px rgba(120,0,60,0.35); text-align: center;
+  }
+  .logo { display: inline-flex; align-items: center; gap: 0.5rem; color: #d6006e; margin-bottom: 1.5rem; }
+  .logo svg { width: 30px; height: 30px; }
+  .logo .name { font-size: 1.35rem; font-weight: 800; letter-spacing: -0.02em; }
+  h1 { font-size: 1.1rem; font-weight: 700; color: #1a1a24; margin-bottom: 0.4rem; }
+  p.msg { font-size: 0.85rem; color: #6a6a78; line-height: 1.5; margin-bottom: 1.6rem; }
+  .field { text-align: left; margin-bottom: 1rem; }
+  label { display: block; font-size: 0.76rem; font-weight: 700; color: #6a6a78; margin-bottom: 0.35rem; }
+  input[type=tel], input[type=password] {
+    width: 100%; padding: 0.85rem 0.95rem; border: 2px solid #e6e0e4; border-radius: 9px;
+    font-size: 0.95rem; color: #1a1a24;
+  }
+  input:focus { outline: none; border-color: #d6006e; }
+  .btn {
+    width: 100%; padding: 0.9rem; margin-top: 0.4rem; background: #d6006e; color: #fff; border: none;
+    border-radius: 9px; font-size: 1rem; font-weight: 800; cursor: pointer; transition: background 0.15s;
+    letter-spacing: 0.01em;
+  }
+  .btn:hover { background: #b80060; }
+  .daypass { margin-top: 1.4rem; padding-top: 1.4rem; border-top: 1px solid #efe9ed; font-size: 0.85rem; color: #6a6a78; }
+  .daypass a { color: #d6006e; font-weight: 700; text-decoration: none; }
+  .daypass a:hover { text-decoration: underline; }
+  .net { font-size: 0.72rem; color: #a89aa2; margin-top: 1.5rem; }
+  .legal { margin-top: 0.9rem; font-size: 0.72rem; }
+  .legal a { color: #a89aa2; text-decoration: none; }
+  .legal a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M5 13a10 10 0 0 1 14 0"></path><path d="M8.5 16.5a5 5 0 0 1 7 0"></path><circle cx="12" cy="20" r="1"></circle><path d="M2 9.5a14 14 0 0 1 20 0"></path></svg>
+    <span class="name">Optimax Mobile</span>
+  </div>
+
+  <h1>Sign in to WiFi</h1>
+  <p class="msg">Connect with your Optimax account to use nationwide hotspots at no extra charge.</p>
+
+  <form method="POST" action="/portal/accept">
+    <div class="field">
+      <label for="account">Mobile number</label>
+      <input type="tel" id="account" name="account" placeholder="Mobile number" inputmode="tel" autocomplete="tel" required>
+    </div>
+    <div class="field">
+      <label for="passcode">Account PIN</label>
+      <input type="password" id="passcode" name="passcode" placeholder="Account PIN" inputmode="numeric" required>
+    </div>
+    <button type="submit" class="btn">Sign In</button>
+  </form>
+
+  <div class="daypass">
+    Not a customer? <a href="/legal/aup">Buy a day pass</a>
+  </div>
+
+  <div class="net">You are connected to Optimax_WiFi</div>
+  <div class="legal">
+    <a href="/legal/terms">Terms</a> &middot; <a href="/legal/privacy">Privacy</a>
+  </div>
+</div>
+</body>
+</html>

@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Continuum Logistics - Guest Access</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', Arial, sans-serif; color: #333;
+    background: #ffffff; min-height: 100vh;
+    display: flex; align-items: flex-start; justify-content: center; padding: 3rem 1.25rem;
+  }
+  .wrap { max-width: 520px; width: 100%; text-align: center; }
+  .logo { display: inline-flex; align-items: center; gap: 0.6rem; color: #16335b; margin-bottom: 2rem; }
+  .logo svg { width: 32px; height: 32px; }
+  .logo .org { font-size: 1.3rem; font-weight: 800; letter-spacing: -0.01em; }
+  h1 { font-size: 1.5rem; font-weight: 600; color: #1a1a1a; margin-bottom: 1rem; }
+  .body { font-size: 0.95rem; color: #555; line-height: 1.7; margin-bottom: 2rem; }
+  .body strong { color: #1a1a1a; }
+  .btn { display: inline-block; padding: 0.95rem 3rem; background: #67b346; color: #fff; border: none; border-radius: 4px; font-size: 1.05rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+  .btn:hover { background: #559339; }
+  .terms { font-size: 0.78rem; color: #888; margin-top: 1.5rem; line-height: 1.5; }
+  .terms a { color: #2879d0; text-decoration: none; }
+  .divider { height: 1px; background: #ececec; margin: 2.5rem 0 1.5rem; }
+  .note { font-size: 0.78rem; color: #aaa; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="logo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><rect x="1" y="6" width="15" height="12" rx="2"></rect><path d="M16 9h3l3 3v3a1 1 0 0 1-1 1h-2"></path><circle cx="6" cy="18" r="2"></circle><circle cx="18" cy="18" r="2"></circle></svg>
+    <span class="org">Continuum Logistics</span>
+  </div>
+
+  <h1>Welcome to Continuum Guest Wi-Fi</h1>
+  <p class="body">
+    You are connecting to <strong>Continuum-Guest</strong>, a complimentary internet service for our visitors and partners.
+    This network is intended for lawful business and personal use. Activity may be logged for security and compliance.
+  </p>
+
+  <form method="POST" action="/portal/accept">
+    <input type="hidden" name="accepted_terms" value="yes">
+    <button type="submit" class="btn">Continue to the Internet</button>
+  </form>
+
+  <p class="terms">By clicking "Continue to the Internet" you agree to the <a href="/legal/terms">Terms and Conditions</a> and <a href="/legal/aup">Acceptable Use Policy</a>.</p>
+
+  <div class="divider"></div>
+  <p class="note">For assistance, contact your meeting host or the front desk.</p>
+</div>
+</body>
+</html>

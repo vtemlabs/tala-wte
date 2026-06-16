@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Collective Hostel - Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Trebuchet MS', 'Segoe UI', Verdana, sans-serif;
+    background: #15131f;
+    background-image: radial-gradient(circle at 18% 22%, rgba(255, 94, 138, 0.22), transparent 45%),
+                      radial-gradient(circle at 82% 78%, rgba(94, 214, 255, 0.20), transparent 45%);
+    color: #f3f0fb;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #211d30; border-radius: 26px; max-width: 400px; width: 100%;
+    overflow: hidden; box-shadow: 0 18px 50px rgba(0, 0, 0, 0.45);
+    border: 1px solid #312a48;
+  }
+  .top { padding: 1.9rem 1.8rem 1.4rem; text-align: center; }
+  .mark { display: inline-flex; align-items: center; gap: 0.5rem; color: #ff5e8a; }
+  .mark svg { width: 28px; height: 28px; }
+  .brand { font-size: 1.45rem; font-weight: 700; letter-spacing: -0.01em; color: #fff; }
+  .top .tag { font-size: 0.84rem; color: #b6aad6; margin-top: 0.55rem; line-height: 1.5; }
+  .pills { display: flex; gap: 0.5rem; justify-content: center; flex-wrap: wrap; margin-top: 1rem; }
+  .pill { font-size: 0.7rem; font-weight: 700; padding: 0.3rem 0.7rem; border-radius: 999px; background: #312a48; color: #c9bdf0; }
+  .pill.hot { background: rgba(255, 94, 138, 0.18); color: #ff8db0; }
+  .pill.cool { background: rgba(94, 214, 255, 0.16); color: #8fe2ff; }
+  .body { padding: 0.5rem 1.8rem 2rem; }
+  label { display: block; font-size: 0.74rem; font-weight: 700; color: #b6aad6; margin-bottom: 0.4rem; text-transform: uppercase; letter-spacing: 0.05em; }
+  input[type="text"], input[type="email"] {
+    width: 100%; padding: 0.85rem 1rem; border: 1.5px solid #3a3252;
+    border-radius: 14px; font-size: 0.95rem; color: #fff; margin-bottom: 1.1rem;
+    background: #1a1727;
+  }
+  input::placeholder { color: #6a6088; }
+  input:focus { outline: none; border-color: #ff5e8a; box-shadow: 0 0 0 3px rgba(255, 94, 138, 0.18); }
+  .terms { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.8rem; color: #b6aad6; margin: 0.2rem 0 1.4rem; line-height: 1.45; }
+  .terms input { margin-top: 0.15rem; accent-color: #ff5e8a; width: 16px; height: 16px; }
+  .terms a { color: #8fe2ff; text-decoration: none; font-weight: 600; }
+  .btn {
+    width: 100%; padding: 0.95rem; border: none; border-radius: 14px;
+    background: linear-gradient(135deg, #ff5e8a 0%, #ff7b3d 100%);
+    color: #fff; font-size: 1rem; font-weight: 700; cursor: pointer;
+    transition: transform 0.12s, filter 0.15s;
+  }
+  .btn:hover { filter: brightness(1.06); transform: translateY(-1px); }
+  .footer { text-align: center; font-size: 0.72rem; color: #6f6594; margin-top: 1.5rem; line-height: 1.7; }
+  .footer a { color: #8fe2ff; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><circle cx="9" cy="8" r="3"></circle><circle cx="16" cy="9" r="2.4"></circle><path d="M3.5 19c0-3 2.5-5 5.5-5s5.5 2 5.5 5M14 19c0-2.4 1.6-4.2 4-4.2s2.5 1.4 2.5 3.2"></path></svg>
+    </div>
+    <div class="brand">The Collective</div>
+    <div class="tag">Co-living &amp; hostel Wi-Fi for the common room, the rooftop, and everywhere between.</div>
+    <div class="pills">
+      <span class="pill hot">Events board live</span>
+      <span class="pill cool">Common-room Wi-Fi</span>
+      <span class="pill">Free</span>
+    </div>
+  </div>
+  <div class="body">
+    <form method="POST" action="/portal/accept">
+      <label for="bc">Bed / Room Code</label>
+      <input type="text" id="bc" name="bed_code" placeholder="On your key card, e.g. 4B-12" autocomplete="off">
+
+      <label for="em">Email</label>
+      <input type="email" id="em" name="email" placeholder="you@email.com" autocomplete="off">
+
+      <label class="terms">
+        <input type="checkbox" name="accepted_terms" value="yes">
+        <span>I agree to the <a href="/legal/terms">house rules &amp; terms</a> and the <a href="/legal/aup">acceptable use policy</a>.</span>
+      </label>
+
+      <button type="submit" class="btn">Check In to Wi-Fi</button>
+    </form>
+
+    <div class="footer">
+      Check the events board in the common room for tonight's meetup.<br>
+      <a href="/legal/privacy">Privacy</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

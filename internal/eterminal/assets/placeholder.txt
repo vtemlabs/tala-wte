@@ -1,0 +1,5 @@
+Placeholder so `//go:embed all:assets` compiles on a clean checkout that has
+not run the vendoring step. `make eterminal` populates assets/e-terminal/ with
+the latest upstream e-terminal (gitignored, refreshed every build). When that
+tree is present, HasInstaller() returns true and the installer sets it up for
+the operator account (the user the in-browser terminal runs as, e.g. `tala`).

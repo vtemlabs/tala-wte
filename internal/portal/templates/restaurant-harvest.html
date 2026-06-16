@@ -1,0 +1,92 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Harvest Table Kitchen - Guest Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, 'Times New Roman', 'Segoe UI', serif;
+    background: #f3ebdd;
+    background-image: radial-gradient(circle at 20% 0%, #f7f0e2 0%, #ebdcc2 100%);
+    color: #3d2e1c;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #fffaf2; border: 1px solid #e3d3b6; border-radius: 14px;
+    max-width: 440px; width: 100%; overflow: hidden;
+    box-shadow: 0 14px 40px rgba(74, 50, 20, 0.18);
+  }
+  .crest {
+    background: #5a3d22; color: #f6e6c9; text-align: center;
+    padding: 1.9rem 1.5rem 1.6rem;
+    border-bottom: 3px solid #8a6a3d;
+  }
+  .crest svg { width: 38px; height: 38px; color: #d7a85a; margin-bottom: 0.5rem; }
+  .crest .name { font-size: 1.5rem; font-weight: bold; letter-spacing: 0.02em; }
+  .crest .sub { font-size: 0.68rem; letter-spacing: 0.32em; text-transform: uppercase; color: #c79f63; margin-top: 0.35rem; font-family: 'Segoe UI', Arial, sans-serif; }
+  .body { padding: 1.7rem 1.7rem 2rem; }
+  h2 { font-size: 1.2rem; color: #5a3d22; text-align: center; margin-bottom: 0.4rem; }
+  .lead { font-size: 0.88rem; line-height: 1.55; color: #7a6446; text-align: center; margin-bottom: 1.5rem; font-family: 'Segoe UI', Arial, sans-serif; }
+  form { font-family: 'Segoe UI', Arial, sans-serif; }
+  .row { display: grid; grid-template-columns: 1fr 1fr; gap: 0 0.75rem; }
+  .field { margin-bottom: 0.85rem; }
+  label { display: block; font-size: 0.72rem; font-weight: 600; color: #6b5333; margin-bottom: 0.3rem; letter-spacing: 0.02em; }
+  input[type=text], input[type=email], input[type=tel] {
+    width: 100%; padding: 0.7rem 0.8rem; border: 1px solid #ddcba7;
+    border-radius: 7px; font-size: 0.92rem; background: #fffdf8; color: #3d2e1c;
+  }
+  input:focus { outline: none; border-color: #a87a3a; box-shadow: 0 0 0 3px rgba(168,122,58,0.16); }
+  .optin { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.79rem; color: #6b5333; line-height: 1.5; margin: 0.6rem 0 1.3rem; }
+  .optin input { width: 18px; height: 18px; margin-top: 1px; accent-color: #8a5a1f; flex-shrink: 0; }
+  .btn {
+    width: 100%; padding: 0.95rem; background: #8a5a1f; color: #fff8ec;
+    border: none; border-radius: 8px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; letter-spacing: 0.02em; transition: background 0.15s;
+    font-family: 'Segoe UI', Arial, sans-serif;
+  }
+  .btn:hover { background: #6e4716; }
+  .legal { margin-top: 1.1rem; text-align: center; font-size: 0.72rem; color: #a8916e; font-family: 'Segoe UI', Arial, sans-serif; line-height: 1.5; }
+  .legal a { color: #8a5a1f; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="crest">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <path d="M11 4a4 4 0 0 1 0 8c-3 0-7 2-7 6h14c0-4 4-6 7-6a4 4 0 0 1 0-8c-3 0-5 2-5 5"></path>
+      <path d="M11 12v9"></path>
+    </svg>
+    <div class="name">Harvest Table Kitchen</div>
+    <div class="sub">Farm Fresh Comfort</div>
+  </div>
+  <div class="body">
+    <h2>Join the Harvest Rewards Club</h2>
+    <p class="lead">Get on our complimentary Wi-Fi and start earning a free appetizer on your next visit. Members enjoy birthday treats and seasonal offers.</p>
+
+    <form method="POST" action="/portal/accept">
+      <div class="row">
+        <div class="field"><label for="fn">First Name</label><input type="text" id="fn" name="first_name" required></div>
+        <div class="field"><label for="ln">Last Name</label><input type="text" id="ln" name="last_name" required></div>
+      </div>
+      <div class="field"><label for="em">Email Address</label><input type="email" id="em" name="email" placeholder="you@email.com" required></div>
+      <div class="row">
+        <div class="field"><label for="bd">Birthday (MM/DD)</label><input type="text" id="bd" name="birthday" placeholder="04/15" maxlength="5"></div>
+        <div class="field"><label for="ph">Phone</label><input type="tel" id="ph" name="phone" placeholder="(555) 555-5555"></div>
+      </div>
+
+      <label class="optin">
+        <input type="checkbox" name="marketing_optin" value="yes">
+        <span>Yes, send me Harvest Rewards offers, seasonal menus, and birthday surprises by email and text.</span>
+      </label>
+
+      <button type="submit" class="btn">Join &amp; Connect</button>
+    </form>
+
+    <p class="legal">By connecting you agree to our <a href="/legal/terms">Terms of Service</a> and <a href="/legal/privacy">Privacy Policy</a>.</p>
+  </div>
+</div>
+</body>
+</html>

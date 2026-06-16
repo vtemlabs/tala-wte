@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>BlueWave Ferries - Onboard Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Avenir Next', 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+    background: #dff1f7;
+    background-image: linear-gradient(180deg, #eaf7fb 0%, #cfeaf2 100%);
+    color: #16384a;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #ffffff; border-radius: 18px; max-width: 410px; width: 100%;
+    overflow: hidden; box-shadow: 0 12px 40px rgba(22, 90, 120, 0.18);
+  }
+  .top {
+    background: linear-gradient(135deg, #2aa3c4 0%, #1c7fa6 100%);
+    color: #fff; padding: 1.9rem 1.8rem 1.6rem; text-align: center; position: relative;
+  }
+  .mark { display: inline-flex; align-items: center; gap: 0.55rem; }
+  .mark svg { width: 30px; height: 30px; }
+  .brand { font-size: 1.4rem; font-weight: 700; letter-spacing: 0.01em; }
+  .brand span { font-weight: 300; }
+  .route {
+    display: inline-flex; align-items: center; gap: 0.4rem;
+    background: rgba(255, 255, 255, 0.18); border-radius: 999px;
+    padding: 0.32rem 0.9rem; font-size: 0.78rem; font-weight: 600;
+    margin-top: 0.85rem; letter-spacing: 0.02em;
+  }
+  .body { padding: 1.7rem 1.8rem 1.9rem; }
+  .lead {
+    text-align: center; font-size: 0.9rem; color: #3d6478; line-height: 1.55;
+    margin-bottom: 1.5rem;
+  }
+  .lead strong { color: #16384a; }
+  label { display: block; font-size: 0.76rem; font-weight: 700; color: #527589; margin-bottom: 0.4rem; }
+  .opt { color: #9bb6c4; font-weight: 500; }
+  input[type="email"] {
+    width: 100%; padding: 0.85rem 0.95rem; border: 1.5px solid #cfe3ec;
+    border-radius: 11px; font-size: 0.95rem; color: #16384a; margin-bottom: 1.2rem;
+    background: #f6fbfd;
+  }
+  input[type="email"]:focus { outline: none; border-color: #2aa3c4; box-shadow: 0 0 0 3px rgba(42, 163, 196, 0.16); background: #fff; }
+  .terms { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.8rem; color: #3d6478; margin-bottom: 1.5rem; line-height: 1.45; }
+  .terms input { margin-top: 0.15rem; accent-color: #1c7fa6; width: 16px; height: 16px; }
+  .terms a { color: #1c7fa6; text-decoration: none; font-weight: 600; }
+  .btn {
+    width: 100%; padding: 0.95rem; background: #ffb547; color: #3a2700;
+    border: none; border-radius: 12px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: background 0.15s; letter-spacing: 0.01em;
+  }
+  .btn:hover { background: #f5a72f; }
+  .footer { text-align: center; font-size: 0.74rem; color: #8aa9b8; margin-top: 1.4rem; line-height: 1.7; }
+  .footer a { color: #1c7fa6; text-decoration: none; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="mark" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v10M12 4l6 4-6 2-6-2 6-4zM4 14c1.5 1.5 3 1.5 4 0 1 1.5 3 1.5 4 0 1 1.5 3 1.5 4 0 1 1.5 2.5 1.5 4 0M5 13l1.5 5h11L19 13"></path></svg>
+      <div class="brand">Blue<span>Wave</span></div>
+    </div>
+    <div class="route">Harbor &rarr; Island</div>
+  </div>
+  <div class="body">
+    <p class="lead">
+      Welcome aboard. <strong>Free onboard Wi-Fi</strong> is ready for the crossing.
+      One tap and you are connected.
+    </p>
+
+    <form method="POST" action="/portal/accept">
+      <label for="em">Email <span class="opt">(optional - for sailing updates)</span></label>
+      <input type="email" id="em" name="email" placeholder="you@email.com" autocomplete="off">
+
+      <label class="terms">
+        <input type="checkbox" name="accepted_terms" value="yes">
+        <span>I agree to the <a href="/legal/terms">terms of use</a> and <a href="/legal/aup">acceptable use policy</a>.</span>
+      </label>
+
+      <button type="submit" class="btn">Connect Onboard</button>
+    </form>
+
+    <div class="footer">
+      Signal may dip between ports during the crossing.<br>
+      <a href="/legal/privacy">Privacy</a>
+    </div>
+  </div>
+</div>
+</body>
+</html>

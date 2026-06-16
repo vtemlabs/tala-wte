@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Meridian Technologies - Guest Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Lato', 'Helvetica Neue', Arial, sans-serif; color: #2c2c2c;
+    background: #f3f5f7; display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card { background: #fff; border-radius: 8px; max-width: 400px; width: 100%; padding: 2.25rem 2rem; box-shadow: 0 4px 24px rgba(0,0,0,0.08); text-align: center; }
+  .logo { width: 56px; height: 56px; border-radius: 12px; background: #0057d1; color: #fff; display: inline-flex; align-items: center; justify-content: center; margin-bottom: 1rem; }
+  .logo svg { width: 30px; height: 30px; }
+  .org { font-size: 1.2rem; font-weight: 700; color: #1a1a1a; }
+  .net { font-size: 0.78rem; color: #8a909a; margin-top: 0.3rem; margin-bottom: 1.6rem; }
+  .net b { color: #0057d1; }
+  h2 { font-size: 0.95rem; font-weight: 600; color: #444; margin-bottom: 0.4rem; }
+  p.msg { font-size: 0.84rem; color: #6b7280; line-height: 1.55; margin-bottom: 1.5rem; }
+  .voucher { margin-bottom: 1.2rem; text-align: left; display: none; }
+  .voucher.show { display: block; }
+  label { display: block; font-size: 0.74rem; font-weight: 600; color: #6b7280; margin-bottom: 0.35rem; }
+  input[type=text] { width: 100%; padding: 0.78rem 0.9rem; border: 1px solid #d5dae0; border-radius: 6px; font-size: 0.92rem; }
+  input[type=text]:focus { outline: none; border-color: #0057d1; box-shadow: 0 0 0 3px rgba(5,89,201,0.12); }
+  .terms { display: flex; align-items: flex-start; gap: 0.6rem; text-align: left; font-size: 0.8rem; color: #555; margin-bottom: 1.3rem; line-height: 1.5; }
+  .terms input { margin-top: 2px; width: 17px; height: 17px; accent-color: #0057d1; flex-shrink: 0; }
+  .terms a { color: #0057d1; text-decoration: none; }
+  .btn { width: 100%; padding: 0.85rem; background: #0057d1; color: #fff; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .btn:hover:not(:disabled) { background: #0046a8; }
+  .btn:disabled { background: #aac3ee; cursor: not-allowed; }
+  .alt { margin-top: 1rem; font-size: 0.8rem; }
+  .alt a { color: #0057d1; text-decoration: none; cursor: pointer; }
+  .powered { margin-top: 1.5rem; font-size: 0.68rem; color: #b6bcc6; letter-spacing: 0.04em; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="logo" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7l9-4 9 4-9 4-9-4z"></path><path d="M3 12l9 4 9-4M3 17l9 4 9-4"></path></svg>
+  </div>
+  <div class="org">Meridian Technologies</div>
+  <div class="net">Connected to <b>Meridian-Guest</b></div>
+
+  <h2>Welcome to our guest network</h2>
+  <p class="msg">Complimentary internet access is provided for visitors. Please review and accept the acceptable use terms to connect.</p>
+
+  <form method="POST" action="/portal/accept">
+    <div class="voucher" id="vbox">
+      <label for="voucher">Voucher Code</label>
+      <input type="text" id="voucher" name="voucher" placeholder="Enter your voucher code">
+    </div>
+
+    <label class="terms">
+      <input type="checkbox" id="agree" name="accepted_terms" value="yes" onchange="document.getElementById('go').disabled=!this.checked">
+      <span>I agree to the <a href="/legal/terms">Terms of Use</a> and acceptable use policy. Access may be monitored and is provided as-is.</span>
+    </label>
+
+    <button type="submit" class="btn" id="go" disabled>Connect</button>
+  </form>
+
+  <p class="alt"><a onclick="document.getElementById('vbox').classList.toggle('show')">I have a voucher code</a></p>
+  <div class="powered">Guest Wi-Fi access</div>
+</div>
+</body>
+</html>

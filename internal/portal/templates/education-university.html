@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Northgate University - Campus Wi-Fi Access</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: Georgia, 'Times New Roman', serif; color: #2b2b2b;
+    background: #f0ece4; min-height: 100vh; display: flex; align-items: center; justify-content: center; padding: 1.25rem;
+  }
+  .card { background: #fff; border-radius: 4px; max-width: 460px; width: 100%; overflow: hidden; box-shadow: 0 4px 24px rgba(60,10,20,0.18); border-top: 5px solid #c9a227; }
+  .top { background: #6b0f1a; color: #fff; padding: 1.7rem 1.9rem 1.5rem; }
+  .crest { display: flex; align-items: center; gap: 0.7rem; }
+  .crest svg { width: 34px; height: 34px; color: #c9a227; flex-shrink: 0; }
+  .crest .name { font-size: 1.35rem; font-weight: 700; letter-spacing: 0.02em; line-height: 1.1; }
+  .crest .name small { display: block; font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.62rem; font-weight: 600; letter-spacing: 0.18em; opacity: 0.8; margin-top: 0.3rem; text-transform: uppercase; }
+  .top p { font-family: 'Helvetica Neue', Arial, sans-serif; font-size: 0.78rem; opacity: 0.85; margin-top: 0.9rem; line-height: 1.5; }
+  .body { padding: 1.5rem 1.9rem 1.9rem; font-family: 'Helvetica Neue', Arial, sans-serif; }
+  .tabs { display: flex; gap: 0.4rem; margin-bottom: 1.4rem; }
+  .tab { flex: 1; text-align: center; padding: 0.7rem 0.4rem; font-size: 0.82rem; font-weight: 700; color: #8a7f7f; background: #f3eee8; cursor: pointer; border-radius: 4px; border: 1px solid #e6ddd2; }
+  .tab.active { color: #6b0f1a; background: #fff; border-color: #c9a227; box-shadow: inset 0 -3px 0 #c9a227; }
+  .pane { display: none; }
+  .pane.active { display: block; }
+  .lead { font-size: 0.82rem; color: #6b6259; margin-bottom: 1.2rem; line-height: 1.55; }
+  .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 0.8rem; }
+  label { display: block; font-size: 0.72rem; font-weight: 700; color: #5a5249; margin-bottom: 0.3rem; letter-spacing: 0.02em; }
+  label .req { color: #6b0f1a; }
+  input { width: 100%; padding: 0.72rem 0.85rem; border: 1px solid #d6ccbf; border-radius: 4px; font-size: 0.92rem; font-family: inherit; margin-bottom: 0.9rem; }
+  input:focus { outline: none; border-color: #6b0f1a; box-shadow: 0 0 0 3px rgba(107,15,26,0.1); }
+  .terms { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.77rem; color: #5a5249; margin: 0.2rem 0 1.2rem; line-height: 1.5; }
+  .terms input { width: 16px; height: 16px; margin: 2px 0 0; accent-color: #6b0f1a; flex-shrink: 0; }
+  .terms a, .footer a, .lead a { color: #6b0f1a; text-decoration: underline; }
+  .btn { width: 100%; padding: 0.85rem; background: #6b0f1a; color: #fff; border: none; border-radius: 4px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.15s; font-family: inherit; letter-spacing: 0.02em; }
+  .btn:hover { background: #51070f; }
+  .footer { font-size: 0.73rem; color: #9a9087; margin-top: 1.4rem; text-align: center; line-height: 1.7; border-top: 1px solid #efe9e1; padding-top: 1.1rem; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="crest">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M22 10L12 5 2 10l10 5 10-5z"></path><path d="M6 12v5c0 1 2.7 2.5 6 2.5s6-1.5 6-2.5v-5"></path><path d="M22 10v5"></path></svg>
+      <div class="name">Northgate University<small>Information Technology Services</small></div>
+    </div>
+    <p>Welcome to the campus network. Connect with your university credentials, or register as a sponsored guest below.</p>
+  </div>
+  <div class="body">
+    <div class="tabs">
+      <div class="tab active" data-pane="guest" onclick="tab(this)">Guest</div>
+      <div class="tab" data-pane="member" onclick="tab(this)">Student / Staff</div>
+    </div>
+
+    <div class="pane active" id="guest">
+      <p class="lead">Sponsored guest access is available to campus visitors. Your registration is associated with the host department for the duration of your visit.</p>
+      <form method="POST" action="/portal/accept">
+        <div class="grid2">
+          <div><label for="fn">First Name <span class="req">*</span></label><input type="text" id="fn" name="first_name" required></div>
+          <div><label for="ln">Last Name <span class="req">*</span></label><input type="text" id="ln" name="last_name" required></div>
+        </div>
+        <label for="em">Email Address <span class="req">*</span></label>
+        <input type="email" id="em" name="email" placeholder="you@example.com" required>
+        <label for="hd">Host Department <span class="req">*</span></label>
+        <input type="text" id="hd" name="host_department" placeholder="e.g. School of Engineering" required>
+        <label class="terms">
+          <input type="checkbox" name="accepted_terms" value="yes" required>
+          <span>I agree to the <a href="/legal/aup">Acceptable Use Policy</a> and <a href="/legal/terms">Network Terms of Service</a>.</span>
+        </label>
+        <input type="hidden" name="access_method" value="sponsored_guest">
+        <button type="submit" class="btn">Register &amp; Connect</button>
+      </form>
+    </div>
+
+    <div class="pane" id="member">
+      <p class="lead">Sign in with your university NetID. Use the same username and password you use for campus email and learning systems.</p>
+      <form method="POST" action="/portal/accept">
+        <label for="un">University NetID <span class="req">*</span></label>
+        <input type="text" id="un" name="username" placeholder="netid" autocomplete="off" required>
+        <label for="pw">Password <span class="req">*</span></label>
+        <input type="password" id="pw" name="password" placeholder="Password" required>
+        <input type="hidden" name="access_method" value="credentialed">
+        <button type="submit" class="btn">Sign In</button>
+      </form>
+    </div>
+
+    <div class="footer">
+      Need help? Contact the IT Helpdesk at extension 4357 (HELP).<br>
+      <a href="/legal/privacy">Privacy Notice</a> &nbsp;&middot;&nbsp; <a href="/legal/aup">Acceptable Use</a>
+    </div>
+  </div>
+</div>
+<script>
+  function tab(el) {
+    document.querySelectorAll('.tab').forEach(function(t){ t.classList.remove('active'); });
+    document.querySelectorAll('.pane').forEach(function(p){ p.classList.remove('active'); });
+    el.classList.add('active');
+    document.getElementById(el.getAttribute('data-pane')).classList.add('active');
+  }
+</script>
+</body>
+</html>

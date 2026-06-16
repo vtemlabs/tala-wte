@@ -1,0 +1,54 @@
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/inter-400.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url('/fonts/inter-500.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url('/fonts/inter-600.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/inter-700.woff2') format('woff2');
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 600;
+  font-display: swap;
+  src: url('/fonts/jetbrains-mono.woff2') format('woff2');
+}
+/* Complete JetBrainsMono Nerd Font (text + powerline + device/OS icons in ONE
+   font) for the in-browser terminal. A unique family name pins it to the bundled
+   files so it never falls back to whatever Nerd Font the operator has installed -
+   xterm measures the cell from this font and renders every glyph from it too, so
+   nothing clips. */
+@font-face {
+  font-family: 'WTE Mono';
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url('/fonts/JetBrainsMonoNerdFontMono-Regular.ttf') format('truetype');
+}
+@font-face {
+  font-family: 'WTE Mono';
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url('/fonts/JetBrainsMonoNerdFontMono-Bold.ttf') format('truetype');
+}

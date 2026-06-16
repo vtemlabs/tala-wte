@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MegaMart Guest Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Helvetica Neue', 'Segoe UI', Arial, sans-serif;
+    background: #f0f3f7; color: #1d2733;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #fff; border-radius: 12px; max-width: 440px; width: 100%;
+    overflow: hidden; box-shadow: 0 8px 34px rgba(15,40,70,0.12);
+  }
+  .head { background: #004a99; color: #fff; padding: 1.5rem 1.8rem; display: flex; align-items: center; gap: 0.65rem; }
+  .head svg { width: 30px; height: 30px; color: #ffd23f; }
+  .head .wm { font-size: 1.45rem; font-weight: 800; letter-spacing: -0.01em; }
+  .head .wm small { display: block; font-size: 0.64rem; font-weight: 500; letter-spacing: 0.18em; opacity: 0.8; }
+  .body { padding: 1.6rem 1.8rem 1.9rem; }
+  h2 { font-size: 1.1rem; color: #1d2733; margin-bottom: 0.35rem; }
+  .lead { font-size: 0.84rem; color: #66707d; line-height: 1.5; margin-bottom: 1.4rem; }
+  .tabs { display: flex; background: #eef2f6; border-radius: 10px; padding: 4px; margin-bottom: 1.4rem; }
+  .tab { flex: 1; text-align: center; padding: 0.65rem; font-size: 0.85rem; font-weight: 700; color: #66707d; border-radius: 7px; cursor: pointer; transition: all 0.15s; }
+  .tab.active { background: #fff; color: #004a99; box-shadow: 0 1px 4px rgba(0,0,0,0.1); }
+  .pane { display: none; }
+  .pane.active { display: block; }
+  .field { margin-bottom: 1rem; }
+  label { display: block; font-size: 0.74rem; font-weight: 600; color: #4a5563; margin-bottom: 0.32rem; }
+  input[type=text], input[type=email] {
+    width: 100%; padding: 0.8rem 0.9rem; border: 1.5px solid #d4dce4;
+    border-radius: 8px; font-size: 0.94rem; color: #1d2733;
+  }
+  input:focus { outline: none; border-color: #004a99; box-shadow: 0 0 0 3px rgba(0,74,153,0.13); }
+  .app-note { display: flex; gap: 0.6rem; align-items: flex-start; background: #fff8e1; border: 1px solid #ffe7a3; border-radius: 9px; padding: 0.75rem 0.85rem; font-size: 0.78rem; color: #7a5d12; line-height: 1.45; margin-bottom: 1.3rem; }
+  .app-note svg { width: 20px; height: 20px; color: #d9a400; flex-shrink: 0; margin-top: 1px; }
+  .terms { display: flex; align-items: flex-start; gap: 0.55rem; font-size: 0.77rem; color: #5a6472; line-height: 1.5; margin-bottom: 1.2rem; }
+  .terms input { width: 18px; height: 18px; margin-top: 1px; accent-color: #004a99; flex-shrink: 0; }
+  .terms a { color: #004a99; text-decoration: none; }
+  .btn {
+    width: 100%; padding: 0.9rem; background: #004a99; color: #fff;
+    border: none; border-radius: 8px; font-size: 1rem; font-weight: 700;
+    cursor: pointer; transition: background 0.15s;
+  }
+  .btn:hover { background: #00386f; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <circle cx="9" cy="21" r="1"></circle><circle cx="20" cy="21" r="1"></circle>
+      <path d="M1 1h4l2.68 13.39a2 2 0 0 0 2 1.61h9.72a2 2 0 0 0 2-1.61L23 6H6"></path>
+    </svg>
+    <span class="wm">MegaMart<small>SHOP. SAVE. CONNECT.</small></span>
+  </div>
+  <div class="body">
+    <h2>Connect to MegaMart Wi-Fi</h2>
+    <p class="lead">Sign in with your Rewards number or continue with email to get connected and start saving.</p>
+
+    <div class="tabs">
+      <div class="tab active" id="tab-rewards" onclick="pick('rewards')">Rewards Member</div>
+      <div class="tab" id="tab-email" onclick="pick('email')">Continue with Email</div>
+    </div>
+
+    <form method="POST" action="/portal/accept">
+      <div class="pane active" id="pane-rewards">
+        <div class="field">
+          <label for="mid">Rewards Number</label>
+          <input type="text" id="mid" name="member_id" placeholder="MM-0000-0000-0000" autocomplete="off">
+        </div>
+      </div>
+
+      <div class="pane" id="pane-email">
+        <div class="field">
+          <label for="em">Email Address</label>
+          <input type="email" id="em" name="email" placeholder="you@email.com">
+        </div>
+      </div>
+
+      <div class="app-note">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="5" y="2" width="14" height="20" rx="2"></rect><line x1="12" y1="18" x2="12.01" y2="18"></line></svg>
+        <span>Shop the MegaMart app to scan &amp; save at checkout and unlock member-only digital coupons.</span>
+      </div>
+
+      <label class="terms">
+        <input type="checkbox" name="accepted_terms" value="yes" required>
+        <span>I agree to the <a href="/legal/terms">Terms of Service</a> and acknowledge the <a href="/legal/privacy">Privacy Policy</a>.</span>
+      </label>
+
+      <button type="submit" class="btn">Connect</button>
+    </form>
+  </div>
+</div>
+<script>
+  function pick(which) {
+    var isRewards = which === 'rewards';
+    document.getElementById('tab-rewards').classList.toggle('active', isRewards);
+    document.getElementById('tab-email').classList.toggle('active', !isRewards);
+    document.getElementById('pane-rewards').classList.toggle('active', isRewards);
+    document.getElementById('pane-email').classList.toggle('active', !isRewards);
+  }
+</script>
+</body>
+</html>

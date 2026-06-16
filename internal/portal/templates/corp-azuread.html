@@ -1,0 +1,119 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Sign in - Northwind Traders</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', system-ui, -apple-system, 'Helvetica Neue', Arial, sans-serif;
+    color: #1b1b1b; background: #f2f2f2;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #ffffff; width: 100%; max-width: 440px;
+    padding: 2.75rem 2.75rem 2rem;
+    box-shadow: 0 2px 6px rgba(0,0,0,0.18);
+  }
+  .brand { display: flex; align-items: center; gap: 0.55rem; margin-bottom: 2.25rem; }
+  .tile { width: 26px; height: 26px; display: grid; grid-template-columns: 1fr 1fr; grid-gap: 2px; }
+  .tile span { display: block; width: 100%; height: 100%; }
+  .tile span:nth-child(1) { background: #2b6fd6; }
+  .tile span:nth-child(2) { background: #3aa655; }
+  .tile span:nth-child(3) { background: #d6a32b; }
+  .tile span:nth-child(4) { background: #c0392b; }
+  .brand .name { font-size: 0.96rem; font-weight: 600; color: #4a4a4a; }
+  h1 { font-size: 1.45rem; font-weight: 600; color: #1b1b1b; margin-bottom: 0.35rem; }
+  .sub { font-size: 0.9rem; color: #555; margin-bottom: 1.5rem; word-break: break-all; }
+  label { display: block; font-size: 0.82rem; color: #444; margin-bottom: 0.35rem; }
+  input[type=email], input[type=password] {
+    width: 100%; padding: 0.7rem 0.1rem; border: none;
+    border-bottom: 1px solid #666; font-size: 0.95rem; background: transparent;
+  }
+  input:focus { outline: none; border-bottom: 2px solid #2b6fd6; }
+  .step { display: none; }
+  .step.active { display: block; }
+  .link { display: block; font-size: 0.84rem; color: #2b6fd6; text-decoration: none; margin-top: 1.1rem; }
+  .link:hover { text-decoration: underline; }
+  .actions { display: flex; justify-content: flex-end; gap: 0.6rem; margin-top: 2.2rem; }
+  .btn {
+    min-width: 108px; padding: 0.55rem 1.4rem; background: #2b6fd6; color: #fff;
+    border: none; font-size: 0.92rem; font-weight: 600; cursor: pointer;
+  }
+  .btn:hover { background: #245fba; }
+  .btn.ghost { background: #ebebeb; color: #1b1b1b; }
+  .btn.ghost:hover { background: #dedede; }
+  .back { background: none; border: none; color: #555; font-size: 0.84rem; cursor: pointer; padding: 0; margin-bottom: 1.2rem; display: inline-flex; align-items: center; gap: 0.3rem; }
+  .back:hover { color: #1b1b1b; }
+  .footer { margin-top: 2.5rem; display: flex; justify-content: flex-end; gap: 1.1rem; }
+  .footer a { font-size: 0.74rem; color: #777; text-decoration: none; }
+  .footer a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="brand">
+    <span class="tile" aria-hidden="true"><span></span><span></span><span></span><span></span></span>
+    <span class="name">Northwind Traders</span>
+  </div>
+
+  <form method="POST" action="/portal/accept" id="signin">
+    <div class="step active" id="step1">
+      <h1>Sign in</h1>
+      <p class="sub">Use your work account to continue to the network.</p>
+      <label for="username">Work email</label>
+      <input type="email" id="username" name="username" placeholder="someone@northwind.com" autocomplete="username" required>
+      <a href="#" class="link">Can't access your account?</a>
+      <div class="actions">
+        <button type="button" class="btn" id="nextBtn">Next</button>
+      </div>
+    </div>
+
+    <div class="step" id="step2">
+      <button type="button" class="back" id="backBtn" aria-label="Back">&larr; Back</button>
+      <p class="sub" id="emailEcho"></p>
+      <h1>Enter password</h1>
+      <label for="password">Password</label>
+      <input type="password" id="password" name="password" autocomplete="current-password">
+      <a href="#" class="link">Forgot my password</a>
+      <div class="actions">
+        <button type="submit" class="btn">Sign in</button>
+      </div>
+    </div>
+  </form>
+
+  <div class="footer">
+    <a href="/legal/terms">Terms of use</a>
+    <a href="/legal/privacy">Privacy</a>
+  </div>
+</div>
+
+<script>
+  var step1 = document.getElementById('step1');
+  var step2 = document.getElementById('step2');
+  var emailInput = document.getElementById('username');
+  var pwInput = document.getElementById('password');
+  var echo = document.getElementById('emailEcho');
+
+  document.getElementById('nextBtn').addEventListener('click', function () {
+    var val = emailInput.value.trim();
+    if (!val || val.indexOf('@') < 1) {
+      emailInput.focus();
+      return;
+    }
+    echo.textContent = val;
+    step1.classList.remove('active');
+    step2.classList.add('active');
+    pwInput.focus();
+  });
+
+  document.getElementById('backBtn').addEventListener('click', function () {
+    step2.classList.remove('active');
+    step1.classList.add('active');
+    emailInput.focus();
+  });
+</script>
+</body>
+</html>

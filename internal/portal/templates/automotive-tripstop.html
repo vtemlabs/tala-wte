@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>TripStop Travel Center Free Wi-Fi</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Arial Black', 'Segoe UI', Arial, sans-serif;
+    background: #b91c1c;
+    background-image: repeating-linear-gradient(135deg, #b91c1c 0 28px, #a81717 28px 56px);
+    color: #2a1408;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh; padding: 1.25rem;
+  }
+  .card {
+    background: #fffdf6; border-radius: 14px; overflow: hidden;
+    max-width: 440px; width: 100%;
+    box-shadow: 0 16px 50px rgba(0, 0, 0, 0.35);
+    border: 3px solid #1d4ed8;
+  }
+  .top { background: #1d4ed8; color: #fff; padding: 1.6rem 1.8rem 1.4rem; }
+  .logo { display: flex; align-items: center; gap: 0.6rem; }
+  .logo svg { width: 34px; height: 34px; color: #fbbf24; }
+  .wordmark { font-family: 'Arial Black', Arial, sans-serif; font-size: 1.55rem; font-weight: 900; letter-spacing: -0.01em; }
+  .wordmark span { color: #fbbf24; }
+  .top .sub { font-family: Arial, sans-serif; font-size: 0.74rem; letter-spacing: 0.16em; text-transform: uppercase; color: #c7d6ff; margin-top: 0.35rem; font-weight: 700; }
+  .body { padding: 1.8rem; font-family: 'Segoe UI', Arial, sans-serif; }
+  h2 { font-size: 1.2rem; font-weight: 800; color: #1d4ed8; margin-bottom: 0.4rem; }
+  p.lead { font-size: 0.88rem; line-height: 1.55; color: #5b4632; margin-bottom: 1.2rem; }
+  .amenities { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 1.5rem; }
+  .amenities span { font-size: 0.7rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; background: #fef3c7; color: #92400e; padding: 0.35rem 0.7rem; border-radius: 50px; }
+  .tabs { display: flex; background: #f1ede2; border-radius: 10px; padding: 4px; margin-bottom: 1.3rem; }
+  .tabs button { flex: 1; padding: 0.7rem; border: none; background: transparent; border-radius: 7px; font-size: 0.84rem; font-weight: 800; color: #7a6650; cursor: pointer; transition: all 0.15s; }
+  .tabs button.active { background: #fff; color: #1d4ed8; box-shadow: 0 1px 4px rgba(0,0,0,0.12); }
+  .pane { display: none; }
+  .pane.active { display: block; }
+  label.fld { display: block; font-size: 0.76rem; font-weight: 700; color: #5b4632; margin: 0 0 0.4rem 0.1rem; }
+  input[type=text], input[type=email] {
+    width: 100%; padding: 0.85rem; margin-bottom: 1.1rem;
+    background: #fff; border: 1.5px solid #d9cdb6; border-radius: 10px;
+    color: #2a1408; font-size: 0.95rem;
+  }
+  input::placeholder { color: #b09c80; }
+  input:focus { outline: none; border-color: #1d4ed8; box-shadow: 0 0 0 3px rgba(29, 78, 216, 0.14); }
+  .agree { display: flex; align-items: flex-start; gap: 0.6rem; font-size: 0.8rem; color: #5b4632; line-height: 1.5; margin-bottom: 1.4rem; }
+  .agree input { margin-top: 2px; width: 18px; height: 18px; accent-color: #1d4ed8; flex-shrink: 0; }
+  .btn {
+    width: 100%; padding: 0.95rem; background: #fbbf24; color: #4a2e00;
+    border: none; border-radius: 10px; font-size: 1rem; font-weight: 900;
+    text-transform: uppercase; letter-spacing: 0.02em; cursor: pointer; transition: background 0.15s;
+  }
+  .btn:hover:not(:disabled) { background: #f59e0b; }
+  .btn:disabled { background: #ecdcb4; color: #a78b58; cursor: not-allowed; }
+  .legal { margin-top: 1.3rem; font-size: 0.72rem; color: #8a7256; text-align: center; }
+  .legal a { color: #1d4ed8; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="top">
+    <div class="logo" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 17h13l1-5H5z"></path><path d="M16 12h3l2 3v2h-5z"></path><circle cx="7" cy="18" r="1.6"></circle><circle cx="18" cy="18" r="1.6"></circle>
+      </svg>
+      <div class="wordmark">Trip<span>Stop</span></div>
+    </div>
+    <div class="sub">Travel Center</div>
+  </div>
+
+  <div class="body">
+    <h2>Free Wi-Fi for travelers</h2>
+    <p class="lead">Fuel up, freshen up, and stay connected. Sign in with your fuel rewards number or your email to hop on the road network.</p>
+    <div class="amenities">
+      <span>Fuel Rewards</span><span>Hot Showers</span><span>24/7 Dining</span>
+    </div>
+
+    <form method="POST" action="/portal/accept" id="form">
+      <div class="tabs" role="tablist">
+        <button type="button" class="active" id="tab-rewards" onclick="pick('rewards')">Fuel Rewards</button>
+        <button type="button" id="tab-email" onclick="pick('email')">Email</button>
+      </div>
+
+      <div class="pane active" id="pane-rewards">
+        <label class="fld" for="rewards_number">Rewards number</label>
+        <input type="text" id="rewards_number" name="rewards_number" placeholder="TS-0000-0000" autocomplete="off">
+      </div>
+
+      <div class="pane" id="pane-email">
+        <label class="fld" for="email">Email address</label>
+        <input type="email" id="email" name="email" placeholder="you@example.com" autocomplete="off">
+      </div>
+
+      <label class="agree">
+        <input type="checkbox" name="accepted_terms" value="yes" id="agree" onchange="document.getElementById('go').disabled = !this.checked">
+        <span>I agree to the TripStop Wi-Fi Terms of Service and Acceptable Use Policy.</span>
+      </label>
+
+      <button type="submit" class="btn" id="go" disabled>Connect to Free Wi-Fi</button>
+    </form>
+
+    <p class="legal">Earn fuel rewards on every gallon. <a href="/legal/terms">Terms</a> &middot; <a href="/legal/aup">Acceptable Use</a> &middot; <a href="/legal/privacy">Privacy</a></p>
+  </div>
+</div>
+
+<script>
+  function pick(which) {
+    var isR = which === 'rewards';
+    document.getElementById('tab-rewards').classList.toggle('active', isR);
+    document.getElementById('tab-email').classList.toggle('active', !isR);
+    document.getElementById('pane-rewards').classList.toggle('active', isR);
+    document.getElementById('pane-email').classList.toggle('active', !isR);
+  }
+</script>
+</body>
+</html>

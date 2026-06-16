@@ -1,0 +1,107 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Beacon WiFi - Sign In</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Segoe UI', 'Helvetica Neue', Arial, sans-serif; color: #1a1a1a;
+    background: #f5f7fa; min-height: 100vh; display: flex; flex-direction: column;
+  }
+  .bar { background: #0568ae; color: #fff; padding: 0.9rem 1.25rem; display: flex; align-items: center; gap: 0.55rem; }
+  .bar svg { width: 24px; height: 24px; }
+  .bar .name { font-weight: 800; font-size: 1.05rem; letter-spacing: -0.01em; }
+  .bar .help { margin-left: auto; font-size: 0.78rem; opacity: 0.9; }
+  .wrap { flex: 1; display: flex; align-items: center; justify-content: center; padding: 1.75rem 1.25rem; }
+  .stack { max-width: 400px; width: 100%; }
+  .hello { text-align: center; margin-bottom: 1.1rem; }
+  .hello h1 { font-size: 1.35rem; color: #0568ae; font-weight: 700; }
+  .hello p { font-size: 0.85rem; color: #5a6472; margin-top: 0.25rem; }
+  .card { background: #fff; border-radius: 12px; padding: 1.6rem 1.6rem 1.8rem; box-shadow: 0 6px 28px rgba(5,104,174,0.12); }
+  .pane { display: none; } .pane.active { display: block; }
+  label { display: block; font-size: 0.76rem; font-weight: 600; color: #5a6472; margin-bottom: 0.35rem; }
+  input[type=text], input[type=password], input[type=email] { width: 100%; padding: 0.8rem 0.9rem; border: 1px solid #dde2e8; border-radius: 6px; font-size: 0.92rem; margin-bottom: 0.95rem; }
+  input:focus { outline: none; border-color: #0568ae; box-shadow: 0 0 0 3px rgba(5,104,174,0.12); }
+  .row { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; margin-bottom: 1.1rem; }
+  .row label { display: inline-flex; align-items: center; gap: 0.4rem; margin: 0; font-weight: 500; color: #5a6472; }
+  .row a { color: #0568ae; text-decoration: none; }
+  .btn { width: 100%; padding: 0.85rem; background: #0568ae; color: #fff; border: none; border-radius: 6px; font-size: 0.95rem; font-weight: 700; cursor: pointer; transition: background 0.15s; }
+  .btn:hover { background: #044f87; }
+  .alt { text-align: center; margin-top: 1.1rem; font-size: 0.82rem; color: #5a6472; }
+  .alt a { color: #0568ae; text-decoration: none; font-weight: 600; cursor: pointer; }
+  .pass { border: 1px solid #e2e6ea; border-radius: 10px; padding: 0.85rem 1rem; margin-bottom: 0.7rem; cursor: pointer; display: flex; align-items: center; justify-content: space-between; transition: border-color 0.15s, background 0.15s; }
+  .pass:hover { border-color: #0568ae; } .pass.sel { border-color: #0568ae; border-width: 2px; background: #f1f8fd; }
+  .pass-name { font-weight: 700; color: #0568ae; font-size: 0.9rem; }
+  .pass-price { font-weight: 800; color: #1a1a1a; }
+  .app { margin-top: 1.2rem; background: #eef6fc; border-radius: 8px; padding: 0.8rem 0.95rem; font-size: 0.78rem; color: #2e5f82; line-height: 1.5; text-align: center; }
+  .footer { font-size: 0.72rem; color: #a0a8b4; text-align: center; margin-top: 1.2rem; line-height: 1.6; }
+  .footer a { color: #0568ae; text-decoration: none; }
+</style>
+</head>
+<body>
+<div class="bar">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M5 12.5a10 10 0 0 1 14 0M8 16a5 5 0 0 1 8 0"></path><circle cx="12" cy="19.5" r="1.4" fill="currentColor" stroke="none"></circle></svg>
+  <span class="name">Beacon WiFi</span>
+  <span class="help">Find a hotspot</span>
+</div>
+
+<div class="wrap">
+  <div class="stack">
+    <div class="hello">
+      <h1>Welcome to Beacon WiFi</h1>
+      <p>Millions of hotspots nationwide.</p>
+    </div>
+    <div class="card">
+      <form method="POST" action="/portal/accept">
+        <div class="pane active" id="signin">
+          <label for="user">Beacon ID, username, or email</label>
+          <input type="text" id="user" name="username" placeholder="Enter your username or email">
+          <label for="pw">Password</label>
+          <input type="password" id="pw" name="password" placeholder="Password">
+          <div class="row">
+            <label><input type="checkbox" name="remember" value="yes" checked> Remember me</label>
+            <a href="#">Forgot password?</a>
+          </div>
+          <input type="hidden" name="method" value="signin">
+          <button type="submit" class="btn">Sign In</button>
+          <p class="alt">Not a Beacon customer? <a onclick="show('buy')">Buy a Pass</a></p>
+        </div>
+
+        <div class="pane" id="buy">
+          <input type="hidden" name="pass_plan" id="passField" value="1 Day">
+          <input type="hidden" name="method" value="buy">
+          <div class="pass" data-plan="1 Hour" onclick="pickPass(this)"><span class="pass-name">1 Hour</span><span class="pass-price">$2.95</span></div>
+          <div class="pass sel" data-plan="1 Day" onclick="pickPass(this)"><span class="pass-name">1 Day</span><span class="pass-price">$7.95</span></div>
+          <div class="pass" data-plan="Week" onclick="pickPass(this)"><span class="pass-name">7 Day</span><span class="pass-price">$19.95</span></div>
+          <label for="bemail" style="margin-top:0.4rem">Email for receipt</label>
+          <input type="email" id="bemail" name="email" placeholder="you@example.com">
+          <button type="submit" class="btn">Buy Now</button>
+          <p class="alt"><a onclick="show('signin')">Back to sign in</a></p>
+        </div>
+      </form>
+
+      <div class="app">Download the Beacon app to connect automatically at millions of hotspots.</div>
+    </div>
+
+    <div class="footer">
+      Public network - do not transmit sensitive information without additional protection.<br>
+      <a href="/legal/terms">Terms of Service</a> &nbsp;|&nbsp; <a href="/legal/aup">Acceptable Use Policy</a>
+    </div>
+  </div>
+</div>
+
+<script>
+  function show(id) {
+    document.querySelectorAll('.pane').forEach(function(p){ p.classList.remove('active'); });
+    document.getElementById(id).classList.add('active');
+  }
+  function pickPass(el) {
+    document.querySelectorAll('.pass').forEach(function(p){ p.classList.remove('sel'); });
+    el.classList.add('sel');
+    document.getElementById('passField').value = el.getAttribute('data-plan');
+  }
+</script>
+</body>
+</html>
