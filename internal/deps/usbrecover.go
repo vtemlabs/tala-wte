@@ -161,7 +161,7 @@ for dev in "${!WIFI_DEVS[@]}"; do
         echo "tala-wte-wifi-recover: $dev still wedged after attempt $attempt" >&2
     done
     if [ "$recovered" -ne 1 ]; then
-        echo "tala-wte-wifi-recover: $dev did NOT recover via in-guest reset (expected in a VM -- the hypervisor's virtual xHCI blocks software USB resets). FIX: physically unplug + replug the adapter; firmware is installed now, so it initialises on reconnect." >&2
+        echo "tala-wte-wifi-recover: $dev did NOT recover via in-guest reset (expected in a VM -- the hypervisor's virtual xHCI blocks software USB resets). FIX: physically unplug + replug the adapter; firmware is installed now, so it initializes on reconnect." >&2
     fi
 done
 exit 0
@@ -211,7 +211,7 @@ func ApplyRegDomain(cc string) error {
 		cc = "US"
 	}
 	if _, err := writeFileIdempotent("/etc/modprobe.d/tala-wte-regdom.conf",
-		"options cfg80211 ieee80211_regdom="+cc+"\n", 0644); err != nil {
+		"options cfg80211 ieee80211_regdom="+cc+"\n", 0o644); err != nil {
 		log.Printf("[usb] write regdom conf: %v", err)
 	}
 	iwBin := "iw"
@@ -231,7 +231,7 @@ func ApplyRegDomain(cc string) error {
 // ensureCaptureDriverPreload installs the modules-load.d snippet that preloads
 // every supported USB Wi-Fi driver at boot.
 func ensureCaptureDriverPreload() {
-	if _, err := writeFileIdempotent(captureDriverPreloadPath, captureDriverPreload, 0644); err != nil {
+	if _, err := writeFileIdempotent(captureDriverPreloadPath, captureDriverPreload, 0o644); err != nil {
 		log.Printf("[usb] write %s: %v", captureDriverPreloadPath, err)
 		return
 	}
@@ -241,12 +241,12 @@ func ensureCaptureDriverPreload() {
 // ensureUSBColdBootRescue writes the xHCI rebind script + systemd oneshot and
 // enables it. Idempotent across re-runs.
 func ensureUSBColdBootRescue() {
-	scriptChanged, err := writeFileIdempotent(usbRescueScriptPath, usbRescueScript, 0755)
+	scriptChanged, err := writeFileIdempotent(usbRescueScriptPath, usbRescueScript, 0o755)
 	if err != nil {
 		log.Printf("[usb] write %s: %v", usbRescueScriptPath, err)
 		return
 	}
-	unitChanged, err := writeFileIdempotent(usbRescueUnitPath, usbRescueUnit, 0644)
+	unitChanged, err := writeFileIdempotent(usbRescueUnitPath, usbRescueUnit, 0o644)
 	if err != nil {
 		log.Printf("[usb] write %s: %v", usbRescueUnitPath, err)
 		return
@@ -261,12 +261,12 @@ func ensureUSBColdBootRescue() {
 // ensureUSBWifiRecover writes the per-device Wi-Fi firmware-wedge recovery
 // script + systemd oneshot and enables it for every cold boot.
 func ensureUSBWifiRecover() {
-	scriptChanged, err := writeFileIdempotent(usbWifiRecoverScriptPath, usbWifiRecoverScript, 0755)
+	scriptChanged, err := writeFileIdempotent(usbWifiRecoverScriptPath, usbWifiRecoverScript, 0o755)
 	if err != nil {
 		log.Printf("[usb] write %s: %v", usbWifiRecoverScriptPath, err)
 		return
 	}
-	unitChanged, err := writeFileIdempotent(usbWifiRecoverUnitPath, usbWifiRecoverUnit, 0644)
+	unitChanged, err := writeFileIdempotent(usbWifiRecoverUnitPath, usbWifiRecoverUnit, 0o644)
 	if err != nil {
 		log.Printf("[usb] write %s: %v", usbWifiRecoverUnitPath, err)
 		return
@@ -311,14 +311,14 @@ func writeFileIdempotent(path, content string, mode os.FileMode) (bool, error) {
 		return false, nil
 	}
 	if dir := dirOf(path); dir != "" {
-		if err := os.MkdirAll(dir, 0755); err != nil {
+		if err := os.MkdirAll(dir, 0o755); err != nil {
 			return false, err
 		}
 	}
 	if err := os.WriteFile(path, []byte(content), mode); err != nil {
 		return false, err
 	}
-	// WriteFile honours mode only on create; enforce it for the executable bit.
+	// WriteFile honors mode only on create; enforce it for the executable bit.
 	if err := os.Chmod(path, mode); err != nil {
 		return false, err
 	}

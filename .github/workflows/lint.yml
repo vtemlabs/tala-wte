@@ -1,0 +1,67 @@
+name: Lint
+
+# Runs the same gate as `make lint`: golangci-lint on the Go backend and
+# ESLint + Prettier + svelte-check on the web console. Kept separate from the
+# release workflow so every push and PR is checked, not just tags.
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+jobs:
+  lint-go:
+    name: Go (golangci-lint)
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Provide go:embed placeholder
+        # cmd/server embeds web/build; without it the package fails to load and
+        # the linter cannot analyze it. A stub is enough for static analysis.
+        run: |
+          mkdir -p web/build
+          echo '<!doctype html>' > web/build/index.html
+
+      - name: golangci-lint
+        uses: golangci/golangci-lint-action@v6
+        with:
+          version: v2.12
+
+  lint-web:
+    name: Web (eslint + prettier + svelte-check)
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: web
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: ESLint + Prettier
+        run: pnpm lint
+
+      - name: svelte-check
+        run: pnpm check

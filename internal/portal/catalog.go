@@ -126,7 +126,7 @@ var catalog = []Template{
 	},
 	{
 		Slug:        "retail-marketplace",
-		Name:        "Marketplace Centre",
+		Name:        "Marketplace Center",
 		Category:    "retail",
 		Description: "Shopping-mall guest Wi-Fi with a store-directory vibe: email and postal code gate with a marketing opt-in (Westfield / Simon Malls style).",
 		file:        "templates/retail-marketplace.html",

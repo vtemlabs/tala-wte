@@ -17,6 +17,7 @@ import (
 	"sync"
 
 	"github.com/pocketbase/pocketbase/core"
+
 	"github.com/vtemlabs/tala-wte/pkg/hostapd"
 )
 
@@ -234,8 +235,8 @@ func loadRADIUSSecret() string {
 		log.Fatalf("[radius] failed to generate random shared secret: %v", err)
 	}
 
-	if err := os.MkdirAll("/var/lib/tala-wte/radius", 0750); err == nil {
-		if err := os.WriteFile(secretFile, []byte(generated), 0600); err != nil {
+	if err := os.MkdirAll("/var/lib/tala-wte/radius", 0o750); err == nil {
+		if err := os.WriteFile(secretFile, []byte(generated), 0o600); err != nil {
 			log.Printf("[radius] failed to persist shared secret to %s: %v", secretFile, err)
 		}
 	}
@@ -268,14 +269,14 @@ client wte_namespaces {
 		return nil
 	}
 
-	if err := os.WriteFile(radiusClientsConf, []byte(desired), 0640); err != nil {
+	if err := os.WriteFile(radiusClientsConf, []byte(desired), 0o640); err != nil {
 		return fmt.Errorf("write clients.conf: %w", err)
 	}
 
 	// reload preserves accounting state; fall back to restart if the unit doesn't support it.
 	if err := exec.Command("systemctl", "reload", "freeradius").Run(); err != nil {
 		if rerr := exec.Command("systemctl", "restart", "freeradius").Run(); rerr != nil {
-			return fmt.Errorf("reload freeradius: %w (restart fallback: %v)", err, rerr)
+			return fmt.Errorf("reload freeradius: %w (restart fallback: %w)", err, rerr)
 		}
 	}
 	log.Printf("[radius] clients.conf synced with current shared secret and freeradius reloaded")

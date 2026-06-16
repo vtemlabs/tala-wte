@@ -34,7 +34,7 @@ func Create(name string) (*SimNamespace, error) {
 
 // Delete removes the network namespace.
 func (n *SimNamespace) Delete() error {
-	n.handle.Close()
+	_ = n.handle.Close()
 	return run("ip", "netns", "del", n.Name)
 }
 

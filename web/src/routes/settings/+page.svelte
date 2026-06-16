@@ -48,7 +48,7 @@
   ];
 
   const countryOptions = $derived(
-    COUNTRIES.some(c => c.code === countryCode)
+    COUNTRIES.some((c) => c.code === countryCode)
       ? COUNTRIES
       : [{ code: countryCode, name: countryCode }, ...COUNTRIES]
   );
@@ -69,14 +69,18 @@
     // not block the rest of the settings page.
     try {
       versionInfo = await system.version();
-    } catch (e: any) {
+    } catch {
       versionInfo = null;
     }
   });
 
   async function applyUpdate() {
     if (!versionInfo?.update_available) return;
-    if (!confirm(`Update Tala WTE from ${versionInfo.current} to ${versionInfo.latest}?\n\nThe service will restart and the console will briefly disconnect.`)) {
+    if (
+      !confirm(
+        `Update Tala WTE from ${versionInfo.current} to ${versionInfo.latest}?\n\nThe service will restart and the console will briefly disconnect.`
+      )
+    ) {
       return;
     }
     updating = true;
@@ -123,7 +127,7 @@
       await system.saveSettings({ uplink_iface: uplinkIface, country_code: countryCode });
       saved = true;
       toast.success('Settings saved');
-      setTimeout(() => saved = false, 3000);
+      setTimeout(() => (saved = false), 3000);
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to save settings');
     }
@@ -140,7 +144,9 @@
   </div>
   <div class="header-actions">
     {#if saved}<span class="badge badge-success">Saved</span>{/if}
-    <button class="btn btn-primary" onclick={save} disabled={saving}>{saving ? 'Saving...' : 'Save Changes'}</button>
+    <button class="btn btn-primary" onclick={save} disabled={saving}
+      >{saving ? 'Saving...' : 'Save Changes'}</button
+    >
   </div>
 </div>
 
@@ -157,16 +163,24 @@
             {/each}
           </select>
           <span class="field-desc">
-            Sets the country hostapd advertises and applies it with <code>iw reg set</code>. This decides
-            which channels are legal and whether 5 GHz / 6 GHz AP mode is allowed. The world domain blocks
-            5 GHz beaconing, so this must match where the box operates.
+            Sets the country hostapd advertises and applies it with <code>iw reg set</code>. This
+            decides which channels are legal and whether 5 GHz / 6 GHz AP mode is allowed. The world
+            domain blocks 5 GHz beaconing, so this must match where the box operates.
           </span>
         </div>
 
         <div class="field">
           <label class="field-label" for="uplinkIface">Uplink Interface (Internet)</label>
-          <input class="input" id="uplinkIface" bind:value={uplinkIface} placeholder="e.g. eth0, wlan1" />
-          <span class="field-desc">The interface connected to the internet, used for NAT passthrough on networks that allow it.</span>
+          <input
+            class="input"
+            id="uplinkIface"
+            bind:value={uplinkIface}
+            placeholder="e.g. eth0, wlan1"
+          />
+          <span class="field-desc"
+            >The interface connected to the internet, used for NAT passthrough on networks that
+            allow it.</span
+          >
         </div>
       </div>
     </section>
@@ -175,10 +189,22 @@
       <div class="panel-head"><h2 class="panel-title">Services</h2></div>
       <div class="panel-body">
         <div class="meta-grid">
-          <div class="meta-row"><div class="meta-key">PocketBase</div><div class="meta-val">:8090 (embedded)</div></div>
-          <div class="meta-row"><div class="meta-key">FreeRADIUS</div><div class="meta-val">:1812 / :1813</div></div>
-          <div class="meta-row"><div class="meta-key">OpenLDAP</div><div class="meta-val">127.0.0.1:3389</div></div>
-          <div class="meta-row"><div class="meta-key">Portal Server</div><div class="meta-val">:8080 (per-network)</div></div>
+          <div class="meta-row">
+            <div class="meta-key">PocketBase</div>
+            <div class="meta-val">:8090 (embedded)</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-key">FreeRADIUS</div>
+            <div class="meta-val">:1812 / :1813</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-key">OpenLDAP</div>
+            <div class="meta-val">127.0.0.1:3389</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-key">Portal Server</div>
+            <div class="meta-val">:8080 (per-network)</div>
+          </div>
         </div>
       </div>
     </section>
@@ -186,7 +212,8 @@
     <section class="panel">
       <div class="panel-head">
         <h2 class="panel-title">Software Updates</h2>
-        {#if versionInfo?.update_available}<span class="badge badge-success">Update available</span>{/if}
+        {#if versionInfo?.update_available}<span class="badge badge-success">Update available</span
+          >{/if}
       </div>
       <div class="panel-body">
         <div class="meta-grid">
@@ -203,15 +230,31 @@
         </div>
 
         {#if versionInfo?.is_dev}
-          <p class="update-note dim">This is a local development build. In-place updates are disabled; install a released binary to enable them.</p>
+          <p class="update-note dim">
+            This is a local development build. In-place updates are disabled; install a released
+            binary to enable them.
+          </p>
         {:else if updating}
-          <p class="update-note">Installing v{versionInfo?.latest}. The service is restarting and the console will reconnect automatically.</p>
+          <p class="update-note">
+            Installing v{versionInfo?.latest}. The service is restarting and the console will
+            reconnect automatically.
+          </p>
         {:else if versionInfo?.update_available}
-          <p class="update-note">Version v{versionInfo.latest} is available. Updating downloads the verified binary, replaces the running service, and restarts it.</p>
+          <p class="update-note">
+            Version v{versionInfo.latest} is available. Updating downloads the verified binary, replaces
+            the running service, and restarts it.
+          </p>
           <div class="update-actions">
-            <button class="btn btn-primary btn-sm" onclick={applyUpdate} disabled={updating}>Update to v{versionInfo.latest}</button>
+            <button class="btn btn-primary btn-sm" onclick={applyUpdate} disabled={updating}
+              >Update to v{versionInfo.latest}</button
+            >
             {#if versionInfo.release_url}
-              <a class="btn btn-sm" href={versionInfo.release_url} target="_blank" rel="noopener noreferrer">Release notes</a>
+              <a
+                class="btn btn-sm"
+                href={versionInfo.release_url}
+                target="_blank"
+                rel="noopener noreferrer">Release notes</a
+              >
             {/if}
           </div>
         {:else if versionInfo?.error}
@@ -227,14 +270,18 @@
     <section class="panel">
       <div class="panel-head"><h2 class="panel-title">About &amp; License</h2></div>
       <div class="panel-body">
-        <p class="about-line">Tala WTE v{displayVersion} - a VTEM Labs Wireless Training Environment.</p>
-        <p class="about-line dim">
-          &copy; 2026 VTEM Labs. Free for personal and non-profit use. Commercial and for-profit use,
-          including paid training, paid CTF, and use by any for-profit school, institution, or company,
-          requires written authorization and a license from VTEM Labs. Redistribution, rebranding, or
-          claiming this platform (or any variant or copy) as your own is prohibited.
+        <p class="about-line">
+          Tala WTE v{displayVersion} - a VTEM Labs Wireless Training Environment.
         </p>
-        <button class="btn btn-sm license-btn" onclick={() => showLicense = true}>View Full License</button>
+        <p class="about-line dim">
+          &copy; 2026 VTEM Labs. Free for personal and non-profit use. Commercial and for-profit
+          use, including paid training, paid CTF, and use by any for-profit school, institution, or
+          company, requires written authorization and a license from VTEM Labs. Redistribution,
+          rebranding, or claiming this platform (or any variant or copy) as your own is prohibited.
+        </p>
+        <button class="btn btn-sm license-btn" onclick={() => (showLicense = true)}
+          >View Full License</button
+        >
       </div>
     </section>
   </div>
@@ -254,24 +301,56 @@
           {/each}
         </div>
       {:else}
-        <div class="empty-state" style="padding:var(--space-2xl)"><p>No wireless interfaces detected.</p></div>
+        <div class="empty-state" style="padding:var(--space-2xl)">
+          <p>No wireless interfaces detected.</p>
+        </div>
       {/if}
     </div>
   </section>
 </div>
 
 <style>
-  .field { margin-bottom: var(--space-xl); }
-  .field:last-child { margin-bottom: 0; }
-  .field-desc code {
-    font-family: var(--font-mono); font-size: 0.92em;
-    color: var(--text-secondary); background: var(--bg-input);
-    padding: 1px 5px; border-radius: var(--radius-sm);
+  .field {
+    margin-bottom: var(--space-xl);
   }
-  .about-line { font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.6; margin: 0 0 var(--space-sm); }
-  .about-line.dim { font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: var(--space-md); }
-  .license-btn { align-self: flex-start; }
-  .update-note { font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.6; margin: var(--space-md) 0 0; }
-  .update-note.dim { color: var(--text-muted); }
-  .update-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-md); align-items: center; }
+  .field:last-child {
+    margin-bottom: 0;
+  }
+  .field-desc code {
+    font-family: var(--font-mono);
+    font-size: 0.92em;
+    color: var(--text-secondary);
+    background: var(--bg-input);
+    padding: 1px 5px;
+    border-radius: var(--radius-sm);
+  }
+  .about-line {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: 0 0 var(--space-sm);
+  }
+  .about-line.dim {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-bottom: var(--space-md);
+  }
+  .license-btn {
+    align-self: flex-start;
+  }
+  .update-note {
+    font-size: var(--font-size-sm);
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin: var(--space-md) 0 0;
+  }
+  .update-note.dim {
+    color: var(--text-muted);
+  }
+  .update-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+    align-items: center;
+  }
 </style>

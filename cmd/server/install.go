@@ -49,6 +49,8 @@ func maybeRunSubcommand() {
 }
 
 func runInstall(args []string) int {
+	// Scan all args for help before rejecting, so `install <junk> --help` still
+	// shows usage rather than erroring on the first token.
 	for _, a := range args {
 		if a == "-h" || a == "--help" {
 			fmt.Println(`Usage: tala-wte install
@@ -59,7 +61,9 @@ the unit. The database at /var/lib/tala-wte is preserved across reinstalls.
 After install, open the web UI to create your admin account in the browser.`)
 			return 0
 		}
-		fmt.Fprintf(os.Stderr, "tala-wte install takes no flags; received %q\n", a)
+	}
+	if len(args) > 0 {
+		fmt.Fprintf(os.Stderr, "tala-wte install takes no flags; received %q\n", args[0])
 		return 2
 	}
 

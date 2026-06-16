@@ -1,0 +1,6 @@
+# Generated and vendored output - not ours to format.
+build/
+.svelte-kit/
+dist/
+node_modules/
+pnpm-lock.yaml

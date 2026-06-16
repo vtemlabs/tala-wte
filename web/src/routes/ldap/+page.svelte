@@ -28,7 +28,10 @@
   let revealedPasswords = $state<Record<string, boolean>>({});
 
   // Hashed userPassword values are unrecoverable, so render them as "(hashed)".
-  function passwordCell(p: string | undefined, uid: string): { hidden: string; revealed: string; copyable: boolean } {
+  function passwordCell(
+    p: string | undefined,
+    _uid: string
+  ): { hidden: string; revealed: string; copyable: boolean } {
     if (!p) return { hidden: '-', revealed: '-', copyable: false };
     if (p.startsWith('{')) return { hidden: '(hashed)', revealed: '(hashed)', copyable: false };
     const hidden = '•'.repeat(Math.min(p.length, 12));
@@ -51,34 +54,74 @@
   }
 
   async function provisionRandom() {
-    if (!confirm('This will wipe the current directory and generate a random company with users. Continue?')) return;
-    provisioning = true; error = ''; provisionResult = null;
+    if (
+      !confirm(
+        'This will wipe the current directory and generate a random company with users. Continue?'
+      )
+    )
+      return;
+    provisioning = true;
+    error = '';
+    provisionResult = null;
     try {
       provisionResult = await ldap.provisionRandom();
       await loadAll();
-    } catch (e: any) { error = e?.message ?? 'Provisioning failed'; }
+    } catch (e: any) {
+      error = e?.message ?? 'Provisioning failed';
+    }
     provisioning = false;
   }
 
   async function provisionDefault() {
-    if (!confirm('This will wipe the current directory and create the default ACME Corp directory. Continue?')) return;
-    provisioning = true; error = ''; provisionResult = null;
+    if (
+      !confirm(
+        'This will wipe the current directory and create the default ACME Corp directory. Continue?'
+      )
+    )
+      return;
+    provisioning = true;
+    error = '';
+    provisionResult = null;
     try {
-      provisionResult = await ldap.provision({ company_name: 'ACME Corp', domain: 'acmecorp.local', user_count: 15, random_passwords: false });
+      provisionResult = await ldap.provision({
+        company_name: 'ACME Corp',
+        domain: 'acmecorp.local',
+        user_count: 15,
+        random_passwords: false
+      });
       await loadAll();
-    } catch (e: any) { error = e?.message ?? 'Provisioning failed'; }
+    } catch (e: any) {
+      error = e?.message ?? 'Provisioning failed';
+    }
     provisioning = false;
   }
 
   async function provisionCustom() {
-    if (!customCompany.trim() || !customDomain.trim()) { error = 'Company name and domain are required'; return; }
-    if (!confirm(`This will wipe the current directory and create ${customCount} users for ${customCompany}. Continue?`)) return;
-    provisioning = true; error = ''; provisionResult = null;
+    if (!customCompany.trim() || !customDomain.trim()) {
+      error = 'Company name and domain are required';
+      return;
+    }
+    if (
+      !confirm(
+        `This will wipe the current directory and create ${customCount} users for ${customCompany}. Continue?`
+      )
+    )
+      return;
+    provisioning = true;
+    error = '';
+    provisionResult = null;
     try {
-      provisionResult = await ldap.provision({ company_name: customCompany, domain: customDomain, user_count: customCount, random_passwords: customRandomPass });
+      provisionResult = await ldap.provision({
+        company_name: customCompany,
+        domain: customDomain,
+        user_count: customCount,
+        random_passwords: customRandomPass
+      });
       await loadAll();
       showProvision = false;
-    } catch (e: any) { error = e?.message ?? 'Provisioning failed'; }
+    } catch (e: any) {
+      error = e?.message ?? 'Provisioning failed';
+    }
     provisioning = false;
   }
 
@@ -119,7 +162,13 @@
     if (!newUID || !newCN || !newPass) return;
     addingUser = true;
     try {
-      await ldap.createUser({ uid: newUID, cn: newCN, sn: newSN, mail: newMail, password: newPass });
+      await ldap.createUser({
+        uid: newUID,
+        cn: newCN,
+        sn: newSN,
+        mail: newMail,
+        password: newPass
+      });
       newUID = newCN = newSN = newMail = newPass = '';
       await loadAll();
     } catch (e: any) {
@@ -132,7 +181,7 @@
     if (!confirm(`Delete user ${uid}?`)) return;
     try {
       await ldap.deleteUser(uid);
-      users = users.filter(u => u.uid !== uid);
+      users = users.filter((u) => u.uid !== uid);
     } catch (e: any) {
       error = e?.message ?? 'Failed to delete user';
     }
@@ -152,10 +201,16 @@
   }
 
   async function testAuth() {
-    testing = true; testResult = null;
+    testing = true;
+    testResult = null;
     try {
       testResult = await ldap.testAuth(testUID, testPass);
-    } catch (e: any) { testResult = { success: false, message: e?.message ?? 'LDAP server unreachable - check that slapd is running' }; }
+    } catch (e: any) {
+      testResult = {
+        success: false,
+        message: e?.message ?? 'LDAP server unreachable - check that slapd is running'
+      };
+    }
     testing = false;
   }
 </script>
@@ -178,17 +233,25 @@
 </div>
 
 {#if error}
-  <div class="error-toast"><span>{error}</span><button onclick={() => error = ''}>×</button></div>
+  <div class="error-toast"><span>{error}</span><button onclick={() => (error = '')}>×</button></div>
 {/if}
 
 <div class="stack">
   {#if ldapStatus}
     <div class="panel">
       <div class="stat-strip">
-        <div class="stat-cell"><span class="k">Base DN</span><span class="v mono dn-v">{ldapStatus.base_dn}</span></div>
-        <div class="stat-cell"><span class="k">Bind DN</span><span class="v mono dn-v">cn=admin,{ldapStatus.base_dn}</span></div>
+        <div class="stat-cell">
+          <span class="k">Base DN</span><span class="v mono dn-v">{ldapStatus.base_dn}</span>
+        </div>
+        <div class="stat-cell">
+          <span class="k">Bind DN</span><span class="v mono dn-v"
+            >cn=admin,{ldapStatus.base_dn}</span
+          >
+        </div>
         <div class="stat-cell"><span class="k">Port</span><span class="v mono">3389</span></div>
-        <div class="stat-cell"><span class="k">Users</span><span class="v">{users.length}</span></div>
+        <div class="stat-cell">
+          <span class="k">Users</span><span class="v">{users.length}</span>
+        </div>
       </div>
     </div>
   {/if}
@@ -203,38 +266,68 @@
         <button class="btn btn-primary" onclick={provisionRandom} disabled={provisioning}>
           {provisioning ? 'Provisioning...' : 'Generate Random Company'}
         </button>
-        <button class="btn" class:active={showProvision} onclick={() => showProvision = !showProvision}>Custom</button>
+        <button
+          class="btn"
+          class:active={showProvision}
+          onclick={() => (showProvision = !showProvision)}>Custom</button
+        >
       </div>
     </div>
     <div class="panel-body">
-      <p class="section-desc" style="margin-bottom:0">Wipe and rebuild the entire LDAP directory with generated users, groups, and credentials.</p>
+      <p class="section-desc" style="margin-bottom:0">
+        Wipe and rebuild the entire LDAP directory with generated users, groups, and credentials.
+      </p>
 
       {#if showProvision}
         <div class="prov-custom">
           <div class="prov-grid">
             <div class="field">
               <label class="field-label" for="pCompany">Company Name</label>
-              <input class="input" id="pCompany" bind:value={customCompany} placeholder="e.g. Contoso Ltd" />
+              <input
+                class="input"
+                id="pCompany"
+                bind:value={customCompany}
+                placeholder="e.g. Contoso Ltd"
+              />
             </div>
             <div class="field">
               <label class="field-label" for="pDomain">Email Domain</label>
-              <input class="input" id="pDomain" bind:value={customDomain} placeholder="e.g. contoso.local" />
+              <input
+                class="input"
+                id="pDomain"
+                bind:value={customDomain}
+                placeholder="e.g. contoso.local"
+              />
             </div>
             <div class="field">
               <label class="field-label" for="pCount">Users</label>
-              <input class="input" id="pCount" type="number" bind:value={customCount} min="1" max="50" style="width:80px" />
+              <input
+                class="input"
+                id="pCount"
+                type="number"
+                bind:value={customCount}
+                min="1"
+                max="50"
+                style="width:80px"
+              />
             </div>
-            <button class="btn btn-primary" onclick={provisionCustom} disabled={provisioning || !customCompany.trim() || !customDomain.trim()}>
+            <button
+              class="btn btn-primary"
+              onclick={provisionCustom}
+              disabled={provisioning || !customCompany.trim() || !customDomain.trim()}
+            >
               Provision
             </button>
           </div>
           <div class="toggle-field" style="margin-top:var(--space-md)">
             <div>
-              <div style="font-size:var(--font-size-sm);font-weight:500">All Strong Random Passwords</div>
+              <div style="font-size:var(--font-size-sm);font-weight:500">
+                All Strong Random Passwords
+              </div>
               <div class="field-desc">
-                On: every user gets a unique 12-char random password.
-                Off (recommended): realistic corporate mix - ~40% weak (Password1!, Welcome123, etc),
-                ~30% semi-personal (firstname+year), ~30% strong random.
+                On: every user gets a unique 12-char random password. Off (recommended): realistic
+                corporate mix - ~40% weak (Password1!, Welcome123, etc), ~30% semi-personal
+                (firstname+year), ~30% strong random.
               </div>
             </div>
             <input type="checkbox" bind:checked={customRandomPass} />
@@ -269,13 +362,15 @@
 
   <div class="panel">
     <div class="tab-bar tab-bar-pad">
-      <button class="tab" class:active={tab === 'users'} onclick={() => tab = 'users'}>
+      <button class="tab" class:active={tab === 'users'} onclick={() => (tab = 'users')}>
         Users <span class="count-pill">{users.length}</span>
       </button>
-      <button class="tab" class:active={tab === 'groups'} onclick={() => tab = 'groups'}>
+      <button class="tab" class:active={tab === 'groups'} onclick={() => (tab = 'groups')}>
         Groups <span class="count-pill">{groups.length}</span>
       </button>
-      <button class="tab" class:active={tab === 'test'} onclick={() => tab = 'test'}>Test Auth</button>
+      <button class="tab" class:active={tab === 'test'} onclick={() => (tab = 'test')}
+        >Test Auth</button
+      >
     </div>
 
     {#if tab === 'users'}
@@ -296,13 +391,29 @@
             </div>
             <div class="field">
               <label class="field-label" for="newMail">Email</label>
-              <input class="input" id="newMail" type="email" bind:value={newMail} placeholder="jdoe@tala.wte" />
+              <input
+                class="input"
+                id="newMail"
+                type="email"
+                bind:value={newMail}
+                placeholder="jdoe@tala.wte"
+              />
             </div>
             <div class="field">
               <label class="field-label" for="newPass">Password *</label>
-              <input class="input" id="newPass" type="password" bind:value={newPass} placeholder="••••••••" />
+              <input
+                class="input"
+                id="newPass"
+                type="password"
+                bind:value={newPass}
+                placeholder="••••••••"
+              />
             </div>
-            <button class="btn btn-primary" onclick={createUser} disabled={addingUser || !newUID || !newCN || !newPass}>
+            <button
+              class="btn btn-primary"
+              onclick={createUser}
+              disabled={addingUser || !newUID || !newCN || !newPass}
+            >
               {addingUser ? '…' : 'Add User'}
             </button>
           </div>
@@ -316,7 +427,10 @@
       {:else}
         <div class="table-wrap">
           <table class="table">
-            <thead><tr><th>UID</th><th>CN</th><th>Email</th><th>Password</th><th>DN</th><th></th></tr></thead>
+            <thead
+              ><tr><th>UID</th><th>CN</th><th>Email</th><th>Password</th><th>DN</th><th></th></tr
+              ></thead
+            >
             <tbody>
               {#each users as u}
                 {@const pw = passwordCell(u.password, u.uid)}
@@ -325,19 +439,33 @@
                   <td>{u.cn}</td>
                   <td class="dim">{u.mail || '-'}</td>
                   <td>
-                    <span class="mono pw-cell">{revealedPasswords[u.uid] ? pw.revealed : pw.hidden}</span>
+                    <span class="mono pw-cell"
+                      >{revealedPasswords[u.uid] ? pw.revealed : pw.hidden}</span
+                    >
                     {#if pw.copyable}
-                      <button class="action-btn pw-action" onclick={() => togglePassword(u.uid)} title={revealedPasswords[u.uid] ? 'Hide' : 'Show'}>
+                      <button
+                        class="action-btn pw-action"
+                        onclick={() => togglePassword(u.uid)}
+                        title={revealedPasswords[u.uid] ? 'Hide' : 'Show'}
+                      >
                         {revealedPasswords[u.uid] ? 'Hide' : 'Show'}
                       </button>
-                      <button class="action-btn pw-action" onclick={() => copyPassword(pw.revealed)} title="Copy to clipboard">
+                      <button
+                        class="action-btn pw-action"
+                        onclick={() => copyPassword(pw.revealed)}
+                        title="Copy to clipboard"
+                      >
                         Copy
                       </button>
                     {/if}
                   </td>
                   <td class="mono dim" style="font-size:var(--font-size-xs)">{u.dn}</td>
                   <td>
-                    <button class="action-btn" style="color:var(--color-red)" onclick={() => deleteUser(u.uid)}>Del</button>
+                    <button
+                      class="action-btn"
+                      style="color:var(--color-red)"
+                      onclick={() => deleteUser(u.uid)}>Del</button
+                    >
                   </td>
                 </tr>
               {/each}
@@ -351,9 +479,19 @@
           <div class="group-form">
             <div class="field">
               <label class="field-label" for="newGroupCN">Group CN</label>
-              <input class="input" id="newGroupCN" bind:value={newGroupCN} placeholder="e.g. wifi-users" style="width:250px" />
+              <input
+                class="input"
+                id="newGroupCN"
+                bind:value={newGroupCN}
+                placeholder="e.g. wifi-users"
+                style="width:250px"
+              />
             </div>
-            <button class="btn btn-primary" onclick={createGroup} disabled={addingGroup || !newGroupCN}>
+            <button
+              class="btn btn-primary"
+              onclick={createGroup}
+              disabled={addingGroup || !newGroupCN}
+            >
               {addingGroup ? '…' : 'Create Group'}
             </button>
           </div>
@@ -366,11 +504,18 @@
             {#each groups as g}
               <div class="card group-card">
                 <div style="font-weight:600;margin-bottom:var(--space-xs)">{g.cn}</div>
-                <div class="mono dim" style="font-size:var(--font-size-xs);word-break:break-all">{g.dn}</div>
+                <div class="mono dim" style="font-size:var(--font-size-xs);word-break:break-all">
+                  {g.dn}
+                </div>
                 {#if g.members?.length}
                   <div style="margin-top:var(--space-md)">
                     {#each g.members as m}
-                      <div class="mono" style="font-size:var(--font-size-xs);color:var(--text-secondary)">• {m}</div>
+                      <div
+                        class="mono"
+                        style="font-size:var(--font-size-xs);color:var(--text-secondary)"
+                      >
+                        • {m}
+                      </div>
                     {/each}
                   </div>
                 {/if}
@@ -388,9 +533,20 @@
           </div>
           <div class="field" style="margin-bottom:var(--space-lg)">
             <label class="field-label" for="testPass">Password</label>
-            <input class="input" id="testPass" type="password" bind:value={testPass} placeholder="••••••••" />
+            <input
+              class="input"
+              id="testPass"
+              type="password"
+              bind:value={testPass}
+              placeholder="••••••••"
+            />
           </div>
-          <button class="btn btn-primary" onclick={testAuth} disabled={testing || !testUID || !testPass} style="width:100%">
+          <button
+            class="btn btn-primary"
+            onclick={testAuth}
+            disabled={testing || !testUID || !testPass}
+            style="width:100%"
+          >
             {testing ? 'Testing…' : 'Test Authentication'}
           </button>
 
@@ -400,10 +556,17 @@
                 {testResult.success ? '✓ Authentication Successful' : '✗ Authentication Failed'}
               </div>
               {#if testResult.dn}
-                <div class="mono dim" style="font-size:var(--font-size-xs);margin-top:var(--space-xs)">{testResult.dn}</div>
+                <div
+                  class="mono dim"
+                  style="font-size:var(--font-size-xs);margin-top:var(--space-xs)"
+                >
+                  {testResult.dn}
+                </div>
               {/if}
               {#if testResult.message && !testResult.success}
-                <div class="dim" style="font-size:var(--font-size-xs);margin-top:var(--space-xs)">{testResult.message}</div>
+                <div class="dim" style="font-size:var(--font-size-xs);margin-top:var(--space-xs)">
+                  {testResult.message}
+                </div>
               {/if}
             </div>
           {/if}
@@ -446,8 +609,12 @@
     font-size: var(--font-size-sm);
   }
 
-  .tab-bar-pad { padding: 0 var(--space-xl); }
-  .create-bar { margin-bottom: 0; }
+  .tab-bar-pad {
+    padding: 0 var(--space-xl);
+  }
+  .create-bar {
+    margin-bottom: 0;
+  }
 
   .user-form {
     display: grid;
@@ -461,20 +628,36 @@
     align-items: flex-end;
     flex-wrap: wrap;
   }
-  .group-card { word-break: break-all; }
+  .group-card {
+    word-break: break-all;
+  }
 
-  .test-form { max-width: 400px; }
+  .test-form {
+    max-width: 400px;
+  }
   .test-result {
     margin-top: var(--space-lg);
     padding: var(--space-md);
     border-radius: var(--radius-md);
     border: 1px solid var(--border-primary);
   }
-  .test-result.ok { border-color: var(--status-active); background: rgba(34, 197, 94, 0.1); }
-  .test-result.fail { border-color: var(--status-error); background: rgba(244, 63, 94, 0.1); }
-  .test-result-head { font-weight: 600; }
-  .test-result.ok .test-result-head { color: var(--status-active); }
-  .test-result.fail .test-result-head { color: var(--status-error); }
+  .test-result.ok {
+    border-color: var(--status-active);
+    background: rgba(34, 197, 94, 0.1);
+  }
+  .test-result.fail {
+    border-color: var(--status-error);
+    background: rgba(244, 63, 94, 0.1);
+  }
+  .test-result-head {
+    font-weight: 600;
+  }
+  .test-result.ok .test-result-head {
+    color: var(--status-active);
+  }
+  .test-result.fail .test-result-head {
+    color: var(--status-error);
+  }
 
   .pw-cell {
     display: inline-block;
@@ -489,11 +672,19 @@
     padding: 2px 6px;
     color: var(--text-dim);
   }
-  .pw-action:hover { color: var(--text-primary); }
+  .pw-action:hover {
+    color: var(--text-primary);
+  }
 
   @media (max-width: 820px) {
-    .prov-grid { grid-template-columns: 1fr 1fr; }
-    .user-form { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-    .user-form > .btn { grid-column: 1 / -1; }
+    .prov-grid {
+      grid-template-columns: 1fr 1fr;
+    }
+    .user-form {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+    .user-form > .btn {
+      grid-column: 1 / -1;
+    }
   }
 </style>

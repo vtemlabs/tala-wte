@@ -20,6 +20,7 @@ import (
 	"time"
 
 	"github.com/pocketbase/pocketbase"
+
 	"github.com/vtemlabs/tala-wte/internal/api"
 )
 
@@ -131,7 +132,7 @@ func CreateClientCertHandler(app *pocketbase.PocketBase) func(http.ResponseWrite
 }
 
 func initCA() error {
-	if err := os.MkdirAll(caDir, 0750); err != nil {
+	if err := os.MkdirAll(caDir, 0o750); err != nil {
 		return fmt.Errorf("mkdir pki: %w", err)
 	}
 
@@ -244,7 +245,7 @@ func writeMaterial(name string, certBytes []byte, priv *rsa.PrivateKey) error {
 		return err
 	}
 
-	keyOut, err := os.OpenFile(filepath.Join(caDir, name+".key"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0600)
+	keyOut, err := os.OpenFile(filepath.Join(caDir, name+".key"), os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return err
 	}

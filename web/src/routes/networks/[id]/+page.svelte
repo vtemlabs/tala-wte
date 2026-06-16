@@ -40,9 +40,14 @@
       if (r.ok) {
         const atBottom = !logEl || logEl.scrollTop + logEl.clientHeight >= logEl.scrollHeight - 40;
         logs = (await r.json()).lines ?? [];
-        if (atBottom) requestAnimationFrame(() => { if (logEl) logEl.scrollTop = logEl.scrollHeight; });
+        if (atBottom)
+          requestAnimationFrame(() => {
+            if (logEl) logEl.scrollTop = logEl.scrollHeight;
+          });
       }
-    } catch { /* keep last logs */ }
+    } catch {
+      /* keep last logs */
+    }
   }
 
   // Self-scheduling poll so the delay can back off after failures (a fixed setInterval period cannot).
@@ -51,7 +56,7 @@
       const [statusRes, clientRes] = await Promise.all([
         fetch(`/api/wte/networks/${id}/status`, {
           headers: pb.authStore.token ? { Authorization: pb.authStore.token } : {}
-        }).then(r => {
+        }).then((r) => {
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           return r.json();
         }),
@@ -153,7 +158,6 @@
     clients = res.clients ?? [];
     startPolling();
   }
-
 </script>
 
 <svelte:head><title>{net?.ssid ?? 'Network'} - Tala WTE</title></svelte:head>
@@ -192,11 +196,22 @@
       <div class="status-bar">
         <div class="sb-item">
           <span class="sb-label">Status</span>
-          <span class="sb-value"><span class="status-dot" class:active={net.status==='running'} class:inactive={net.status==='stopped'} class:error={net.status==='error'}></span><span style="text-transform:capitalize">{net.status}</span></span>
+          <span class="sb-value"
+            ><span
+              class="status-dot"
+              class:active={net.status === 'running'}
+              class:inactive={net.status === 'stopped'}
+              class:error={net.status === 'error'}
+            ></span><span style="text-transform:capitalize">{net.status}</span></span
+          >
         </div>
         <div class="sb-item">
           <span class="sb-label">Protocol</span>
-          <span class="sb-value"><span class="badge {protocolBadge(net.protocol)}">{net.protocol.replace('_','-').toUpperCase()}</span></span>
+          <span class="sb-value"
+            ><span class="badge {protocolBadge(net.protocol)}"
+              >{net.protocol.replace('_', '-').toUpperCase()}</span
+            ></span
+          >
         </div>
         <div class="sb-item">
           <span class="sb-label">Band</span>
@@ -216,13 +231,34 @@
         <div class="panel-head"><h2 class="panel-title">Configuration</h2></div>
         <div class="panel-body">
           <div class="meta-grid">
-            <div class="meta-row"><div class="meta-key">SSID</div><div class="meta-val">{net.ssid}</div></div>
-            <div class="meta-row"><div class="meta-key">Protocol</div><div class="meta-val">{net.protocol}</div></div>
-            <div class="meta-row"><div class="meta-key">Band</div><div class="meta-val">{net.band ?? '2.4'} GHz</div></div>
-            <div class="meta-row"><div class="meta-key">Channel</div><div class="meta-val">{net.channel ?? 6}</div></div>
-            <div class="meta-row"><div class="meta-key">Interface</div><div class="meta-val">{net.interface || '-'}</div></div>
-            <div class="meta-row"><div class="meta-key">Isolation</div><div class="meta-val">{net.client_isolation ? 'Enabled' : 'Disabled'}</div></div>
-            <div class="meta-row"><div class="meta-key">NAT</div><div class="meta-val">{net.internet_passthrough ? 'Enabled' : 'Disabled'}</div></div>
+            <div class="meta-row">
+              <div class="meta-key">SSID</div>
+              <div class="meta-val">{net.ssid}</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-key">Protocol</div>
+              <div class="meta-val">{net.protocol}</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-key">Band</div>
+              <div class="meta-val">{net.band ?? '2.4'} GHz</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-key">Channel</div>
+              <div class="meta-val">{net.channel ?? 6}</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-key">Interface</div>
+              <div class="meta-val">{net.interface || '-'}</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-key">Isolation</div>
+              <div class="meta-val">{net.client_isolation ? 'Enabled' : 'Disabled'}</div>
+            </div>
+            <div class="meta-row">
+              <div class="meta-key">NAT</div>
+              <div class="meta-val">{net.internet_passthrough ? 'Enabled' : 'Disabled'}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -254,8 +290,18 @@
         <div class="panel-head">
           <h2 class="panel-title">Live Log</h2>
           <div class="log-head-right">
-            <span class="log-status"><span class="status-dot" class:active={net.status==='running'} class:inactive={net.status!=='running'}></span>{net.status === 'running' ? 'streaming' : 'idle'}</span>
-            <button class="action-btn" onclick={() => logPopped = true} title="Pop out the log into a resizable window">Pop out</button>
+            <span class="log-status"
+              ><span
+                class="status-dot"
+                class:active={net.status === 'running'}
+                class:inactive={net.status !== 'running'}
+              ></span>{net.status === 'running' ? 'streaming' : 'idle'}</span
+            >
+            <button
+              class="action-btn"
+              onclick={() => (logPopped = true)}
+              title="Pop out the log into a resizable window">Pop out</button
+            >
           </div>
         </div>
         <div class="panel-body logbody">
@@ -270,7 +316,11 @@
       </div>
     </div>
 
-    <ProtocolGuide protocol={net.protocol} collapsed={guideCollapsed} onToggle={() => guideCollapsed = !guideCollapsed} />
+    <ProtocolGuide
+      protocol={net.protocol}
+      collapsed={guideCollapsed}
+      onToggle={() => (guideCollapsed = !guideCollapsed)}
+    />
   </div>
 {/if}
 
@@ -278,7 +328,7 @@
   <EnterprisePreflight
     open={preflightOpen}
     ssid={net.ssid}
-    onClose={() => preflightOpen = false}
+    onClose={() => (preflightOpen = false)}
     onStart={startFromPreflight}
   />
   <LogWindow
@@ -290,51 +340,125 @@
 {/if}
 
 <style>
-  .page-header { align-items: center; margin-bottom: var(--space-xl); }
-  .back-link { font-size: var(--font-size-xs); color: var(--text-dim); font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; }
-  .back-link:hover { color: var(--text-secondary); }
-  .page-header .page-title { margin-top: 2px; font-size: var(--font-size-xl); }
+  .page-header {
+    align-items: center;
+    margin-bottom: var(--space-xl);
+  }
+  .back-link {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .back-link:hover {
+    color: var(--text-secondary);
+  }
+  .page-header .page-title {
+    margin-top: 2px;
+    font-size: var(--font-size-xl);
+  }
 
-  .detail-main { flex: 1; min-width: 0; }
+  .detail-main {
+    flex: 1;
+    min-width: 0;
+  }
 
   /* Compact status strip - framed, divided cells (kept intact). */
   .status-bar {
-    display: flex; flex-wrap: wrap;
-    background: linear-gradient(180deg, rgba(255,255,255,0.025), transparent 120px), var(--bg-card);
-    border: 1px solid var(--border-primary); border-radius: var(--radius-lg);
-    box-shadow: var(--shadow-md); overflow: hidden;
+    display: flex;
+    flex-wrap: wrap;
+    background:
+      linear-gradient(180deg, rgba(255, 255, 255, 0.025), transparent 120px), var(--bg-card);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-md);
+    overflow: hidden;
   }
   .sb-item {
-    flex: 1; min-width: 110px; display: flex; flex-direction: column; gap: 6px;
-    padding: var(--space-md) var(--space-xl); border-right: 1px solid var(--border-primary);
+    flex: 1;
+    min-width: 110px;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: var(--space-md) var(--space-xl);
+    border-right: 1px solid var(--border-primary);
   }
-  .sb-item:last-child { border-right: none; }
-  .sb-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em; color: var(--text-muted); }
-  .sb-value { display: flex; align-items: center; gap: 7px; font-size: var(--font-size-lg); font-weight: 600; color: var(--text-primary); font-variant-numeric: tabular-nums; }
-  .sb-value .status-dot { margin: 0; }
-  .sb-value .badge { font-size: var(--font-size-xs); }
-  @media (max-width: 760px) {
-    .sb-item { flex: 1 1 33%; border-bottom: 1px solid var(--border-primary); }
+  .sb-item:last-child {
+    border-right: none;
   }
-
-  .log-head-right { display: flex; align-items: center; gap: var(--space-md); }
-  .log-status {
-    display: flex; align-items: center; gap: 6px;
-    font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.08em;
+  .sb-label {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
     color: var(--text-muted);
   }
-  .log-status .status-dot { margin: 0; }
+  .sb-value {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+  }
+  .sb-value .status-dot {
+    margin: 0;
+  }
+  .sb-value .badge {
+    font-size: var(--font-size-xs);
+  }
+  @media (max-width: 760px) {
+    .sb-item {
+      flex: 1 1 33%;
+      border-bottom: 1px solid var(--border-primary);
+    }
+  }
+
+  .log-head-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+  }
+  .log-status {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .log-status .status-dot {
+    margin: 0;
+  }
 
   /* Live log body sits flush as a dark terminal inside the panel. */
-  .logbody { padding: 0; }
+  .logbody {
+    padding: 0;
+  }
   .logbox {
-    height: 460px; overflow-y: auto;
+    height: 460px;
+    overflow-y: auto;
     background: var(--bg-primary);
     padding: var(--space-md) var(--space-lg);
-    font-family: var(--font-mono); font-size: var(--font-size-xs); line-height: 1.55;
-    color: #c9d1d9; white-space: pre-wrap; word-break: break-word;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-xs);
+    line-height: 1.55;
+    color: #c9d1d9;
+    white-space: pre-wrap;
+    word-break: break-word;
   }
-  .logline { color: #c9d1d9; }
-  .logline:hover { color: var(--text-primary); }
-  .logempty { color: var(--text-dim); font-style: italic; }
+  .logline {
+    color: #c9d1d9;
+  }
+  .logline:hover {
+    color: var(--text-primary);
+  }
+  .logempty {
+    color: var(--text-dim);
+    font-style: italic;
+  }
 </style>

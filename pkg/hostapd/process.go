@@ -124,7 +124,7 @@ func Start(ctx context.Context, confPath string, netnsName string) (*Process, er
 
 		// Write the full trace to a file since journald drops large multi-line messages.
 		const failLog = "/tmp/tala-hostapd-fail.log"
-		if err := os.WriteFile(failLog, []byte(strings.Join(lines, "\n")), 0600); err == nil {
+		if err := os.WriteFile(failLog, []byte(strings.Join(lines, "\n")), 0o600); err == nil {
 			log.Printf("[hostapd] start failed (%d lines captured); full output: %s", len(lines), failLog)
 		} else {
 			log.Printf("[hostapd] start failed (%d lines captured)", len(lines))
@@ -228,7 +228,8 @@ func parseStaOutput(output string) []Client {
 			}
 			current = &Client{MAC: line}
 		} else if current != nil && strings.HasPrefix(line, "signal=") {
-			fmt.Sscanf(strings.TrimPrefix(line, "signal="), "%d", &current.Signal)
+			// Signal is optional; on a malformed line it simply stays zero.
+			_, _ = fmt.Sscanf(strings.TrimPrefix(line, "signal="), "%d", &current.Signal)
 		}
 	}
 	if current != nil {

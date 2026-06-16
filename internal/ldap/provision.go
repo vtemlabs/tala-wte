@@ -18,6 +18,7 @@ import (
 	"strings"
 
 	"github.com/pocketbase/pocketbase"
+
 	"github.com/vtemlabs/tala-wte/internal/api"
 )
 
@@ -199,11 +200,11 @@ func provisionDirectory(req ProvisionRequest) (*ProvisionResponse, error) {
 	if err := os.RemoveAll(dbDir); err != nil {
 		return nil, fmt.Errorf("remove ldap db: %w", err)
 	}
-	if err := os.MkdirAll(dbDir, 0750); err != nil {
+	if err := os.MkdirAll(dbDir, 0o750); err != nil {
 		return nil, fmt.Errorf("mkdir ldap db: %w", err)
 	}
 
-	os.Remove(ldapConfFile)
+	_ = os.Remove(ldapConfFile) // best-effort: a stale config is overwritten below regardless
 
 	if err := writeDefaultConfig(); err != nil {
 		return nil, fmt.Errorf("write config: %w", err)
@@ -213,7 +214,7 @@ func provisionDirectory(req ProvisionRequest) (*ProvisionResponse, error) {
 
 	var ldif bytes.Buffer
 
-	ldif.WriteString(fmt.Sprintf(`dn: %s
+	fmt.Fprintf(&ldif, `dn: %s
 objectClass: top
 objectClass: dcObject
 objectClass: organization
@@ -237,11 +238,11 @@ objectClass: top
 objectClass: organizationalUnit
 ou: Groups
 
-`, defaultBaseDN, req.CompanyName, defaultBaseDN, req.CompanyName, AdminPassword(), defaultBaseDN, defaultBaseDN))
+`, defaultBaseDN, req.CompanyName, defaultBaseDN, req.CompanyName, AdminPassword(), defaultBaseDN, defaultBaseDN)
 
 	memberLines := ""
 	for _, u := range users {
-		ldif.WriteString(fmt.Sprintf(`dn: uid=%s,ou=Users,%s
+		fmt.Fprintf(&ldif, `dn: uid=%s,ou=Users,%s
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
@@ -252,11 +253,11 @@ sn: %s
 mail: %s
 userPassword: %s
 
-`, u.UID, defaultBaseDN, u.UID, u.CN, strings.Fields(u.CN)[len(strings.Fields(u.CN))-1], u.Mail, u.Password))
+`, u.UID, defaultBaseDN, u.UID, u.CN, strings.Fields(u.CN)[len(strings.Fields(u.CN))-1], u.Mail, u.Password)
 		memberLines += fmt.Sprintf("member: uid=%s,ou=Users,%s\n", u.UID, defaultBaseDN)
 	}
 
-	ldif.WriteString(fmt.Sprintf(`dn: cn=wifi-users,ou=Groups,%s
+	fmt.Fprintf(&ldif, `dn: cn=wifi-users,ou=Groups,%s
 objectClass: top
 objectClass: groupOfNames
 cn: wifi-users
@@ -266,10 +267,10 @@ objectClass: top
 objectClass: groupOfNames
 cn: wifi-admins
 member: uid=%s,ou=Users,%s
-`, defaultBaseDN, memberLines, defaultBaseDN, users[0].UID, defaultBaseDN))
+`, defaultBaseDN, memberLines, defaultBaseDN, users[0].UID, defaultBaseDN)
 
 	bootstrapFile := filepath.Join(ldapDataDir, "bootstrap.ldif")
-	if err := os.WriteFile(bootstrapFile, ldif.Bytes(), 0640); err != nil {
+	if err := os.WriteFile(bootstrapFile, ldif.Bytes(), 0o640); err != nil {
 		return nil, fmt.Errorf("write ldif: %w", err)
 	}
 

@@ -17,7 +17,7 @@ import (
 
 // EnableForwarding enables IPv4 packet forwarding globally.
 func EnableForwarding() error {
-	return os.WriteFile("/proc/sys/net/ipv4/ip_forward", []byte("1"), 0644)
+	return os.WriteFile("/proc/sys/net/ipv4/ip_forward", []byte("1"), 0o644)
 }
 
 // AssignIP assigns an IP to an interface (`ip addr add ip dev iface`)

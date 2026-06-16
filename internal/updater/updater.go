@@ -86,8 +86,10 @@ func CheckLatest(ctx context.Context) (*Status, error) {
 
 	rel, err := latestRelease(ctx)
 	if err != nil {
+		// Soft-fail: surface the check error in Status so the UI still renders the
+		// current version offline, rather than failing the whole request.
 		st.Error = err.Error()
-		return st, nil
+		return st, nil //nolint:nilerr // intentional: error is reported via Status.Error
 	}
 
 	st.Latest = strings.TrimPrefix(rel.TagName, "v")
@@ -224,7 +226,7 @@ func Apply(ctx context.Context) (string, error) {
 	if err := scheduleRestart(); err != nil {
 		// The new binary is in place; a failed restart scheduling just means the
 		// operator must restart the service manually. Surface it, don't roll back.
-		return latest, fmt.Errorf("update installed but auto-restart could not be scheduled (%v); restart tala-wte manually", err)
+		return latest, fmt.Errorf("update installed but auto-restart could not be scheduled (%w); restart tala-wte manually", err)
 	}
 	return latest, nil
 }
@@ -244,7 +246,7 @@ func scheduleRestart() error {
 	)
 	out, err := cmd.CombinedOutput()
 	if err != nil {
-		return fmt.Errorf("systemd-run: %v: %s", err, strings.TrimSpace(string(out)))
+		return fmt.Errorf("systemd-run: %w: %s", err, strings.TrimSpace(string(out)))
 	}
 	return nil
 }

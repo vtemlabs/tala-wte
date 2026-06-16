@@ -7,9 +7,14 @@
 
 export function protocolBadge(p: string): string {
 	const map: Record<string, string> = {
-		open: 'badge-open', wpa: 'badge-wpa', wpa2: 'badge-wpa2', wps: 'badge-wps',
-		wpa3: 'badge-wpa3', wpa3_transition: 'badge-wpa3',
-		wpa2_enterprise: 'badge-enterprise', wpa3_enterprise: 'badge-enterprise'
+		open: 'badge-open',
+		wpa: 'badge-wpa',
+		wpa2: 'badge-wpa2',
+		wps: 'badge-wps',
+		wpa3: 'badge-wpa3',
+		wpa3_transition: 'badge-wpa3',
+		wpa2_enterprise: 'badge-enterprise',
+		wpa3_enterprise: 'badge-enterprise'
 	};
 	return map[p] ?? 'badge-neutral';
 }

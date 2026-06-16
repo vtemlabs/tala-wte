@@ -5,9 +5,10 @@
 
 package portal
 
-import "strings"
-
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestNormalizeRewritesForeignForm(t *testing.T) {
 	in := `<!doctype html><html><body>

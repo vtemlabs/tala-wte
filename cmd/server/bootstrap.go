@@ -11,6 +11,7 @@ import (
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
+
 	"github.com/vtemlabs/tala-wte/internal/portal"
 	"github.com/vtemlabs/tala-wte/internal/sim"
 )

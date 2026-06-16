@@ -26,6 +26,7 @@ import (
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/tools/types"
+
 	tala "github.com/vtemlabs/tala-wte"
 	"github.com/vtemlabs/tala-wte/internal/api"
 	"github.com/vtemlabs/tala-wte/internal/capture"
@@ -284,7 +285,7 @@ func radiusConfigHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *
 
 		if req.SharedSecret != "" {
 			clientsConf := fmt.Sprintf("client localhost {\n\tipaddr = 127.0.0.1\n\tsecret = %s\n}\n", req.SharedSecret)
-			if err := os.WriteFile("/etc/freeradius/3.0/clients.conf", []byte(clientsConf), 0640); err != nil {
+			if err := os.WriteFile("/etc/freeradius/3.0/clients.conf", []byte(clientsConf), 0o640); err != nil {
 				log.Printf("[radius] failed to write clients.conf: %v", err)
 				api.WriteErr(w, http.StatusInternalServerError, "failed to write FreeRADIUS config")
 				return
@@ -716,7 +717,7 @@ func extractPortalZip(file io.ReaderAt, size int64, destDir string) error {
 
 	prefix := commonZipPrefix(zr.File)
 
-	if err := os.MkdirAll(destDir, 0755); err != nil {
+	if err := os.MkdirAll(destDir, 0o755); err != nil {
 		return fmt.Errorf("failed to create bundle directory")
 	}
 	cleanBase := filepath.Clean(destDir)
@@ -732,10 +733,10 @@ func extractPortalZip(file io.ReaderAt, size int64, destDir string) error {
 			return fmt.Errorf("archive contains an unsafe path")
 		}
 		if f.FileInfo().IsDir() {
-			_ = os.MkdirAll(target, 0755)
+			_ = os.MkdirAll(target, 0o755)
 			continue
 		}
-		if err := os.MkdirAll(filepath.Dir(target), 0755); err != nil {
+		if err := os.MkdirAll(filepath.Dir(target), 0o755); err != nil {
 			return fmt.Errorf("failed to create directory")
 		}
 		rc, err := f.Open()
@@ -766,7 +767,7 @@ func extractPortalZip(file io.ReaderAt, size int64, destDir string) error {
 	// Normalize the bundle's index.html once here rather than on every request, since fs: bundles are served as static files.
 	if b, err := os.ReadFile(indexPath); err == nil {
 		if normalized := portal.Normalize(string(b)); normalized != string(b) {
-			_ = os.WriteFile(indexPath, []byte(normalized), 0644)
+			_ = os.WriteFile(indexPath, []byte(normalized), 0o644)
 		}
 	}
 	return nil

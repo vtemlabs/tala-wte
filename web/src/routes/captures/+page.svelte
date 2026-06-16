@@ -32,7 +32,6 @@
     { label: 'Clear', bpf: '' }
   ];
 
-
   onMount(async () => {
     try {
       [captureList, networkList, { interfaces }] = await Promise.all([
@@ -50,7 +49,8 @@
   });
 
   async function start() {
-    starting = true; error = '';
+    starting = true;
+    error = '';
     try {
       await captures.start(selectedNet, layer, iface, filter);
       captureList = await captures.list();
@@ -97,7 +97,7 @@
 </div>
 
 {#if error}
-  <div class="error-toast"><span>{error}</span><button onclick={() => error = ''}>×</button></div>
+  <div class="error-toast"><span>{error}</span><button onclick={() => (error = '')}>×</button></div>
 {/if}
 
 <div class="stack">
@@ -134,16 +134,30 @@
         </div>
         <div class="field">
           <label class="field-label" for="filter">BPF Filter (optional)</label>
-          <input class="input" id="filter" bind:value={filter} placeholder='e.g. "port 80" or "host 10.0.0.1"' />
+          <input
+            class="input"
+            id="filter"
+            bind:value={filter}
+            placeholder="e.g. &quot;port 80&quot; or &quot;host 10.0.0.1&quot;"
+          />
           <div class="presets">
             {#each FILTER_PRESETS as p}
-              <button type="button" class="chip preset-chip" class:active={filter === p.bpf && p.bpf !== ''} onclick={() => filter = p.bpf}>{p.label}</button>
+              <button
+                type="button"
+                class="chip preset-chip"
+                class:active={filter === p.bpf && p.bpf !== ''}
+                onclick={() => (filter = p.bpf)}>{p.label}</button
+              >
             {/each}
           </div>
         </div>
       </div>
       <div class="form-foot">
-        <button class="btn btn-primary" onclick={start} disabled={starting || !selectedNet || !iface}>
+        <button
+          class="btn btn-primary"
+          onclick={start}
+          disabled={starting || !selectedNet || !iface}
+        >
           {starting ? 'Starting…' : 'Start Capture'}
         </button>
       </div>
@@ -180,7 +194,11 @@
                 <td class="mono num">{c.packet_count ?? '-'}</td>
                 <td>
                   <span class="status-label">
-                    <span class="status-dot" class:active={c.status==='running'} class:inactive={c.status!=='running'}></span>
+                    <span
+                      class="status-dot"
+                      class:active={c.status === 'running'}
+                      class:inactive={c.status !== 'running'}
+                    ></span>
                     {c.status}
                   </span>
                 </td>
@@ -191,7 +209,8 @@
                     {:else}
                       <a href={`/captures/${c.id}`} class="action-btn">View</a>
                       <a href={captures.downloadURL(c.id)} class="action-btn" download>Download</a>
-                      <button class="action-btn btn-danger" onclick={() => remove(c.id)}>Del</button>
+                      <button class="action-btn btn-danger" onclick={() => remove(c.id)}>Del</button
+                      >
                     {/if}
                   </div>
                 </td>
@@ -222,9 +241,17 @@
     text-transform: capitalize;
     white-space: nowrap;
   }
-  .table .num { text-align: right; font-variant-numeric: tabular-nums; }
-  .table th.act, .table td.act { text-align: right; }
-  .row-actions { justify-content: flex-end; }
+  .table .num {
+    text-align: right;
+    font-variant-numeric: tabular-nums;
+  }
+  .table th.act,
+  .table td.act {
+    text-align: right;
+  }
+  .row-actions {
+    justify-content: flex-end;
+  }
   .btn-danger.action-btn {
     color: var(--color-red);
     border-color: rgba(244, 63, 94, 0.4);
@@ -236,6 +263,15 @@
     border-color: transparent;
   }
 
-  .presets { display: flex; flex-wrap: wrap; gap: 6px; margin-top: var(--space-sm); }
-  .preset-chip { font-size: var(--font-size-xs); padding: 3px 10px; cursor: pointer; }
+  .presets {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+    margin-top: var(--space-sm);
+  }
+  .preset-chip {
+    font-size: var(--font-size-xs);
+    padding: 3px 10px;
+    cursor: pointer;
+  }
 </style>

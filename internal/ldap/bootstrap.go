@@ -38,7 +38,7 @@ func writeDefaultConfig() error {
 	}); err != nil {
 		return err
 	}
-	return os.WriteFile(ldapConfFile, buf.Bytes(), 0640)
+	return os.WriteFile(ldapConfFile, buf.Bytes(), 0o640)
 }
 
 func bootstrapDirectory() error {
@@ -118,7 +118,7 @@ member: uid=%s,ou=Users,%s
 	ldif.WriteString(groupsLdif)
 
 	bootstrapFile := ldapDataDir + "/bootstrap.ldif"
-	if err := os.WriteFile(bootstrapFile, ldif.Bytes(), 0640); err != nil {
+	if err := os.WriteFile(bootstrapFile, ldif.Bytes(), 0o640); err != nil {
 		return fmt.Errorf("write bootstrap ldif: %w", err)
 	}
 

@@ -1,0 +1,74 @@
+# golangci-lint v2 configuration for Tala WTE.
+# Run with `make lint` (or `golangci-lint run`). Formatting issues are fixed with
+# `golangci-lint fmt` (wired into `make fmt`). The set below is chosen to be
+# high-signal: real bugs and clear smells, not stylistic noise.
+version: "2"
+
+run:
+  # cmd/server embeds web/build via go:embed, so the frontend must be built
+  # before linting or the package fails to load. `make lint` handles that.
+  build-tags: []
+
+issues:
+  # Show every finding; golangci defaults to capping duplicates at 3, which can
+  # silently hide repeated problems in a release gate.
+  max-same-issues: 0
+  max-issues-per-linter: 0
+
+linters:
+  # Start from the curated default set (errcheck, govet, ineffassign,
+  # staticcheck, unused) and add focused extras.
+  default: standard
+  enable:
+    - bodyclose      # HTTP/response bodies must be closed (this app makes many).
+    - errorlint      # Correct error wrapping / comparison (errors.Is, %w).
+    - misspell       # Catch typos in comments and strings.
+    - unconvert      # Remove redundant type conversions.
+    - nilerr         # Returning nil after a non-nil error check.
+    - rowserrcheck   # sql.Rows.Err() handling (PocketBase/dbx queries).
+    - usestdlibvars  # Prefer http.MethodGet etc. over string literals.
+
+  settings:
+    misspell:
+      locale: US
+    errcheck:
+      # Closing a read handle or writing to an already-failed/io writer is
+      # idiomatically fire-and-forget; flagging every deferred Close/Fprint is
+      # noise. Genuinely load-bearing error returns are still checked.
+      exclude-functions:
+        - (io.Closer).Close
+        - (io.ReadCloser).Close
+        - (*os.File).Close
+        - (net.Conn).Close
+        - (*github.com/gorilla/websocket.Conn).Close
+        - github.com/vishvananda/netns.Set   # deferred namespace restore; failure is non-actionable
+        - os.Setenv                          # only errors on a malformed name, and ours are constants
+        - fmt.Fprint
+        - fmt.Fprintf
+        - fmt.Fprintln
+
+  exclusions:
+    generated: lax
+    rules:
+      # execLogged runs a command and logs its own stdout/stderr/error; at the
+      # teardown sites that discard its return there is nothing further to do.
+      - linters: [errcheck]
+        source: execLogged\(
+      # QF1001 (apply De Morgan's law) makes the hex-digit guards LESS readable;
+      # the negated-OR form reads as "not a hex digit" and is kept on purpose.
+      - linters: [staticcheck]
+        text: QF1001
+      # Test files may ignore errors and reuse fixtures more loosely.
+      - path: _test\.go
+        linters:
+          - errcheck
+          - bodyclose
+
+formatters:
+  enable:
+    - gofumpt     # Stricter gofmt.
+    - goimports   # Group and order imports.
+  settings:
+    goimports:
+      local-prefixes:
+        - github.com/vtemlabs/tala-wte

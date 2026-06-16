@@ -148,7 +148,7 @@ func (r *EnterpriseProvisionResult) fail(id, label string, err error) {
 
 // installRADIUSCerts copies the CA + RADIUS server cert/key into FreeRADIUS's certs dir and chowns them to freerad.
 func installRADIUSCerts() error {
-	if err := os.MkdirAll(radiusCertDir, 0755); err != nil {
+	if err := os.MkdirAll(radiusCertDir, 0o755); err != nil {
 		return fmt.Errorf("mkdir %s: %w", radiusCertDir, err)
 	}
 	pairs := [][2]string{
@@ -161,9 +161,9 @@ func installRADIUSCerts() error {
 		if err != nil {
 			return fmt.Errorf("read %s: %w", p[0], err)
 		}
-		mode := os.FileMode(0644)
+		mode := os.FileMode(0o644)
 		if filepath.Ext(p[1]) == ".key" {
-			mode = 0640
+			mode = 0o640
 		}
 		if err := os.WriteFile(p[1], data, mode); err != nil {
 			return fmt.Errorf("write %s: %w", p[1], err)
@@ -197,7 +197,7 @@ func patchEAPModuleCerts() error {
 	if string(data) == src {
 		return nil
 	}
-	return os.WriteFile(freeradiusEAPModule, []byte(src), 0640)
+	return os.WriteFile(freeradiusEAPModule, []byte(src), 0o640)
 }
 
 // writeFreeRADIUSLDAPModule writes mods-enabled/ldap wired to our slapd at 127.0.0.1:3389, binding as
@@ -276,7 +276,7 @@ ldap {
 	}
 	// Replace any existing symlink to mods-available/ldap with our file.
 	_ = os.Remove(freeradiusLDAPModule)
-	if err := os.WriteFile(freeradiusLDAPModule, []byte(desired), 0640); err != nil {
+	if err := os.WriteFile(freeradiusLDAPModule, []byte(desired), 0o640); err != nil {
 		return fmt.Errorf("write %s: %w", freeradiusLDAPModule, err)
 	}
 	_ = exec.Command("chown", "root:freerad", freeradiusLDAPModule).Run()

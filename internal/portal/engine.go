@@ -150,7 +150,7 @@ log-dhcp
 `, e.Interface, dhcpRangeStart, dhcpRangeEnd, e.GatewayIP, e.GatewayIP)
 
 	confPath := filepath.Join(os.TempDir(), "dnsmasq-"+e.NetworkID+".conf")
-	if err := os.WriteFile(confPath, []byte(confContent), 0600); err != nil {
+	if err := os.WriteFile(confPath, []byte(confContent), 0o600); err != nil {
 		return err
 	}
 
@@ -327,14 +327,14 @@ func (e *Engine) startHTTPServer() error {
 				log.Printf("[portal] Failed to get origin namespace: %v", err)
 				return
 			}
-			defer originNS.Close()
+			defer func() { _ = originNS.Close() }()
 
 			targetNS, err := netns.GetFromName(e.NetnsName)
 			if err != nil {
 				log.Printf("[portal] Failed to get namespace %s: %v", e.NetnsName, err)
 				return
 			}
-			defer targetNS.Close()
+			defer func() { _ = targetNS.Close() }()
 
 			if err := netns.Set(targetNS); err != nil {
 				log.Printf("[portal] Failed to enter namespace %s: %v", e.NetnsName, err)
@@ -370,8 +370,10 @@ func isSafeRedirect(s string) bool {
 
 // credUserKeys and credPassKeys are the form field names treated as username and password.
 var (
-	credUserKeys = []string{"username", "user", "uid", "login", "account", "email",
-		"member_id", "memberid", "loyalty_id", "employee_id", "guest_id"}
+	credUserKeys = []string{
+		"username", "user", "uid", "login", "account", "email",
+		"member_id", "memberid", "loyalty_id", "employee_id", "guest_id",
+	}
 	credPassKeys = []string{"password", "pass", "pwd", "passcode", "pin"}
 )
 

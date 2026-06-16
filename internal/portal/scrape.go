@@ -51,7 +51,7 @@ func Scrape(rawURL string) (string, error) {
 		return "", fmt.Errorf("parse failed: %w", err)
 	}
 
-	// Honour <base href> for resolving relative references, then drop it so absolute rewrites aren't resolved twice.
+	// Honor <base href> for resolving relative references, then drop it so absolute rewrites aren't resolved twice.
 	refBase := base
 	var stylesheets, images, scripts, baseEls []*html.Node
 	var others []*html.Node // nodes with a relative href/src to absolutize

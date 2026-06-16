@@ -3,12 +3,10 @@
 // Free for personal and non-profit use. Commercial, paid training, paid CTF,
 // or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
 
-import PocketBase from 'pocketbase';
+import PocketBase, { type RecordSubscription } from 'pocketbase';
 
 export const pb = new PocketBase(
-	typeof window !== 'undefined'
-		? window.location.origin
-		: 'http://localhost:8090'
+	typeof window !== 'undefined' ? window.location.origin : 'http://localhost:8090'
 );
 
 // On 401/403 the token is invalid; clear it and force re-login.
@@ -39,20 +37,16 @@ function authHeaders(extra: Record<string, string> = {}): Record<string, string>
 
 // Networks
 export const networks = {
-	list: () =>
-		pb.collection('networks').getFullList(),
+	list: () => pb.collection('networks').getFullList(),
 
-	get: (id: string) =>
-		pb.collection('networks').getOne(id),
+	get: (id: string) => pb.collection('networks').getOne(id),
 
 	create: (data: Record<string, unknown>) =>
 		pb.collection('networks').create({ ...data, status: 'stopped' }),
 
-	update: (id: string, data: Record<string, unknown>) =>
-		pb.collection('networks').update(id, data),
+	update: (id: string, data: Record<string, unknown>) => pb.collection('networks').update(id, data),
 
-	delete: (id: string) =>
-		pb.collection('networks').delete(id),
+	delete: (id: string) => pb.collection('networks').delete(id),
 
 	start: async (id: string, opts: { autoProvision?: boolean } = {}) => {
 		const res = await fetch(`/api/wte/networks/${id}/start`, {
@@ -63,7 +57,9 @@ export const networks = {
 		const data = await res.json();
 		// 412 means enterprise preflight failed; surface the structured payload.
 		if (res.status === 412) {
-			const err = new Error(data.error || 'Enterprise preflight failed') as Error & { preflight?: PreflightResult };
+			const err = new Error(data.error || 'Enterprise preflight failed') as Error & {
+				preflight?: PreflightResult;
+			};
 			err.preflight = data.preflight;
 			throw err;
 		}
@@ -72,7 +68,10 @@ export const networks = {
 	},
 
 	stop: async (id: string) => {
-		const res = await fetch(`/api/wte/networks/${id}/stop`, { method: 'POST', headers: authHeaders() });
+		const res = await fetch(`/api/wte/networks/${id}/stop`, {
+			method: 'POST',
+			headers: authHeaders()
+		});
 		const data = await res.json();
 		if (!res.ok || data.error) throw new Error(data.error || 'Failed to stop network');
 		return data;
@@ -94,25 +93,21 @@ export interface PortalTemplate {
 }
 
 export const portals = {
-	list: () =>
-		pb.collection('portals').getFullList({ sort: 'name' }),
+	list: () => pb.collection('portals').getFullList({ sort: 'name' }),
 
-	get: (id: string) =>
-		pb.collection('portals').getOne(id),
+	get: (id: string) => pb.collection('portals').getOne(id),
 
 	create: (data: Record<string, unknown>) =>
 		pb.collection('portals').create({ type: 'custom', category: 'custom', ...data }),
 
-	update: (id: string, data: Record<string, unknown>) =>
-		pb.collection('portals').update(id, data),
+	update: (id: string, data: Record<string, unknown>) => pb.collection('portals').update(id, data),
 
-	delete: (id: string) =>
-		pb.collection('portals').delete(id),
+	delete: (id: string) => pb.collection('portals').delete(id),
 
 	templates: () =>
 		fetch('/api/wte/portals/templates', { headers: authHeaders() })
 			.then(handleResponse<{ templates: PortalTemplate[] }>)
-			.then(r => r.templates),
+			.then((r) => r.templates),
 
 	// Upload a self-contained .html or a .zip bundle as a new custom portal.
 	upload: async (file: File, name: string) => {
@@ -143,20 +138,17 @@ export const portals = {
 
 // Portal submissions (harvested credentials/PII)
 export const submissions = {
-	list: () =>
-		pb.collection('portal_submissions').getFullList({ sort: '-created' }),
+	list: () => pb.collection('portal_submissions').getFullList({ sort: '-created' }),
 
-	delete: (id: string) =>
-		pb.collection('portal_submissions').delete(id),
+	delete: (id: string) => pb.collection('portal_submissions').delete(id),
 
-	subscribe: (cb: (data: any) => void) =>
+	subscribe: (cb: (data: RecordSubscription) => void) =>
 		pb.collection('portal_submissions').subscribe('*', cb)
 };
 
 // Captures
 export const captures = {
-	list: () =>
-		pb.collection('captures').getFullList({ sort: '-started_at', expand: 'network_id' }),
+	list: () => pb.collection('captures').getFullList({ sort: '-started_at', expand: 'network_id' }),
 
 	start: async (networkId: string, layer: 'wireless' | 'network', iface: string, filter = '') => {
 		const res = await fetch('/api/wte/captures/start', {
@@ -168,12 +160,14 @@ export const captures = {
 	},
 
 	stop: async (id: string) => {
-		const res = await fetch(`/api/wte/captures/${id}/stop`, { method: 'POST', headers: authHeaders() });
+		const res = await fetch(`/api/wte/captures/${id}/stop`, {
+			method: 'POST',
+			headers: authHeaders()
+		});
 		return handleResponse(res);
 	},
 
-	delete: (id: string) =>
-		pb.collection('captures').delete(id),
+	delete: (id: string) => pb.collection('captures').delete(id),
 
 	downloadURL: (id: string) => `/api/wte/captures/${id}/download`,
 
@@ -210,7 +204,9 @@ export const ldap = {
 		}).then(handleResponse),
 
 	deleteUser: (uid: string) =>
-		fetch(`/api/wte/ldap/users/${uid}`, { method: 'DELETE', headers: authHeaders() }).then(handleResponse),
+		fetch(`/api/wte/ldap/users/${uid}`, { method: 'DELETE', headers: authHeaders() }).then(
+			handleResponse
+		),
 
 	testAuth: (uid: string, password: string) =>
 		fetch('/api/wte/ldap/test-auth', {
@@ -226,7 +222,12 @@ export const ldap = {
 			body: JSON.stringify({ cn, members })
 		}).then(handleResponse),
 
-	provision: (data: { company_name: string; domain: string; user_count: number; random_passwords: boolean }) =>
+	provision: (data: {
+		company_name: string;
+		domain: string;
+		user_count: number;
+		random_passwords: boolean;
+	}) =>
 		fetch('/api/wte/ldap/provision', {
 			method: 'POST',
 			headers: authHeaders({ 'Content-Type': 'application/json' }),
@@ -234,7 +235,9 @@ export const ldap = {
 		}).then(handleResponse),
 
 	provisionRandom: () =>
-		fetch('/api/wte/ldap/provision/random', { method: 'POST', headers: authHeaders() }).then(handleResponse)
+		fetch('/api/wte/ldap/provision/random', { method: 'POST', headers: authHeaders() }).then(
+			handleResponse
+		)
 };
 
 // System
@@ -249,10 +252,12 @@ export interface VersionStatus {
 }
 
 export const system = {
-	interfaces: () => fetch('/api/wte/system/interfaces', { headers: authHeaders() }).then(handleResponse),
+	interfaces: () =>
+		fetch('/api/wte/system/interfaces', { headers: authHeaders() }).then(handleResponse),
 	status: () => fetch('/api/wte/system/status').then(handleResponse),
 
-	getSettings: () => fetch('/api/wte/system/settings', { headers: authHeaders() }).then(handleResponse),
+	getSettings: () =>
+		fetch('/api/wte/system/settings', { headers: authHeaders() }).then(handleResponse),
 
 	saveSettings: (data: { uplink_iface?: string; country_code?: string }) =>
 		fetch('/api/wte/system/settings', {
@@ -263,12 +268,15 @@ export const system = {
 
 	// Current version plus, when GitHub is reachable, whether a newer release exists.
 	version: () =>
-		fetch('/api/wte/system/version', { headers: authHeaders() }).then(handleResponse<VersionStatus>),
+		fetch('/api/wte/system/version', { headers: authHeaders() }).then(
+			handleResponse<VersionStatus>
+		),
 
 	// Download, verify, and install the latest release, then restart the service.
 	update: () =>
-		fetch('/api/wte/system/update', { method: 'POST', headers: authHeaders() })
-			.then(handleResponse<{ status: string; version: string; restarting: boolean; message: string }>)
+		fetch('/api/wte/system/update', { method: 'POST', headers: authHeaders() }).then(
+			handleResponse<{ status: string; version: string; restarting: boolean; message: string }>
+		)
 };
 
 // Enterprise preflight
@@ -297,9 +305,13 @@ export interface ProvisionResult {
 
 export const enterprise = {
 	preflight: () =>
-		fetch('/api/wte/enterprise/preflight', { headers: authHeaders() }).then(handleResponse<PreflightResult>),
+		fetch('/api/wte/enterprise/preflight', { headers: authHeaders() }).then(
+			handleResponse<PreflightResult>
+		),
 	provision: () =>
-		fetch('/api/wte/enterprise/provision', { method: 'POST', headers: authHeaders() }).then(handleResponse<ProvisionResult>)
+		fetch('/api/wte/enterprise/provision', { method: 'POST', headers: authHeaders() }).then(
+			handleResponse<ProvisionResult>
+		)
 };
 
 // RADIUS config
@@ -320,8 +332,14 @@ export const certificates = {
 		fetch('/api/wte/certs/ca', { method: 'POST', headers: authHeaders() }).then(handleResponse),
 
 	createServer: (name: string) =>
-		fetch(`/api/wte/certs/server?name=${encodeURIComponent(name)}`, { method: 'POST', headers: authHeaders() }).then(handleResponse),
+		fetch(`/api/wte/certs/server?name=${encodeURIComponent(name)}`, {
+			method: 'POST',
+			headers: authHeaders()
+		}).then(handleResponse),
 
 	createClient: (uid: string) =>
-		fetch(`/api/wte/certs/client?uid=${encodeURIComponent(uid)}`, { method: 'POST', headers: authHeaders() }).then(handleResponse)
+		fetch(`/api/wte/certs/client?uid=${encodeURIComponent(uid)}`, {
+			method: 'POST',
+			headers: authHeaders()
+		}).then(handleResponse)
 };

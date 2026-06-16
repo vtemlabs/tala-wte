@@ -57,7 +57,8 @@ func Packets(id, displayFilter string, limit int) ([]PacketRow, bool, error) {
 		limit = 1000
 	}
 
-	args := []string{"-r", pcap, "-T", "fields",
+	args := []string{
+		"-r", pcap, "-T", "fields",
 		"-e", "frame.number",
 		"-e", "frame.time_relative",
 		"-e", "_ws.col.Source",
@@ -65,7 +66,8 @@ func Packets(id, displayFilter string, limit int) ([]PacketRow, bool, error) {
 		"-e", "_ws.col.Protocol",
 		"-e", "frame.len",
 		"-e", "_ws.col.Info",
-		"-c", strconv.Itoa(limit + 1)} // one extra to detect truncation
+		"-c", strconv.Itoa(limit + 1),
+	} // one extra to detect truncation
 	if displayFilter != "" {
 		args = append(args, "-Y", displayFilter)
 	}

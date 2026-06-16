@@ -21,6 +21,7 @@ import (
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
+
 	"github.com/vtemlabs/tala-wte/internal/api"
 	"github.com/vtemlabs/tala-wte/internal/certs"
 	"github.com/vtemlabs/tala-wte/internal/deps"
@@ -32,7 +33,7 @@ import (
 var proxyServers []*http.Server
 
 func initSerialLog() {
-	logFile, err := os.OpenFile("serial.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0644)
+	logFile, err := os.OpenFile("serial.log", os.O_CREATE|os.O_WRONLY|os.O_APPEND, 0o644)
 	if err != nil {
 		return
 	}
@@ -50,12 +51,14 @@ func initSerialLog() {
 	}
 	trueStdout := os.NewFile(uintptr(trueStdoutFd), "trueStdout")
 
-	unix.Dup2(int(w.Fd()), int(os.Stdout.Fd()))
-	unix.Dup2(int(w.Fd()), int(os.Stderr.Fd()))
+	// Best-effort fd redirection for the serial log; if it fails we simply lose
+	// the mirrored stdout/stderr, not correctness.
+	_ = unix.Dup2(int(w.Fd()), int(os.Stdout.Fd()))
+	_ = unix.Dup2(int(w.Fd()), int(os.Stderr.Fd()))
 
 	go func() {
 		mw := io.MultiWriter(trueStdout, logFile)
-		io.Copy(mw, r)
+		_, _ = io.Copy(mw, r)
 	}()
 }
 
@@ -121,7 +124,7 @@ func main() {
 		}
 	}
 	if !hasDir {
-		if err := os.MkdirAll(dataDir, 0755); err != nil {
+		if err := os.MkdirAll(dataDir, 0o755); err != nil {
 			log.Printf("[init] could not create data dir %s: %v", dataDir, err)
 		} else {
 			// Insert after the subcommand (os.Args[1]) so PocketBase parses it.

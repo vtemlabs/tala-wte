@@ -45,7 +45,7 @@ func GenerateDNSMasqConfig(c DNSMasqConfig) (string, error) {
 	}
 
 	path := fmt.Sprintf("/tmp/dnsmasq-%s.conf", c.SessionID)
-	if err := os.WriteFile(path, buf.Bytes(), 0644); err != nil {
+	if err := os.WriteFile(path, buf.Bytes(), 0o644); err != nil {
 		return "", err
 	}
 	return path, nil

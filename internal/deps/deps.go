@@ -87,7 +87,7 @@ func ensureAptSources() {
 	log.Println("[deps] Configuring APT sources for non-free-firmware...")
 	cmd := exec.Command("sh", "-c", `sed -i -E '/^[[:space:]]*#/!s/[[:space:]]main$/ main non-free-firmware non-free/' /etc/apt/sources.list`)
 	_ = cmd.Run()
-	runSystemCmd("apt-get", "update")
+	_ = runSystemCmd("apt-get", "update")
 }
 
 // Intentionally empty: capture drivers load on device probe and are preloaded
@@ -239,7 +239,7 @@ func VerifyAndInstall() error {
 	// wedged in the MediaTek MT7921U "patch semaphore" firmware-init state.
 	EnsureWirelessRecovery()
 
-	if err := os.MkdirAll("/var/lib/tala-wte/portals", 0755); err != nil {
+	if err := os.MkdirAll("/var/lib/tala-wte/portals", 0o755); err != nil {
 		log.Printf("[deps] Warning: failed to create portal directory: %v", err)
 	}
 

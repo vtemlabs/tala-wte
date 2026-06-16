@@ -71,6 +71,9 @@ help:
 	@echo "  $(GREEN)check$(RESET)            Run svelte-check on frontend"
 	@echo "  $(GREEN)test$(RESET)             Run Go tests"
 	@echo ""
+	@echo "  $(GREEN)lint$(RESET)             Lint backend (golangci-lint) + frontend (eslint/prettier)"
+	@echo "  $(GREEN)fmt$(RESET)              Auto-format backend (gofumpt) + frontend (prettier)"
+	@echo ""
 	@echo "  $(GREEN)clean$(RESET)            Remove build artifacts"
 	@echo "  $(GREEN)clean-all$(RESET)        Remove all generated files including pb_data"
 
@@ -191,6 +194,45 @@ test:
 .PHONY: check
 check:
 	cd $(WEB_DIR) && pnpm check
+
+# ─── Lint & format ────────────────────────────────────────────────────────────
+# Local copy of golangci-lint (https://golangci-lint.run); the same version runs
+# in CI via the official action. Install locally with `brew install golangci-lint`.
+GOLANGCI := $(shell which golangci-lint 2>/dev/null)
+
+.PHONY: lint
+lint: lint-go lint-web
+	@echo "$(GREEN)Lint complete$(RESET)"
+
+.PHONY: lint-go
+lint-go:
+	$(call require_go)
+	@if [ -z "$(GOLANGCI)" ]; then \
+		echo "$(CYAN)golangci-lint not found - install with: brew install golangci-lint$(RESET)"; \
+		exit 1; \
+	fi
+	@# cmd/server embeds web/build via go:embed, so the package will not load
+	@# without it; a placeholder is enough for static analysis of the Go code.
+	@mkdir -p $(BUILD_DIR)
+	@[ -f $(BUILD_DIR)/index.html ] || echo '<!doctype html>' > $(BUILD_DIR)/index.html
+	$(GOLANGCI) run ./...
+
+.PHONY: lint-web
+lint-web:
+	cd $(WEB_DIR) && pnpm lint
+
+.PHONY: fmt
+fmt: fmt-go fmt-web
+	@echo "$(GREEN)Format complete$(RESET)"
+
+.PHONY: fmt-go
+fmt-go:
+	$(call require_go)
+	@if [ -n "$(GOLANGCI)" ]; then $(GOLANGCI) fmt ./...; else gofmt -w -s .; fi
+
+.PHONY: fmt-web
+fmt-web:
+	cd $(WEB_DIR) && pnpm format
 
 # ─── Clean ────────────────────────────────────────────────────────────────────
 .PHONY: clean

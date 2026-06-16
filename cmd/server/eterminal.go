@@ -113,7 +113,7 @@ func chownOperatorTree(home string, uid, gid int) {
 		full := filepath.Join(home, p)
 		_ = filepath.WalkDir(full, func(path string, _ fs.DirEntry, err error) error {
 			if err != nil {
-				return nil // skip anything missing
+				return nil //nolint:nilerr // skip missing entries; chowning the rest is best-effort
 			}
 			_ = os.Lchown(path, uid, gid)
 			return nil

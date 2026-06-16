@@ -22,6 +22,7 @@ import (
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
+
 	"github.com/vtemlabs/tala-wte/internal/api"
 	"github.com/vtemlabs/tala-wte/internal/iface"
 	"github.com/vtemlabs/tala-wte/internal/ldap"
@@ -404,7 +405,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 
 		if err := ns.SetupLoopback(); err != nil {
 			log.Printf("[sim][start] failed to setup loopback in %s: %v", nsName, err)
-			ns.Delete()
+			_ = ns.Delete() // cleanup on an error path; the original error is already returned
 			api.WriteErr(w, http.StatusInternalServerError, fmt.Sprintf("setup loopback: %v", err))
 			return
 		}
@@ -415,7 +416,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 		topology, err := routing.SetupVethTunnel(id, nsName, uplinkIface)
 		if err != nil {
 			log.Printf("[sim][start] failed to setup veth tunnel: %v", err)
-			ns.Delete()
+			_ = ns.Delete() // cleanup on an error path; the original error is already returned
 			api.WriteErr(w, http.StatusInternalServerError, fmt.Sprintf("setup veth tunnel: %v", err))
 			return
 		}
@@ -437,7 +438,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 			if err := ns.MoveInterface(phyName); err != nil {
 				log.Printf("[sim][start] failed to move PHY %s: %v", phyName, err)
 				routing.TeardownVethTunnel(topology)
-				ns.Delete()
+				_ = ns.Delete() // cleanup on an error path; the original error is already returned
 				api.WriteErr(w, http.StatusInternalServerError, fmt.Sprintf("failed to move phy %s to namespace: %v", phyName, err))
 				return
 			}
@@ -447,7 +448,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 			if err := ns.MoveInterface(ifName); err != nil {
 				log.Printf("[sim][start] failed to move interface %s: %v", ifName, err)
 				routing.TeardownVethTunnel(topology)
-				ns.Delete()
+				_ = ns.Delete() // cleanup on an error path; the original error is already returned
 				api.WriteErr(w, http.StatusInternalServerError, fmt.Sprintf("failed to move hardware %s to namespace: %v", ifName, err))
 				return
 			}
@@ -460,7 +461,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 		if err != nil {
 			log.Printf("[sim][start] failed to write hostapd config: %v", err)
 			routing.TeardownVethTunnel(topology)
-			ns.Delete()
+			_ = ns.Delete() // cleanup on an error path; the original error is already returned
 			api.WriteErr(w, http.StatusInternalServerError, fmt.Sprintf("write hostapd conf: %v", err))
 			return
 		}
@@ -470,7 +471,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 		if err != nil {
 			log.Printf("[sim][start] failed to start hostapd: %v", err)
 			routing.TeardownVethTunnel(topology)
-			ns.Delete()
+			_ = ns.Delete() // cleanup on an error path; the original error is already returned
 			api.WriteErr(w, http.StatusInternalServerError, fmt.Sprintf("start hostapd: %v", err))
 			return
 		}

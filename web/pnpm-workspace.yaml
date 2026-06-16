@@ -1,0 +1,5 @@
+# pnpm 10+ reads settings from this file (the package.json "pnpm" field is no
+# longer honored). esbuild ships its native binary via a postinstall build
+# script; approve it so `pnpm install` does not warn about an unapproved build.
+allowBuilds:
+  esbuild: true

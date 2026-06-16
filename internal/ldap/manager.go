@@ -21,6 +21,7 @@ import (
 	"time"
 
 	"github.com/pocketbase/pocketbase"
+
 	"github.com/vtemlabs/tala-wte/internal/api"
 )
 
@@ -46,7 +47,7 @@ func Start() error {
 
 	dbDir := filepath.Join(ldapDataDir, "db")
 
-	if err := os.MkdirAll(dbDir, 0750); err != nil {
+	if err := os.MkdirAll(dbDir, 0o750); err != nil {
 		return fmt.Errorf("mkdir ldap db: %w", err)
 	}
 
@@ -156,8 +157,8 @@ func AdminPassword() string {
 		log.Fatalf("[ldap] FATAL: failed to generate random admin password: %v", err)
 	}
 
-	if err := os.MkdirAll(filepath.Dir(adminPasswordFile), 0750); err == nil {
-		if err := os.WriteFile(adminPasswordFile, []byte(generated), 0600); err != nil {
+	if err := os.MkdirAll(filepath.Dir(adminPasswordFile), 0o750); err == nil {
+		if err := os.WriteFile(adminPasswordFile, []byte(generated), 0o600); err != nil {
 			log.Printf("[ldap] failed to persist admin password to %s: %v", adminPasswordFile, err)
 		}
 	}

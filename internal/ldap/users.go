@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/pocketbase/pocketbase"
+
 	"github.com/vtemlabs/tala-wte/internal/api"
 )
 
@@ -153,9 +154,9 @@ func UpdateUserHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *ht
 		}
 		dn := fmt.Sprintf("uid=%s,ou=Users,%s", uid, defaultBaseDN)
 		var mods strings.Builder
-		mods.WriteString(fmt.Sprintf("dn: %s\nchangetype: modify\n", dn))
+		fmt.Fprintf(&mods, "dn: %s\nchangetype: modify\n", dn)
 		for attr, val := range req {
-			mods.WriteString(fmt.Sprintf("replace: %s\n%s\n-\n", attr, ldifAttr(attr, val)))
+			fmt.Fprintf(&mods, "replace: %s\n%s\n-\n", attr, ldifAttr(attr, val))
 		}
 		if err := ldapmodify(mods.String()); err != nil {
 			api.WriteErr(w, http.StatusInternalServerError, err.Error())

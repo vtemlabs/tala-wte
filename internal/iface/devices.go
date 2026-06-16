@@ -314,7 +314,7 @@ func brandsMatch(ouiVendor, manufacturer string) bool {
 // BrandForMAC disambiguates the manufacturer/model for an adapter whose USB ID is
 // shared by several products by matching the MAC OUI against the canonical entry
 // and its variants, returning the canonical branding when there is nothing to
-// disambiguate or the OUI is unrecognised.
+// disambiguate or the OUI is unrecognized.
 func (d *DeviceInfo) BrandForMAC(mac string) (manufacturer, model string) {
 	manufacturer, model = d.Manufacturer, d.Model
 	if len(d.Variants) == 0 {

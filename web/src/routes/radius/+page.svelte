@@ -50,7 +50,13 @@
   </div>
   <div class="header-actions">
     <a href="/radius/guide" class="btn">Guide</a>
-    <span class="badge {status === 'running' ? 'badge-success' : status === 'stopped' ? 'badge-error' : 'badge-neutral'}">
+    <span
+      class="badge {status === 'running'
+        ? 'badge-success'
+        : status === 'stopped'
+          ? 'badge-error'
+          : 'badge-neutral'}"
+    >
       FreeRADIUS {status}
     </span>
   </div>
@@ -103,7 +109,13 @@
         </div>
         <div class="field">
           <label class="field-label" for="sharedSecret">Shared Secret</label>
-          <input class="input" id="sharedSecret" type="password" bind:value={sharedSecret} placeholder="Leave blank to use generated secret" />
+          <input
+            class="input"
+            id="sharedSecret"
+            type="password"
+            bind:value={sharedSecret}
+            placeholder="Leave blank to use generated secret"
+          />
         </div>
         <button class="btn btn-primary save-btn" onclick={save} disabled={saving}>
           {saving ? 'Saving...' : 'Save Configuration'}
@@ -118,7 +130,11 @@
       <div class="panel-body">
         <div class="chain">
           <div class="chain-node">Wi-Fi Client</div>
-          <div class="chain-arrow">↓ &nbsp;EAP-{eapType.toUpperCase()}{eapType === 'tls' ? ' (client certificate)' : ' / ' + innerAuth.toUpperCase()}</div>
+          <div class="chain-arrow">
+            ↓ &nbsp;EAP-{eapType.toUpperCase()}{eapType === 'tls'
+              ? ' (client certificate)'
+              : ' / ' + innerAuth.toUpperCase()}
+          </div>
           <div class="chain-node">hostapd (AP)</div>
           <div class="chain-arrow">↓ &nbsp;RADIUS Access-Request</div>
           <div class="chain-node">FreeRADIUS :1812</div>
@@ -146,8 +162,12 @@
     font-family: var(--font-mono);
   }
 
-  .panel-body .field + .field { margin-top: var(--space-lg); }
-  .save-btn { margin-top: var(--space-xl); }
+  .panel-body .field + .field {
+    margin-top: var(--space-lg);
+  }
+  .save-btn {
+    margin-top: var(--space-xl);
+  }
 
   .chain {
     font-family: var(--font-mono);
@@ -158,9 +178,17 @@
     border-radius: var(--radius-md);
     padding: var(--space-lg);
   }
-  .chain-node { color: var(--text-primary); font-weight: 600; }
-  .chain-final { color: var(--accent-hover); }
-  .chain-arrow { color: var(--text-dim); padding: var(--space-xs) 0 var(--space-xs) var(--space-md); }
+  .chain-node {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .chain-final {
+    color: var(--accent-hover);
+  }
+  .chain-arrow {
+    color: var(--text-dim);
+    padding: var(--space-xs) 0 var(--space-xs) var(--space-md);
+  }
 
   .chain-links {
     display: flex;

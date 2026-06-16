@@ -11,6 +11,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
@@ -123,7 +124,7 @@ func terminalWSHandler(app *pocketbase.PocketBase) func(*core.RequestEvent) erro
 					}
 				}
 				if _, writeErr := ptmx.Write(data); writeErr != nil {
-					if writeErr != io.EOF {
+					if !errors.Is(writeErr, io.EOF) {
 						log.Printf("[terminal] PTY write error: %v", writeErr)
 					}
 					return

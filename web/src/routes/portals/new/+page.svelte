@@ -9,7 +9,6 @@
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { portals, type PortalTemplate } from '$lib/api';
-  import { toast } from '$lib/stores/toast';
 
   let name = $state('');
   let html = $state('');
@@ -32,23 +31,39 @@ button{background:#2563eb;color:#fff;border:none;padding:.75rem 2rem;border-radi
   onMount(async () => {
     try {
       templates = await portals.templates();
-    } catch { /* gallery is optional */ }
+    } catch {
+      /* gallery is optional */
+    }
     const slug = page.url.searchParams.get('template');
     if (slug) {
-      const t = templates.find(x => x.slug === slug);
-      if (t) { picked = slug; html = t.html; if (!name) name = t.name; }
+      const t = templates.find((x) => x.slug === slug);
+      if (t) {
+        picked = slug;
+        html = t.html;
+        if (!name) name = t.name;
+      }
     }
   });
 
   function applyTemplate() {
-    const t = templates.find(x => x.slug === picked);
-    if (t) { html = t.html; if (!name.trim()) name = t.name; }
+    const t = templates.find((x) => x.slug === picked);
+    if (t) {
+      html = t.html;
+      if (!name.trim()) name = t.name;
+    }
   }
 
   async function save() {
-    if (!name.trim()) { error = 'Name is required'; return; }
-    if (!html.trim()) { error = 'HTML content is required'; return; }
-    saving = true; error = '';
+    if (!name.trim()) {
+      error = 'Name is required';
+      return;
+    }
+    if (!html.trim()) {
+      error = 'HTML content is required';
+      return;
+    }
+    saving = true;
+    error = '';
     try {
       const rec = await portals.create({ name: name.trim(), html });
       goto(`/portals/${rec.id}`);
@@ -64,13 +79,17 @@ button{background:#2563eb;color:#fff;border:none;padding:.75rem 2rem;border-radi
 <div class="page-header">
   <div>
     <h1 class="page-title">New Captive Portal</h1>
-    <p class="page-subtitle">Start from a built-in template, paste your own HTML, or build from scratch</p>
+    <p class="page-subtitle">
+      Start from a built-in template, paste your own HTML, or build from scratch
+    </p>
   </div>
   <a href="/portals" class="btn">Back</a>
 </div>
 
 {#if error}
-  <div class="error-toast"><span>{error}</span><button class="action-btn" onclick={() => error = ''}>x</button></div>
+  <div class="error-toast">
+    <span>{error}</span><button class="action-btn" onclick={() => (error = '')}>x</button>
+  </div>
 {/if}
 
 <div class="grid grid-2" style="margin-bottom:var(--space-lg);align-items:end">
@@ -92,27 +111,45 @@ button{background:#2563eb;color:#fff;border:none;padding:.75rem 2rem;border-radi
   </div>
 </div>
 
-<div style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg);margin-bottom:var(--space-lg)">
+<div
+  style="display:grid;grid-template-columns:1fr 1fr;gap:var(--space-lg);margin-bottom:var(--space-lg)"
+>
   <div>
     <div class="section-title">HTML Source</div>
-    <textarea class="input" style="min-height:460px;font-family:var(--font-mono);font-size:0.75rem;resize:vertical" bind:value={html} placeholder={defaultHTML}></textarea>
+    <textarea
+      class="input"
+      style="min-height:460px;font-family:var(--font-mono);font-size:0.75rem;resize:vertical"
+      bind:value={html}
+      placeholder={defaultHTML}
+    ></textarea>
     <div class="header-actions" style="margin-top:var(--space-sm)">
-      <button class="btn btn-sm" onclick={() => html = defaultHTML}>Insert Starter HTML</button>
+      <button class="btn btn-sm" onclick={() => (html = defaultHTML)}>Insert Starter HTML</button>
     </div>
   </div>
   <div>
     <div class="section-title">Live Preview</div>
-    <div style="border:1px solid var(--border-primary);border-radius:var(--radius-md);overflow:hidden;height:460px;background:white">
+    <div
+      style="border:1px solid var(--border-primary);border-radius:var(--radius-md);overflow:hidden;height:460px;background:white"
+    >
       {#if html}
-        <iframe srcdoc={html} title="Portal preview" style="width:100%;height:100%;border:none" sandbox="allow-scripts allow-forms"></iframe>
+        <iframe
+          srcdoc={html}
+          title="Portal preview"
+          style="width:100%;height:100%;border:none"
+          sandbox="allow-scripts allow-forms"
+        ></iframe>
       {:else}
-        <div class="empty-state" style="background:#f5f5f5;height:100%;color:#999"><p>Paste HTML or pick a template to preview</p></div>
+        <div class="empty-state" style="background:#f5f5f5;height:100%;color:#999">
+          <p>Paste HTML or pick a template to preview</p>
+        </div>
       {/if}
     </div>
   </div>
 </div>
 
 <div class="header-actions">
-  <button class="btn btn-primary" onclick={save} disabled={saving}>{saving ? 'Saving...' : 'Save Portal'}</button>
+  <button class="btn btn-primary" onclick={save} disabled={saving}
+    >{saving ? 'Saving...' : 'Save Portal'}</button
+  >
   <a href="/portals" class="btn">Cancel</a>
 </div>

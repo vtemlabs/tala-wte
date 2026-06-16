@@ -116,7 +116,7 @@ func Start(id, iface, netns string, layer Layer, filter string, onExit func(pack
 		return nil, fmt.Errorf("capture %s already running", id)
 	}
 
-	if err := os.MkdirAll(CaptureDir, 0750); err != nil {
+	if err := os.MkdirAll(CaptureDir, 0o750); err != nil {
 		return nil, fmt.Errorf("mkdir capture dir: %w", err)
 	}
 

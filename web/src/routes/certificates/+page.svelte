@@ -28,22 +28,29 @@
   });
 
   async function createCA() {
-    creating = true; error = '';
+    creating = true;
+    error = '';
     try {
       await certificates.createCA();
       certs = await certificates.list();
-    } catch (e: any) { error = e?.message ?? 'Failed to create CA'; }
+    } catch (e: any) {
+      error = e?.message ?? 'Failed to create CA';
+    }
     creating = false;
   }
 
   async function createCert() {
-    creating = true; error = '';
+    creating = true;
+    error = '';
     try {
       if (newType === 'server') await certificates.createServer(newName);
       else if (newType === 'client') await certificates.createClient(newUID || newName);
       certs = await certificates.list();
-      newName = ''; newUID = '';
-    } catch (e: any) { error = e?.message ?? 'Failed to create cert'; }
+      newName = '';
+      newUID = '';
+    } catch (e: any) {
+      error = e?.message ?? 'Failed to create cert';
+    }
     creating = false;
   }
 </script>
@@ -67,7 +74,7 @@
 </div>
 
 {#if error}
-  <div class="error-toast"><span>{error}</span><button onclick={() => error = ''}>×</button></div>
+  <div class="error-toast"><span>{error}</span><button onclick={() => (error = '')}>×</button></div>
 {/if}
 
 <div class="split section">
@@ -93,7 +100,9 @@
             <div class="meta-val">{caCert?.expires_at || '-'}</div>
           </div>
         </div>
-        <p class="field-desc">The CA is initialized. You can now issue server and client certificates.</p>
+        <p class="field-desc">
+          The CA is initialized. You can now issue server and client certificates.
+        </p>
       </div>
     {:else}
       <div class="panel-head">
@@ -101,7 +110,10 @@
         <span class="badge badge-warning">Required</span>
       </div>
       <div class="panel-body">
-        <p class="section-desc">Initialize a Certificate Authority before issuing server or client certificates for WPA-Enterprise.</p>
+        <p class="section-desc">
+          Initialize a Certificate Authority before issuing server or client certificates for
+          WPA-Enterprise.
+        </p>
         <button class="btn btn-primary" onclick={createCA} disabled={creating}>
           {creating ? 'Initializing…' : 'Initialize CA'}
         </button>
@@ -125,7 +137,12 @@
         {#if newType === 'server'}
           <div class="field">
             <label class="field-label" for="newName">Name</label>
-            <input class="input" id="newName" bind:value={newName} placeholder="e.g. radius-server" />
+            <input
+              class="input"
+              id="newName"
+              bind:value={newName}
+              placeholder="e.g. radius-server"
+            />
           </div>
         {:else}
           <div class="field">
@@ -133,7 +150,11 @@
             <input class="input" id="newUID" bind:value={newUID} placeholder="e.g. jdoe" />
           </div>
         {/if}
-        <button class="btn btn-primary" onclick={createCert} disabled={creating || (!newName && !newUID)}>
+        <button
+          class="btn btn-primary"
+          onclick={createCert}
+          disabled={creating || (!newName && !newUID)}
+        >
           {creating ? 'Creating…' : 'Create Certificate'}
         </button>
       </div>
@@ -177,9 +198,25 @@
 </div>
 
 <style>
-  .section { margin-bottom: var(--space-lg); }
-  .cert-form { display: flex; flex-direction: column; gap: var(--space-md); }
-  .cert-form .btn { align-self: flex-start; margin-top: var(--space-xs); }
-  .field-desc { margin-top: var(--space-md); }
-  .empty-state strong { display: block; color: var(--text-secondary); font-size: var(--font-size-sm); font-weight: 600; }
+  .section {
+    margin-bottom: var(--space-lg);
+  }
+  .cert-form {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-md);
+  }
+  .cert-form .btn {
+    align-self: flex-start;
+    margin-top: var(--space-xs);
+  }
+  .field-desc {
+    margin-top: var(--space-md);
+  }
+  .empty-state strong {
+    display: block;
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+  }
 </style>

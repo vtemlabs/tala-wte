@@ -17,7 +17,9 @@
   }
   let { open, ssid, onClose, onStart }: Props = $props();
 
-  let phase = $state<'loading' | 'review' | 'provisioning' | 'starting' | 'done' | 'error'>('loading');
+  let phase = $state<'loading' | 'review' | 'provisioning' | 'starting' | 'done' | 'error'>(
+    'loading'
+  );
   let preflight = $state<PreflightResult | null>(null);
   let provisionResult = $state<ProvisionResult | null>(null);
   let errorMsg = $state('');
@@ -87,7 +89,11 @@
         <h2 id="preflight-title">Enterprise Network Preflight</h2>
         <p class="sub">SSID: <span class="mono">{ssid}</span></p>
       </div>
-      <button class="close-btn" onclick={close} disabled={phase === 'provisioning' || phase === 'starting'}>×</button>
+      <button
+        class="close-btn"
+        onclick={close}
+        disabled={phase === 'provisioning' || phase === 'starting'}>×</button
+      >
     </div>
 
     <div class="modal-body">
@@ -95,8 +101,8 @@
         <div class="empty-state"><p>Running readiness checks…</p></div>
       {:else if preflight}
         <p class="section-desc" style="margin-bottom: var(--space-md)">
-          A WPA-Enterprise SSID needs a CA, a server certificate, an LDAP directory with users,
-          and a configured + running FreeRADIUS. The checks below tell you what's missing.
+          A WPA-Enterprise SSID needs a CA, a server certificate, an LDAP directory with users, and
+          a configured + running FreeRADIUS. The checks below tell you what's missing.
         </p>
 
         <div class="check-list">
@@ -116,7 +122,9 @@
           <div class="check-list">
             {#each provisionResult.steps as s}
               <div class="check-row" class:ok={s.status !== 'failed'}>
-                <span class="check-icon">{s.status === 'created' ? '+' : s.status === 'skipped' ? '·' : '✗'}</span>
+                <span class="check-icon"
+                  >{s.status === 'created' ? '+' : s.status === 'skipped' ? '·' : '✗'}</span
+                >
                 <div class="check-meta">
                   <div class="check-label">{s.label}<span class="status-tag">{s.status}</span></div>
                   {#if s.detail}<div class="check-detail">{s.detail}</div>{/if}
@@ -126,8 +134,12 @@
           </div>
 
           {#if provisionResult.users?.length}
-            <div class="section-title" style="margin-top:var(--space-lg)">Provisioned Credentials</div>
-            <p class="section-desc">Use these to test 802.1X authentication from a client device:</p>
+            <div class="section-title" style="margin-top:var(--space-lg)">
+              Provisioned Credentials
+            </div>
+            <p class="section-desc">
+              Use these to test 802.1X authentication from a client device:
+            </p>
             <div class="table-wrap" style="max-height:240px;overflow-y:auto">
               <table class="table">
                 <thead><tr><th>UID</th><th>Name</th><th>Password</th></tr></thead>
@@ -182,61 +194,130 @@
 
 <style>
   .backdrop {
-    position: fixed; inset: 0; background: rgba(0, 0, 0, 0.65); z-index: 500;
-    border: none; cursor: pointer;
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    z-index: 500;
+    border: none;
+    cursor: pointer;
   }
   .modal {
-    position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%);
-    background: var(--bg-secondary); border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md); width: min(640px, 92vw); max-height: 88vh;
-    display: flex; flex-direction: column; z-index: 510;
+    position: fixed;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    width: min(640px, 92vw);
+    max-height: 88vh;
+    display: flex;
+    flex-direction: column;
+    z-index: 510;
     box-shadow: 0 18px 60px rgba(0, 0, 0, 0.5);
   }
   .modal-header {
     padding: var(--space-lg) var(--space-xl);
     border-bottom: 1px solid var(--border-primary);
-    display: flex; justify-content: space-between; align-items: flex-start; gap: var(--space-md);
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: var(--space-md);
   }
-  .modal-header h2 { font-size: var(--font-size-lg); font-weight: 600; color: var(--text-primary); margin: 0; }
-  .sub { font-size: var(--font-size-xs); color: var(--text-dim); margin-top: 2px; }
+  .modal-header h2 {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+    margin: 0;
+  }
+  .sub {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    margin-top: 2px;
+  }
   .close-btn {
-    background: none; border: none; font-size: 1.5rem; color: var(--text-dim);
-    cursor: pointer; line-height: 1; padding: 0 var(--space-sm);
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    color: var(--text-dim);
+    cursor: pointer;
+    line-height: 1;
+    padding: 0 var(--space-sm);
   }
-  .close-btn:hover:not(:disabled) { color: var(--text-primary); }
-  .close-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+  .close-btn:hover:not(:disabled) {
+    color: var(--text-primary);
+  }
+  .close-btn:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
   .modal-body {
     padding: var(--space-lg) var(--space-xl);
-    overflow-y: auto; flex: 1;
+    overflow-y: auto;
+    flex: 1;
   }
   .modal-footer {
     padding: var(--space-md) var(--space-xl);
     border-top: 1px solid var(--border-primary);
-    display: flex; gap: var(--space-sm); justify-content: flex-end; align-items: center;
+    display: flex;
+    gap: var(--space-sm);
+    justify-content: flex-end;
+    align-items: center;
   }
-  .check-list { display: flex; flex-direction: column; gap: var(--space-sm); }
+  .check-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+  }
   .check-row {
-    display: flex; gap: var(--space-md); padding: var(--space-sm) var(--space-md);
-    border: 1px solid var(--border-primary); border-radius: var(--radius-sm);
+    display: flex;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
     background: var(--bg-primary);
   }
-  .check-row.ok { border-color: rgba(34, 197, 94, 0.3); background: rgba(34, 197, 94, 0.04); }
+  .check-row.ok {
+    border-color: rgba(34, 197, 94, 0.3);
+    background: rgba(34, 197, 94, 0.04);
+  }
   .check-icon {
-    flex-shrink: 0; font-family: var(--font-mono); font-size: var(--font-size-md);
-    line-height: 1.4; width: 20px; text-align: center;
+    flex-shrink: 0;
+    font-family: var(--font-mono);
+    font-size: var(--font-size-md);
+    line-height: 1.4;
+    width: 20px;
+    text-align: center;
     color: var(--status-error);
   }
-  .check-row.ok .check-icon { color: var(--status-active); }
-  .check-meta { flex: 1; min-width: 0; }
-  .check-label { font-size: var(--font-size-sm); color: var(--text-primary); }
+  .check-row.ok .check-icon {
+    color: var(--status-active);
+  }
+  .check-meta {
+    flex: 1;
+    min-width: 0;
+  }
+  .check-label {
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+  }
   .check-detail {
-    font-size: var(--font-size-xs); color: var(--text-dim);
-    font-family: var(--font-mono); margin-top: 2px; word-break: break-all;
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    font-family: var(--font-mono);
+    margin-top: 2px;
+    word-break: break-all;
   }
   .status-tag {
-    display: inline-block; margin-left: var(--space-sm);
-    font-size: 10px; padding: 1px 6px; border-radius: 3px;
-    background: var(--bg-hover); color: var(--text-dim);
-    text-transform: uppercase; letter-spacing: 0.05em; font-weight: 600;
+    display: inline-block;
+    margin-left: var(--space-sm);
+    font-size: 10px;
+    padding: 1px 6px;
+    border-radius: 3px;
+    background: var(--bg-hover);
+    color: var(--text-dim);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-weight: 600;
   }
 </style>

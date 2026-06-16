@@ -13,6 +13,7 @@ import (
 	"strings"
 
 	"github.com/pocketbase/pocketbase"
+
 	"github.com/vtemlabs/tala-wte/internal/api"
 )
 
