@@ -33,9 +33,10 @@ jobs:
           echo '<!doctype html>' > web/build/index.html
 
       - name: golangci-lint
-        uses: golangci/golangci-lint-action@v6
+        # v7 is the first action release that supports golangci-lint v2.
+        uses: golangci/golangci-lint-action@v7
         with:
-          version: v2.12
+          version: v2.12.2
 
   lint-web:
     name: Web (eslint + prettier + svelte-check)
@@ -53,9 +54,11 @@ jobs:
           node-version: '22'
 
       - name: Set up pnpm
+        # Match the local pnpm: 10+ reads settings (esbuild build approval) from
+        # pnpm-workspace.yaml; pnpm 9 rejects that file for lacking a packages key.
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11.7.0
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile

@@ -42,9 +42,11 @@ jobs:
           node-version: '22'
 
       - name: Set up pnpm
+        # Match the local pnpm: 10+ reads settings (esbuild build approval) from
+        # pnpm-workspace.yaml; pnpm 9 rejects that file for lacking a packages key.
         uses: pnpm/action-setup@v4
         with:
-          version: 9
+          version: 11.7.0
 
       - name: Build web frontend
         # The Go binary embeds web/build via go:embed, so the frontend must be
