@@ -238,6 +238,16 @@ export const ldap = {
 };
 
 // System
+export interface VersionStatus {
+	current: string;
+	latest: string;
+	update_available: boolean;
+	notes: string;
+	release_url: string;
+	is_dev: boolean;
+	error?: string;
+}
+
 export const system = {
 	interfaces: () => fetch('/api/wte/system/interfaces', { headers: authHeaders() }).then(handleResponse),
 	status: () => fetch('/api/wte/system/status').then(handleResponse),
@@ -249,7 +259,16 @@ export const system = {
 			method: 'POST',
 			headers: authHeaders({ 'Content-Type': 'application/json' }),
 			body: JSON.stringify(data)
-		}).then(handleResponse)
+		}).then(handleResponse),
+
+	// Current version plus, when GitHub is reachable, whether a newer release exists.
+	version: () =>
+		fetch('/api/wte/system/version', { headers: authHeaders() }).then(handleResponse<VersionStatus>),
+
+	// Download, verify, and install the latest release, then restart the service.
+	update: () =>
+		fetch('/api/wte/system/update', { method: 'POST', headers: authHeaders() })
+			.then(handleResponse<{ status: string; version: string; restarting: boolean; message: string }>)
 };
 
 // Enterprise preflight

@@ -181,7 +181,7 @@ Tested on both arm64 and x86_64. Other current apt-based Debian and Ubuntu deriv
 
 ## Installation
 
-Download or build the binary for your platform, then install it as a service:
+Download the binary for your architecture from the [latest release](https://github.com/vtemlabs/tala-wte/releases) (`tala-wte-linux-amd64` or `tala-wte-linux-arm64`), or build it yourself, then install it as a service:
 
 ```
 sudo ./tala-wte-linux-arm64 install
@@ -196,6 +196,19 @@ sudo tala-wte uninstall
 ```
 
 Add `--purge` to also remove the database.
+
+## Updates
+
+Tala WTE checks GitHub for newer releases and surfaces them in the console under Settings -> Software Updates (a dot also appears on the Settings nav item when an update is available). One click downloads the architecture-matched binary, verifies it against the release checksums, swaps it in place, and restarts the service; the console reconnects on its own.
+
+Cutting a release is a single command from a clean checkout:
+
+```
+./scripts/bump-version.sh patch        # or minor / major / 0.3.0
+./scripts/bump-version.sh 0.3.0 beta   # prerelease channel
+```
+
+This tags the commit and pushes it, which triggers the release workflow (`.github/workflows/release.yml`) to build the `linux/amd64` and `linux/arm64` binaries, generate `checksums.txt`, and publish a GitHub Release. The version is stamped into each binary from the tag, so the in-app updater can compare against it. Pass `--dry-run` to preview or `--no-push` to tag locally without releasing.
 
 ## First run
 

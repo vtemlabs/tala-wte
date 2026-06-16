@@ -9,7 +9,7 @@
   import { page } from '$app/state';
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { pb } from '$lib/api';
+  import { pb, system } from '$lib/api';
   import ToastContainer from '$lib/components/ToastContainer.svelte';
   import Terminal from '$lib/components/Terminal.svelte';
 
@@ -17,6 +17,9 @@
   let authChecked = $state(false);
   let sidebarOpen = $state(false);
   let terminalOpen = $state(false);
+  // Build version + update availability, shown in the footer and as a dot on Settings.
+  let appVersion = $state('0.1.0');
+  let updateAvailable = $state(false);
   // Desktop-only icon rail; persisted so the choice survives reloads.
   let collapsed = $state(false);
 
@@ -51,6 +54,13 @@
       return;
     }
     authChecked = true;
+
+    // Resolve the running version and surface an update dot if a newer release
+    // exists. The GitHub check can be slow, so it runs without blocking render.
+    system.version().then((v) => {
+      if (v?.current) appVersion = v.current;
+      updateAvailable = !!v?.update_available;
+    }).catch(() => { /* offline or check failed; keep the default version */ });
   });
 
   function isActive(path: string): boolean {
@@ -109,7 +119,7 @@
         <a href="/radius" class="nav-item" class:active={isActive('/radius')} onclick={navClick} title="RADIUS">{@render ic('radius')}<span>RADIUS</span></a>
         <a href="/certificates" class="nav-item" class:active={isActive('/certificates')} onclick={navClick} title="Certificates">{@render ic('cert')}<span>Certificates</span></a>
         <div class="nav-divider"></div>
-        <a href="/settings" class="nav-item" class:active={isActive('/settings')} onclick={navClick} title="Settings">{@render ic('settings')}<span>Settings</span></a>
+        <a href="/settings" class="nav-item" class:active={isActive('/settings')} onclick={navClick} title="Settings">{@render ic('settings')}<span>Settings</span>{#if updateAvailable}<span class="update-dot" title="Update available"></span>{/if}</a>
       </div>
 
       <div class="sidebar-footer">
@@ -119,7 +129,7 @@
           <svg class="nav-ic chev" class:flip={collapsed} viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="m15 6-6 6 6 6"/></svg>
           <span>Collapse</span>
         </button>
-        <span class="version">Tala WTE v0.1.0</span>
+        <span class="version">Tala WTE v{appVersion}</span>
       </div>
     </nav>
 
@@ -199,6 +209,13 @@
   .sidebar-footer { padding: var(--space-md); border-top: 1px solid var(--border-primary); }
   .logout-btn { width: 100%; text-align: left; background: none; border: none; cursor: pointer; font-family: inherit; margin-bottom: 2px; }
   .version { display: block; font-size: 10px; color: var(--text-dim); font-family: var(--font-mono); margin-top: var(--space-sm); padding-left: 12px; }
+  .update-dot {
+    width: 7px; height: 7px; border-radius: 50%; margin-left: auto; flex-shrink: 0;
+    background: var(--accent); box-shadow: 0 0 6px var(--accent-glow);
+  }
+  .app-shell.sidebar-collapsed .update-dot {
+    position: absolute; top: 7px; right: 9px; margin-left: 0;
+  }
 
   .content { flex: 1; margin-left: 236px; padding: var(--space-2xl); min-height: 100vh; min-width: 0; transition: margin-left 0.16s ease; }
 

@@ -11,6 +11,12 @@ DIST       := dist
 # Detect Go toolchain (local)
 GO := $(shell which go 2>/dev/null)
 
+# Version stamped into the binary (internal/version.Version). Derived from the
+# nearest git tag so local builds report something meaningful; CI overrides this
+# with the exact tag (see .github/workflows/release.yml). Falls back to "dev".
+VERSION   := $(shell git describe --tags --abbrev=0 2>/dev/null | sed 's/^v//' || echo dev)
+LDFLAGS   := -X $(GO_MODULE)/internal/version.Version=$(VERSION)
+
 # Vendor the latest e-terminal into the embed assets (pulled fresh every build,
 # trimmed to the Linux bits). go:embed bakes it into the binary so the installer
 # sets it up for the operator account WITHOUT cloning at install time. If the
@@ -103,7 +109,7 @@ linux-amd64: build-web eterminal
 	$(call require_go)
 	@echo "$(CYAN)Cross-compiling Linux amd64...$(RESET)"
 	mkdir -p $(DIST)
-	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -o $(DIST)/$(BINARY)-linux-amd64 $(CMD_PATH)
+	CGO_ENABLED=0 GOOS=linux GOARCH=amd64 $(GO) build -trimpath -ldflags "-s -w $(LDFLAGS)" -o $(DIST)/$(BINARY)-linux-amd64 $(CMD_PATH)
 	@echo "$(GREEN)-> $(DIST)/$(BINARY)-linux-amd64$(RESET)"
 
 .PHONY: linux-arm64
@@ -111,7 +117,7 @@ linux-arm64: build-web eterminal
 	$(call require_go)
 	@echo "$(CYAN)Cross-compiling Linux arm64...$(RESET)"
 	mkdir -p $(DIST)
-	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -o $(DIST)/$(BINARY)-linux-arm64 $(CMD_PATH)
+	CGO_ENABLED=0 GOOS=linux GOARCH=arm64 $(GO) build -trimpath -ldflags "-s -w $(LDFLAGS)" -o $(DIST)/$(BINARY)-linux-arm64 $(CMD_PATH)
 	@echo "$(GREEN)-> $(DIST)/$(BINARY)-linux-arm64$(RESET)"
 
 .PHONY: release
@@ -144,7 +150,7 @@ build-go: go-tidy eterminal
 	$(call require_go)
 	@echo "$(CYAN)Building Go binary...$(RESET)"
 	mkdir -p $(DIST)
-	$(GO) build -o $(DIST)/$(BINARY) $(CMD_PATH)
+	$(GO) build -ldflags "$(LDFLAGS)" -o $(DIST)/$(BINARY) $(CMD_PATH)
 	@echo "$(GREEN)Binary built: $(DIST)/$(BINARY)$(RESET)"
 
 # ─── Run ──────────────────────────────────────────────────────────────────────

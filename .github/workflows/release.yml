@@ -1,0 +1,110 @@
+name: Release
+
+# Builds and publishes Tala WTE binaries whenever a vX.Y.Z tag is pushed
+# (see scripts/bump-version.sh). Tala WTE is Linux-only, so it ships exactly two
+# artifacts: linux/amd64 and linux/arm64. The version baked into each binary
+# comes from the tag, injected via -ldflags into internal/version.Version.
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write   # required to create the GitHub Release and upload assets
+
+jobs:
+  build:
+    name: Build ${{ matrix.goarch }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        goarch: [amd64, arm64]
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Derive version from tag
+        id: version
+        # Strip the leading "v"; the binary embeds the bare semver (e.g. 0.2.0).
+        run: echo "version=${GITHUB_REF_NAME#v}" >> "$GITHUB_OUTPUT"
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+          cache: true
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+
+      - name: Set up pnpm
+        uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - name: Build web frontend
+        # The Go binary embeds web/build via go:embed, so the frontend must be
+        # built before the Go compile step. Done once per arch job; cheap enough.
+        working-directory: web
+        run: |
+          pnpm install --frozen-lockfile
+          pnpm build
+
+      - name: Vendor e-terminal
+        # The Makefile vendors the latest e-terminal into the embed assets so the
+        # installer can set up the operator shell offline. Mirror that here; if the
+        # clone fails the build still proceeds (HasInstaller() returns false).
+        run: make eterminal || true
+
+      - name: Build binary
+        env:
+          GOOS: linux
+          GOARCH: ${{ matrix.goarch }}
+          CGO_ENABLED: '0'
+        run: |
+          mkdir -p dist
+          go build \
+            -trimpath \
+            -ldflags "-s -w -X github.com/vtemlabs/tala-wte/internal/version.Version=${{ steps.version.outputs.version }}" \
+            -o "dist/tala-wte-linux-${{ matrix.goarch }}" \
+            ./cmd/server
+
+      - name: Upload build artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: tala-wte-linux-${{ matrix.goarch }}
+          path: dist/tala-wte-linux-${{ matrix.goarch }}
+          if-no-files-found: error
+
+  release:
+    name: Publish release
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - name: Download build artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: artifacts
+          merge-multiple: true   # flatten both arch artifacts into one directory
+
+      - name: Generate checksums
+        # The auto-updater downloads checksums.txt and verifies the binary it
+        # pulled against this file before swapping it in (sha256sum format).
+        working-directory: artifacts
+        run: sha256sum tala-wte-linux-* > checksums.txt
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          # Mark X.Y.Z-beta.N tags as prereleases so the "latest" stable line and
+          # the beta line stay distinct on the Releases page.
+          prerelease: ${{ contains(github.ref_name, '-beta') }}
+          generate_release_notes: true
+          files: |
+            artifacts/tala-wte-linux-amd64
+            artifacts/tala-wte-linux-arm64
+            artifacts/checksums.txt

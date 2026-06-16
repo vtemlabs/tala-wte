@@ -6,7 +6,7 @@
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { system } from '$lib/api';
+  import { system, type VersionStatus } from '$lib/api';
   import { toast } from '$lib/stores/toast';
   import HardwareCard from '$lib/HardwareCard.svelte';
   import LicenseModal from '$lib/components/LicenseModal.svelte';
@@ -14,6 +14,11 @@
   import type { WirelessInterface } from '$lib/types';
 
   let showLicense = $state(false);
+
+  // Software updates (current version + GitHub release check).
+  let versionInfo = $state<VersionStatus | null>(null);
+  let updating = $state(false);
+  const displayVersion = $derived(versionInfo?.current ?? '0.1.0');
 
   let interfaces = $state<WirelessInterface[]>([]);
   let uplinkIface = $state('eth0');
@@ -60,7 +65,57 @@
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to load settings');
     }
+    // The release check hits GitHub, so load it separately; a failure here must
+    // not block the rest of the settings page.
+    try {
+      versionInfo = await system.version();
+    } catch (e: any) {
+      versionInfo = null;
+    }
   });
+
+  async function applyUpdate() {
+    if (!versionInfo?.update_available) return;
+    if (!confirm(`Update Tala WTE from ${versionInfo.current} to ${versionInfo.latest}?\n\nThe service will restart and the console will briefly disconnect.`)) {
+      return;
+    }
+    updating = true;
+    try {
+      const res = await system.update();
+      toast.success(res.message ?? 'Update installed; restarting');
+      // The backend restarts the service ~2s after responding. Poll the version
+      // endpoint until it answers on the new build, then reload the console.
+      waitForRestart();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Update failed');
+      updating = false;
+    }
+  }
+
+  // Poll until the service is back, then reload so the new frontend is served.
+  function waitForRestart() {
+    let elapsed = 0;
+    const tick = async () => {
+      elapsed += 3;
+      try {
+        const v = await system.version();
+        // Back up and reporting the new version: reload to pick up the new UI.
+        if (v && (!versionInfo || v.current === versionInfo.latest || !v.update_available)) {
+          window.location.reload();
+          return;
+        }
+      } catch {
+        // Service still bouncing; keep waiting.
+      }
+      if (elapsed < 120) {
+        setTimeout(tick, 3000);
+      } else {
+        updating = false;
+        toast.err('Service did not come back within 2 minutes; reload manually.');
+      }
+    };
+    setTimeout(tick, 5000);
+  }
 
   async function save() {
     saving = true;
@@ -129,9 +184,50 @@
     </section>
 
     <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Software Updates</h2>
+        {#if versionInfo?.update_available}<span class="badge badge-success">Update available</span>{/if}
+      </div>
+      <div class="panel-body">
+        <div class="meta-grid">
+          <div class="meta-row">
+            <div class="meta-key">Installed</div>
+            <div class="meta-val">v{displayVersion}</div>
+          </div>
+          {#if versionInfo?.latest}
+            <div class="meta-row">
+              <div class="meta-key">Latest release</div>
+              <div class="meta-val">v{versionInfo.latest}</div>
+            </div>
+          {/if}
+        </div>
+
+        {#if versionInfo?.is_dev}
+          <p class="update-note dim">This is a local development build. In-place updates are disabled; install a released binary to enable them.</p>
+        {:else if updating}
+          <p class="update-note">Installing v{versionInfo?.latest}. The service is restarting and the console will reconnect automatically.</p>
+        {:else if versionInfo?.update_available}
+          <p class="update-note">Version v{versionInfo.latest} is available. Updating downloads the verified binary, replaces the running service, and restarts it.</p>
+          <div class="update-actions">
+            <button class="btn btn-primary btn-sm" onclick={applyUpdate} disabled={updating}>Update to v{versionInfo.latest}</button>
+            {#if versionInfo.release_url}
+              <a class="btn btn-sm" href={versionInfo.release_url} target="_blank" rel="noopener noreferrer">Release notes</a>
+            {/if}
+          </div>
+        {:else if versionInfo?.error}
+          <p class="update-note dim">Could not check for updates ({versionInfo.error}).</p>
+        {:else if versionInfo}
+          <p class="update-note dim">You are running the latest version.</p>
+        {:else}
+          <p class="update-note dim">Checking for updates...</p>
+        {/if}
+      </div>
+    </section>
+
+    <section class="panel">
       <div class="panel-head"><h2 class="panel-title">About &amp; License</h2></div>
       <div class="panel-body">
-        <p class="about-line">Tala WTE v0.1.0 - a VTEM Labs Wireless Training Environment.</p>
+        <p class="about-line">Tala WTE v{displayVersion} - a VTEM Labs Wireless Training Environment.</p>
         <p class="about-line dim">
           &copy; 2026 VTEM Labs. Free for personal and non-profit use. Commercial and for-profit use,
           including paid training, paid CTF, and use by any for-profit school, institution, or company,
@@ -175,4 +271,7 @@
   .about-line { font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.6; margin: 0 0 var(--space-sm); }
   .about-line.dim { font-size: var(--font-size-xs); color: var(--text-muted); margin-bottom: var(--space-md); }
   .license-btn { align-self: flex-start; }
+  .update-note { font-size: var(--font-size-sm); color: var(--text-secondary); line-height: 1.6; margin: var(--space-md) 0 0; }
+  .update-note.dim { color: var(--text-muted); }
+  .update-actions { display: flex; gap: var(--space-sm); margin-top: var(--space-md); align-items: center; }
 </style>
