@@ -1,7 +1,7 @@
 // ESLint flat config for the Tala WTE web console (Svelte 5 + TypeScript).
 // Run with `pnpm lint` (or `make lint` from the repo root). Formatting is owned
 // by Prettier; eslint-config-prettier disables stylistic rules so the two never
-// fight. A few project standards from .claude/rules are encoded as lint errors.
+// fight. A few project coding standards are encoded as lint errors.
 import js from '@eslint/js';
 import ts from 'typescript-eslint';
 import svelte from 'eslint-plugin-svelte';
