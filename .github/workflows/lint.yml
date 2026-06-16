@@ -17,10 +17,10 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Go
-        uses: actions/setup-go@v5
+        uses: actions/setup-go@v6
         with:
           go-version: '1.25'
           cache: true
@@ -33,8 +33,8 @@ jobs:
           echo '<!doctype html>' > web/build/index.html
 
       - name: golangci-lint
-        # v7 is the first action release that supports golangci-lint v2.
-        uses: golangci/golangci-lint-action@v7
+        # v7+ supports golangci-lint v2; v9 runs on Node 24.
+        uses: golangci/golangci-lint-action@v9
         with:
           version: v2.12.2
 
@@ -46,17 +46,17 @@ jobs:
         working-directory: web
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Set up Node
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: '22'
 
       - name: Set up pnpm
         # Match the local pnpm: 10+ reads settings (esbuild build approval) from
         # pnpm-workspace.yaml; pnpm 9 rejects that file for lacking a packages key.
-        uses: pnpm/action-setup@v4
+        uses: pnpm/action-setup@v6
         with:
           version: 11.7.0
 
