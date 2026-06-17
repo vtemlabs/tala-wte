@@ -13,12 +13,17 @@
 
   let networkList = $state<Record<string, any>[]>([]);
   let interfaces = $state<WirelessInterface[]>([]);
+  let inUse = $state<Record<string, string>>({});
   let loading = $state(true);
   let unsubscribe: (() => void) | null = null;
 
   const activeNets = $derived(networkList.filter((n) => n.status === 'running'));
   const totalClients = $derived(networkList.reduce((s, n) => s + (n.client_count ?? 0), 0));
-  const hasRealHardware = $derived(interfaces.length > 0);
+  // Adapters in use by a running network have their PHY moved into that network's
+  // namespace, so the host-level scan does not see them; count them too.
+  const inUseList = $derived(Object.entries(inUse).map(([iface, ssid]) => ({ iface, ssid })));
+  const totalAdapters = $derived(interfaces.length + inUseList.length);
+  const hasRealHardware = $derived(totalAdapters > 0);
 
   const PROTO_COLOR: Record<string, string> = {
     open: 'var(--text-muted)',
@@ -40,7 +45,10 @@
 
   onMount(async () => {
     try {
-      [networkList, { interfaces }] = await Promise.all([networks.list(), system.interfaces()]);
+      const [nets, sys] = await Promise.all([networks.list(), system.interfaces()]);
+      networkList = nets;
+      interfaces = sys.interfaces ?? [];
+      inUse = sys.in_use ?? {};
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to load dashboard data');
     }
@@ -101,7 +109,7 @@
         class="v"
         style={hasRealHardware ? 'color:var(--color-cyan)' : 'color:var(--color-yellow)'}
       >
-        {interfaces.length}
+        {totalAdapters}
       </span>
     </div>
   </div>
@@ -190,9 +198,9 @@
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Wireless Interfaces</span>
-        <span class="count-pill">{interfaces.length}</span>
+        <span class="count-pill">{totalAdapters}</span>
       </div>
-      {#if interfaces.length === 0}
+      {#if totalAdapters === 0}
         <div class="empty-state" style="padding:var(--space-xl)">
           <p>No interfaces detected. Plug in a USB adapter.</p>
         </div>
@@ -209,6 +217,16 @@
                 </div>
               </div>
               {#if iface.chipset}<span class="count-pill">{iface.chipset}</span>{/if}
+            </div>
+          {/each}
+          {#each inUseList as a}
+            <div class="rail-row">
+              <span class="status-dot active"></span>
+              <div class="rail-body">
+                <div class="mono rail-name">{a.iface}</div>
+                <div class="dim rail-sub">in use by {a.ssid}</div>
+              </div>
+              <span class="count-pill">in use</span>
             </div>
           {/each}
         </div>
