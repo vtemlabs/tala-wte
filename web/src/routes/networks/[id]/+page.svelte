@@ -11,14 +11,21 @@
   import { toast } from '$lib/stores/toast';
   import ProtocolGuide from '$lib/ProtocolGuide.svelte';
   import EnterprisePreflight from '$lib/EnterprisePreflight.svelte';
+  import RadioSwapModal from '$lib/components/RadioSwapModal.svelte';
   import LogWindow from '$lib/components/LogWindow.svelte';
   import type { WirelessClient } from '$lib/types';
+  import type { AdapterSwap } from '$lib/api';
   import { protocolBadge } from '$lib/protocol';
 
   let logPopped = $state(false);
 
   const enterpriseProtocols = ['wpa2_enterprise', 'wpa3_enterprise'];
   let preflightOpen = $state(false);
+
+  // Radio-management swap prompt (saved adapter gone, propose an available one).
+  let swapOpen = $state(false);
+  let swapData = $state<AdapterSwap | null>(null);
+  let swapBusy = $state(false);
 
   const id = $derived(page.params.id ?? '');
   let net = $state<Record<string, any> | null>(null);
@@ -145,9 +152,40 @@
       clients = res.clients ?? [];
       startPolling();
     } catch (e: any) {
-      error = e?.message ?? 'Failed to start network';
+      if (e?.adapterSwap) {
+        swapData = e.adapterSwap;
+        swapOpen = true;
+      } else {
+        error = e?.message ?? 'Failed to start network';
+      }
     }
     toggling = false;
+  }
+
+  // Operator confirmed the proposed adapter (and any band change) from the swap modal.
+  async function confirmSwap(): Promise<void> {
+    if (!swapData || !net) return;
+    swapBusy = true;
+    try {
+      await networks.start(id, {
+        interface: swapData.proposed.interface,
+        band: swapData.band_ok ? '' : swapData.suggested_band
+      });
+      net = {
+        ...net,
+        status: 'running',
+        interface: swapData.proposed.interface,
+        band: swapData.band_ok ? net.band : swapData.suggested_band
+      };
+      const res = await networks.clients(id);
+      clients = res.clients ?? [];
+      startPolling();
+      swapOpen = false;
+    } catch (e: any) {
+      swapOpen = false;
+      error = e?.message ?? 'Failed to start network';
+    }
+    swapBusy = false;
   }
 
   async function startFromPreflight(autoProvision: boolean): Promise<void> {
@@ -330,6 +368,13 @@
     ssid={net.ssid}
     onClose={() => (preflightOpen = false)}
     onStart={startFromPreflight}
+  />
+  <RadioSwapModal
+    bind:open={swapOpen}
+    swap={swapData}
+    busy={swapBusy}
+    onConfirm={confirmSwap}
+    onCancel={() => (swapOpen = false)}
   />
   <LogWindow
     bind:open={logPopped}

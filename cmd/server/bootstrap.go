@@ -67,6 +67,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.BoolField{Name: "client_isolation"},
 				&core.BoolField{Name: "internet_passthrough"},
 				&core.BoolField{Name: "portal_auth"},
+				&core.BoolField{Name: "hidden"},
 			},
 		},
 		{
@@ -176,6 +177,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 	removeDefaultUsersCollection(app)
 	reconcilePortalFields(app)
 	reconcileNetworkPortalAuth(app)
+	reconcileNetworkHidden(app)
 	reconcileSubmissionTimestamps(app)
 	reconcilePortalHTMLLimits(app)
 
@@ -266,6 +268,23 @@ func reconcileNetworkPortalAuth(app *pocketbase.PocketBase) {
 		log.Printf("[bootstrap] failed to add networks.portal_auth field: %v", err)
 	} else {
 		log.Printf("[bootstrap] added networks.portal_auth field")
+	}
+}
+
+// reconcileNetworkHidden adds the networks.hidden bool field to databases that predate it.
+func reconcileNetworkHidden(app *pocketbase.PocketBase) {
+	col, err := app.FindCollectionByNameOrId("networks")
+	if err != nil || col == nil {
+		return
+	}
+	if col.Fields.GetByName("hidden") != nil {
+		return
+	}
+	col.Fields.Add(&core.BoolField{Name: "hidden"})
+	if err := app.Save(col); err != nil {
+		log.Printf("[bootstrap] failed to add networks.hidden field: %v", err)
+	} else {
+		log.Printf("[bootstrap] added networks.hidden field")
 	}
 }
 

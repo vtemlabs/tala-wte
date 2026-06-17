@@ -49,6 +49,7 @@ type Config struct {
 	WEPKey      string // pre-formatted wep_key0 value (bare hex, or "quoted ASCII")
 	PMFMode     PMFMode
 	APIsolate   bool
+	Hidden      bool // ignore_broadcast_ssid: beacon an empty SSID so the network is not advertised
 	IEEE80211N  bool
 	IEEE80211AC bool
 	IEEE80211AX bool
@@ -122,6 +123,10 @@ op_class={{.OpClass}}
 {{- end}}
 {{- if .APIsolate}}
 ap_isolate=1
+{{- end}}
+{{- if .Hidden}}
+# Hidden network: beacon an empty SSID and ignore broadcast-SSID probe requests.
+ignore_broadcast_ssid=1
 {{- end}}
 wmm_enabled=1
 

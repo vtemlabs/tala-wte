@@ -282,19 +282,21 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 		protocol := record.GetString("protocol")
 		configuredIface := record.GetString("interface")
 
+		// Read the start options once: auto_provision (enterprise) plus an optional
+		// confirmed adapter/band override from the radio-management swap prompt.
+		var body struct {
+			AutoProvision bool   `json:"auto_provision"`
+			Interface     string `json:"interface"`
+			Band          string `json:"band"`
+		}
+		if r.Body != nil {
+			_ = json.NewDecoder(r.Body).Decode(&body)
+		}
+
 		// Enterprise preflight + optional auto-provision before any wireless or namespace work.
 		if protocol == "wpa2_enterprise" || protocol == "wpa3_enterprise" {
-			autoProvision := false
-			if r.Body != nil {
-				var body struct {
-					AutoProvision bool `json:"auto_provision"`
-				}
-				_ = json.NewDecoder(r.Body).Decode(&body)
-				autoProvision = body.AutoProvision
-			}
-
 			pre := CheckEnterprisePreflight()
-			if !pre.OK && autoProvision {
+			if !pre.OK && body.AutoProvision {
 				log.Printf("[sim][start] Enterprise preflight failed; auto_provision=true - running AutoProvisionEnterprise")
 				if prov := AutoProvisionEnterprise(); !prov.OK {
 					w.Header().Set("Content-Type", "application/json")
@@ -338,6 +340,39 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 				inUse[s.Interface] = true
 			}
 		}
+
+		// Radio management: if the saved adapter is physically gone and the operator
+		// has not confirmed a substitute, ask before silently switching radios.
+		if body.Interface == "" && configuredIface != "" && iface.FindByInterface(adapters, configuredIface) == nil {
+			cand := iface.BestFreeRealAdapter(adapters, inUse)
+			mu.Unlock()
+			w.Header().Set("Content-Type", "application/json")
+			w.WriteHeader(http.StatusConflict)
+			if cand == nil {
+				api.WriteJSON(w, map[string]any{
+					"error": fmt.Sprintf("configured adapter %q is not connected and no other wireless adapter is available", configuredIface),
+				})
+			} else {
+				api.WriteJSON(w, buildSwapProposal(configuredIface, cand, record.GetString("band")))
+			}
+			return
+		}
+
+		// Operator confirmed a substitute adapter (and optionally a band change): persist it.
+		if body.Interface != "" {
+			record.Set("interface", body.Interface)
+			configuredIface = body.Interface
+			if body.Band != "" && body.Band != record.GetString("band") {
+				record.Set("band", body.Band)
+				record.Set("channel", defaultChannelForBand(body.Band))
+			}
+			if err := app.Save(record); err != nil {
+				mu.Unlock()
+				api.WriteErr(w, http.StatusInternalServerError, "failed to save adapter change: "+err.Error())
+				return
+			}
+		}
+
 		ifName, substituted, resolveReason, resErr := iface.ResolveInterfaceFree(adapters, configuredIface, inUse)
 		if resErr != nil {
 			mu.Unlock()
@@ -422,6 +457,18 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 		}
 		session.Veth = topology
 		log.Printf("[sim][start] Veth tunnel up: host=%s peer=%s hostIP=%s peerIP=%s", topology.HostIface, topology.PeerIface, topology.HostIP, topology.PeerIP)
+
+		// Recover a radio left in a stale state by a prior unclean stop (e.g. stuck
+		// in AP mode), which would otherwise fail to beacon. A clean idle radio
+		// reads "managed" and is skipped, so normal starts are unaffected.
+		if t := iface.InterfaceType(ifName); t != "" && t != "managed" {
+			netLogf(id, "[sim] radio %s in stale state %q; re-binding USB to recover", ifName, t)
+			if herr := iface.HealAdapter(ifName); herr != nil {
+				log.Printf("[sim][start] adapter heal for %s failed: %v (continuing)", ifName, herr)
+			} else {
+				adapters = iface.DiscoverAdapters() // phy index can change across a rebind
+			}
+		}
 
 		// Move PHY to namespace.
 		phyName := ""

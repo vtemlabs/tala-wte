@@ -9,6 +9,7 @@
   import { onMount } from 'svelte';
   import { networks, system, portals } from '$lib/api';
   import ProtocolGuide from '$lib/ProtocolGuide.svelte';
+  import PortalPreviewModal from '$lib/components/PortalPreviewModal.svelte';
 
   import type { WirelessInterface } from '$lib/types';
 
@@ -91,8 +92,9 @@
   let iface = $state('');
   let clientIsolation = $state(false);
   let internetPassthrough = $state(true);
+  let hidden = $state(false);
   let portalEnabled = $state(false);
-  let selectedPortalHTML = $state('');
+  let selectedPortalId = $state('');
   let portalAuth = $state(false);
 
   let interfaces = $state<WirelessInterface[]>([]);
@@ -100,6 +102,10 @@
   let portalsList = $state<Record<string, any>[]>([]);
   let saving = $state(false);
   let error = $state('');
+
+  const selectedPortalHTML = $derived(portalsList.find((p) => p.id === selectedPortalId)?.html ?? '');
+  const selectedPortalName = $derived(portalsList.find((p) => p.id === selectedPortalId)?.name ?? '');
+  let previewModalOpen = $state(false);
 
   const availableChannels = $derived(channelMap[band] ?? channelMap['2.4']);
   const needsPassphrase = $derived(
@@ -176,7 +182,7 @@
     }
     try {
       portalsList = await portals.list();
-      if (portalsList.length) selectedPortalHTML = portalsList[0].html;
+      if (portalsList.length) selectedPortalId = portalsList[0].id;
     } catch {
       // Portals are optional, form still works without them
     }
@@ -231,6 +237,7 @@
         interface: iface,
         client_isolation: clientIsolation,
         internet_passthrough: internetPassthrough,
+        hidden,
         portal_enabled: canHavePortal ? portalEnabled : false,
         portal_html: canHavePortal && portalEnabled ? selectedPortalHTML : '',
         portal_auth: canHavePortal && portalEnabled ? portalAuth : false
@@ -405,6 +412,16 @@
           <input type="checkbox" bind:checked={clientIsolation} />
         </div>
 
+        <div class="toggle-field">
+          <div>
+            <div class="toggle-name">Hidden Network</div>
+            <div class="field-desc">
+              Do not broadcast the SSID in beacons; clients must enter the name to connect
+            </div>
+          </div>
+          <input type="checkbox" bind:checked={hidden} />
+        </div>
+
         {#if canHavePortal}
           <div class="toggle-field">
             <div>
@@ -419,17 +436,34 @@
           {#if portalEnabled}
             <div class="form-group portal-nest">
               <label class="field-label" for="portalSelect">Portal Module</label>
-              <select class="input" id="portalSelect" bind:value={selectedPortalHTML}>
+              <select class="input" id="portalSelect" bind:value={selectedPortalId}>
                 {#if portalsList.length === 0}
                   <option value="" disabled>No portals available (Create in Captive Portals)</option
                   >
                 {/if}
                 {#each portalsList as p}
-                  <option value={p.html}
-                    >{p.name}{p.html.startsWith('fs:') ? ' (bundle)' : ''}</option
+                  <option value={p.id}
+                    >{p.name}{p.html?.startsWith('fs:') ? ' (bundle)' : ''}</option
                   >
                 {/each}
               </select>
+              {#if selectedPortalId}
+                <div class="portal-preview">
+                  <div class="portal-preview-head">
+                    <span>Preview</span>
+                    <button type="button" class="popout-btn" onclick={() => (previewModalOpen = true)}>
+                      Pop out
+                    </button>
+                  </div>
+                  <iframe
+                    class="portal-preview-frame"
+                    title="Portal preview"
+                    src="/api/wte/portals/{selectedPortalId}/preview"
+                    sandbox="allow-same-origin"
+                    loading="lazy"
+                  ></iframe>
+                </div>
+              {/if}
               <div class="toggle-field" style="margin-top:var(--space-sm)">
                 <div>
                   <div class="toggle-name">Require Login (Directory / LDAP)</div>
@@ -449,6 +483,12 @@
 
   <ProtocolGuide {protocol} />
 </div>
+
+<PortalPreviewModal
+  bind:open={previewModalOpen}
+  portalId={selectedPortalId}
+  portalName={selectedPortalName}
+/>
 
 <style>
   .config-main {
@@ -471,5 +511,41 @@
     margin-left: var(--space-md);
     padding-left: var(--space-lg);
     border-left: 2px solid var(--border-primary);
+  }
+  .portal-preview {
+    margin-top: var(--space-sm);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    overflow: hidden;
+  }
+  .portal-preview-head {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    padding: 4px 10px;
+    background: var(--bg-input);
+    border-bottom: 1px solid var(--border-primary);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .popout-btn {
+    background: none;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    color: var(--text-secondary);
+    font-size: var(--font-size-xs);
+    padding: 2px 8px;
+    cursor: pointer;
+  }
+  .popout-btn:hover {
+    color: var(--text-primary);
+    border-color: var(--color-cyan);
+  }
+  .portal-preview-frame {
+    width: 100%;
+    height: 340px;
+    border: 0;
+    display: block;
+    background: #fff;
   }
 </style>

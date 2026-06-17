@@ -18,6 +18,7 @@ import (
 
 	"github.com/pocketbase/pocketbase/core"
 
+	"github.com/vtemlabs/tala-wte/internal/iface"
 	"github.com/vtemlabs/tala-wte/pkg/hostapd"
 )
 
@@ -103,6 +104,95 @@ func sanitizeConfValue(s string) string {
 	}, s)
 }
 
+// defaultChannelForBand returns a sensible default channel for a band, used when a
+// confirmed adapter swap changes the network's band and the old channel no longer fits.
+func defaultChannelForBand(band string) int {
+	switch band {
+	case "5":
+		return 36
+	case "6":
+		return 1
+	default:
+		return 6
+	}
+}
+
+// bandLabel maps a stored band ("2.4"/"5"/"6") to the adapter band label ("2.4 GHz" ...).
+func bandLabel(band string) string {
+	switch band {
+	case "5":
+		return "5 GHz"
+	case "6":
+		return "6 GHz"
+	default:
+		return "2.4 GHz"
+	}
+}
+
+// shortBand maps an adapter band label back to the stored short form.
+func shortBand(label string) string {
+	switch {
+	case strings.HasPrefix(label, "5"):
+		return "5"
+	case strings.HasPrefix(label, "6"):
+		return "6"
+	default:
+		return "2.4"
+	}
+}
+
+// buildSwapProposal describes a proposed adapter substitution for a network whose saved
+// radio is gone, including whether the candidate can host the saved band as an AP and,
+// if not, which band it will fall back to.
+func buildSwapProposal(missing string, cand *iface.Adapter, band string) map[string]any {
+	if band == "" {
+		band = "2.4"
+	}
+	label := cand.Interface
+	switch {
+	case cand.Manufacturer != "" && cand.DeviceModel != "":
+		label = fmt.Sprintf("%s %s", cand.Manufacturer, cand.DeviceModel)
+	case cand.Driver != "":
+		label = cand.Driver
+	}
+
+	apBands := cand.APBands
+	if len(apBands) == 0 {
+		apBands = cand.Bands
+	}
+	wanted := bandLabel(band)
+	bandOK := false
+	for _, b := range apBands {
+		if b == wanted {
+			bandOK = true
+			break
+		}
+	}
+	suggested := band
+	reason := ""
+	if !bandOK && len(apBands) > 0 {
+		suggested = shortBand(apBands[0])
+		for _, b := range apBands {
+			if b == "2.4 GHz" { // prefer the most compatible band
+				suggested = "2.4"
+				break
+			}
+		}
+		reason = fmt.Sprintf("%s cannot host a %s access point; the network will switch to %s", cand.Interface, wanted, bandLabel(suggested))
+	}
+
+	return map[string]any{
+		"needs_adapter_choice": true,
+		"error":                fmt.Sprintf("configured adapter %q is not connected", missing),
+		"missing":              missing,
+		"proposed":             map[string]any{"interface": cand.Interface, "label": label},
+		"current_band":         band,
+		"band_ok":              bandOK,
+		"suggested_band":       suggested,
+		"band_reason":          reason,
+	}
+}
+
 // buildConfig constructs the hostapd.Config from a network record. ifName is the resolved adapter (the allocation
 // guard may substitute a free one). nsGatewayIP is the host-side veth address used as the enterprise RADIUS server;
 // pass "" for non-enterprise protocols.
@@ -126,6 +216,7 @@ func buildConfig(record *core.Record, ifName string, nsGatewayIP string) *hostap
 		SSID:        ssid,
 		Channel:     channel,
 		APIsolate:   record.GetBool("client_isolation"),
+		Hidden:      record.GetBool("hidden"),
 		CountryCode: regulatoryCountry(),
 	}
 

@@ -48,11 +48,18 @@ export const networks = {
 
 	delete: (id: string) => pb.collection('networks').delete(id),
 
-	start: async (id: string, opts: { autoProvision?: boolean } = {}) => {
+	start: async (
+		id: string,
+		opts: { autoProvision?: boolean; interface?: string; band?: string } = {}
+	) => {
 		const res = await fetch(`/api/wte/networks/${id}/start`, {
 			method: 'POST',
 			headers: authHeaders({ 'Content-Type': 'application/json' }),
-			body: JSON.stringify({ auto_provision: !!opts.autoProvision })
+			body: JSON.stringify({
+				auto_provision: !!opts.autoProvision,
+				interface: opts.interface ?? '',
+				band: opts.band ?? ''
+			})
 		});
 		const data = await res.json();
 		// 412 means enterprise preflight failed; surface the structured payload.
@@ -61,6 +68,14 @@ export const networks = {
 				preflight?: PreflightResult;
 			};
 			err.preflight = data.preflight;
+			throw err;
+		}
+		// 409 + needs_adapter_choice: the saved radio is gone; surface the swap proposal.
+		if (res.status === 409 && data.needs_adapter_choice) {
+			const err = new Error(data.error || 'Configured adapter not available') as Error & {
+				adapterSwap?: AdapterSwap;
+			};
+			err.adapterSwap = data;
 			throw err;
 		}
 		if (!res.ok || data.error) throw new Error(data.error || 'Failed to start network');
@@ -290,6 +305,16 @@ export interface PreflightCheck {
 export interface PreflightResult {
 	ok: boolean;
 	checks: PreflightCheck[];
+}
+export interface AdapterSwap {
+	needs_adapter_choice: true;
+	error: string;
+	missing: string;
+	proposed: { interface: string; label: string };
+	current_band: string;
+	band_ok: boolean;
+	suggested_band: string;
+	band_reason: string;
 }
 export interface ProvisionStep {
 	id: string;
