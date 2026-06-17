@@ -93,6 +93,7 @@
   let clientIsolation = $state(false);
   let internetPassthrough = $state(true);
   let hidden = $state(false);
+  let subnet = $state('10.0.0.0/24');
   let portalEnabled = $state(false);
   let selectedPortalId = $state('');
   let portalAuth = $state(false);
@@ -186,6 +187,12 @@
     } catch {
       // Portals are optional, form still works without them
     }
+    try {
+      const st = await system.getSettings();
+      if (st.ap_subnet) subnet = st.ap_subnet;
+    } catch {
+      // fall back to the default subnet already set
+    }
   });
 
   async function save() {
@@ -238,6 +245,7 @@
         client_isolation: clientIsolation,
         internet_passthrough: internetPassthrough,
         hidden,
+        subnet,
         portal_enabled: canHavePortal ? portalEnabled : false,
         portal_html: canHavePortal && portalEnabled ? selectedPortalHTML : '',
         portal_auth: canHavePortal && portalEnabled ? portalAuth : false
@@ -402,6 +410,15 @@
             <div class="field-desc">NAT traffic from connected clients to uplink</div>
           </div>
           <input type="checkbox" bind:checked={internetPassthrough} />
+        </div>
+
+        <div class="form-group">
+          <label class="field-label" for="subnet">Network Subnet</label>
+          <input class="input" id="subnet" bind:value={subnet} placeholder="10.0.0.0/24" />
+          <span class="field-desc">
+            CIDR for the LAN clients join (gateway <code>.1</code>, DHCP <code>.10</code>-<code>.250</code>).
+            Defaults from Settings.
+          </span>
         </div>
 
         <div class="toggle-field">

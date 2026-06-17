@@ -274,7 +274,7 @@ export const system = {
 	getSettings: () =>
 		fetch('/api/wte/system/settings', { headers: authHeaders() }).then(handleResponse),
 
-	saveSettings: (data: { uplink_iface?: string; country_code?: string }) =>
+	saveSettings: (data: { uplink_iface?: string; country_code?: string; ap_subnet?: string }) =>
 		fetch('/api/wte/system/settings', {
 			method: 'POST',
 			headers: authHeaders({ 'Content-Type': 'application/json' }),

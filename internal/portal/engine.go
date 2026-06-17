@@ -48,6 +48,8 @@ type Engine struct {
 	NetworkSSID string
 	Interface   string
 	GatewayIP   string
+	DHCPStart   string
+	DHCPEnd     string
 	PortalHTML  string
 	NetnsName   string
 
@@ -67,15 +69,24 @@ type Engine struct {
 	dnsCancel context.CancelFunc
 }
 
-// New creates a new captive portal engine for the given network/interface.
-func New(networkID, iface, gatewayIP, portalHTML, netnsName string) *Engine {
+// New creates a new captive portal engine for the given network/interface. An
+// empty gateway/DHCP range falls back to the historical 10.0.0.0/24 defaults.
+func New(networkID, iface, gatewayIP, dhcpStart, dhcpEnd, portalHTML, netnsName string) *Engine {
 	if gatewayIP == "" {
 		gatewayIP = portalGatewayIP
+	}
+	if dhcpStart == "" {
+		dhcpStart = dhcpRangeStart
+	}
+	if dhcpEnd == "" {
+		dhcpEnd = dhcpRangeEnd
 	}
 	return &Engine{
 		NetworkID:  networkID,
 		Interface:  iface,
 		GatewayIP:  gatewayIP,
+		DHCPStart:  dhcpStart,
+		DHCPEnd:    dhcpEnd,
 		PortalHTML: portalHTML,
 		NetnsName:  netnsName,
 		allowed:    make(map[string]bool),
@@ -147,7 +158,7 @@ no-resolv
 server=8.8.8.8
 server=1.1.1.1
 log-dhcp
-`, e.Interface, dhcpRangeStart, dhcpRangeEnd, e.GatewayIP, e.GatewayIP)
+`, e.Interface, e.DHCPStart, e.DHCPEnd, e.GatewayIP, e.GatewayIP)
 
 	confPath := filepath.Join(os.TempDir(), "dnsmasq-"+e.NetworkID+".conf")
 	if err := os.WriteFile(confPath, []byte(confContent), 0o600); err != nil {

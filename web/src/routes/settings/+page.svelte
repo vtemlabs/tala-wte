@@ -23,6 +23,7 @@
   let interfaces = $state<WirelessInterface[]>([]);
   let uplinkIface = $state('eth0');
   let countryCode = $state('US');
+  let apSubnet = $state('10.0.0.0/24');
   let saving = $state(false);
   let saved = $state(false);
 
@@ -62,6 +63,7 @@
       interfaces = ifaceRes.interfaces ?? [];
       if (settingsRes.uplink_iface) uplinkIface = settingsRes.uplink_iface;
       if (settingsRes.country_code) countryCode = settingsRes.country_code;
+      if (settingsRes.ap_subnet) apSubnet = settingsRes.ap_subnet;
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to load settings');
     }
@@ -124,7 +126,11 @@
   async function save() {
     saving = true;
     try {
-      await system.saveSettings({ uplink_iface: uplinkIface, country_code: countryCode });
+      await system.saveSettings({
+        uplink_iface: uplinkIface,
+        country_code: countryCode,
+        ap_subnet: apSubnet
+      });
       saved = true;
       toast.success('Settings saved');
       setTimeout(() => (saved = false), 3000);
@@ -180,6 +186,16 @@
           <span class="field-desc"
             >The interface connected to the internet, used for NAT passthrough on networks that
             allow it.</span
+          >
+        </div>
+
+        <div class="field">
+          <label class="field-label" for="apSubnet">Default Network Subnet</label>
+          <input class="input" id="apSubnet" bind:value={apSubnet} placeholder="10.0.0.0/24" />
+          <span class="field-desc"
+            >The default LAN/subnet (CIDR) handed to clients that join a network. The gateway is
+            <code>.1</code> and DHCP serves <code>.10</code>-<code>.250</code>. Each network can
+            override this when created.</span
           >
         </div>
       </div>

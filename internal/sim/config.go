@@ -11,6 +11,7 @@ import (
 	"fmt"
 	"log"
 	"math/big"
+	"net"
 	"os"
 	"os/exec"
 	"strings"
@@ -102,6 +103,21 @@ func sanitizeConfValue(s string) string {
 		}
 		return r
 	}, s)
+}
+
+// deriveSubnet returns the gateway and DHCP pool for an AP/LAN subnet. Only IPv4
+// /24 is supported: gateway = .1, pool = .10 - .250. An empty or invalid CIDR
+// falls back to the historical 10.0.0.0/24.
+func deriveSubnet(cidr string) (gateway, dhcpStart, dhcpEnd string) {
+	base := "10.0.0"
+	if cidr != "" {
+		if ip, _, err := net.ParseCIDR(strings.TrimSpace(cidr)); err == nil {
+			if v4 := ip.To4(); v4 != nil {
+				base = fmt.Sprintf("%d.%d.%d", v4[0], v4[1], v4[2])
+			}
+		}
+	}
+	return base + ".1", base + ".10", base + ".250"
 }
 
 // defaultChannelForBand returns a sensible default channel for a band, used when a

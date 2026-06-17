@@ -531,12 +531,13 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 		// Give hostapd a second to create the interface before starting dnsmasq.
 		time.Sleep(1 * time.Second)
 
+		gwIP, dhcpStart, dhcpEnd := deriveSubnet(record.GetString("subnet"))
 		if err := ns.Exec(func() error {
-			return routing.AssignIP(ifName, "10.0.0.1/24")
+			return routing.AssignIP(ifName, gwIP+"/24")
 		}); err != nil {
 			log.Printf("[sim][start] failed to assign gateway IP: %v", err)
 		}
-		log.Printf("[sim][start] Gateway IP 10.0.0.1/24 assigned to %s inside %s", ifName, nsName)
+		log.Printf("[sim][start] Gateway IP %s/24 assigned to %s inside %s", gwIP, ifName, nsName)
 
 		// Client isolation: ap_isolate handles L2; add a same-interface FORWARD drop to also block the L3 hairpin.
 		if record.GetBool("client_isolation") {
@@ -550,7 +551,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 
 		if record.GetBool("portal_enabled") {
 			log.Printf("[sim][start] Portal enabled, starting portal engine")
-			p := portal.New(id, ifName, "10.0.0.1", record.GetString("portal_html"), nsName)
+			p := portal.New(id, ifName, gwIP, dhcpStart, dhcpEnd, record.GetString("portal_html"), nsName)
 			p.NetworkSSID = ssid
 			// Auth portals validate credentials against the embedded directory (same store as the 802.1X path).
 			p.RequireAuth = record.GetBool("portal_auth")
@@ -588,8 +589,8 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 			log.Printf("[sim][start] Starting dnsmasq for standard DHCP")
 			dnsmasqCfg := routing.DNSMasqConfig{
 				Interface: ifName,
-				GatewayIP: "10.0.0.1",
-				DHCPRange: "10.0.0.10,10.0.0.100",
+				GatewayIP: gwIP,
+				DHCPRange: dhcpStart + "," + dhcpEnd,
 				SessionID: id,
 			}
 			if dnsmasqConfPath, err := routing.GenerateDNSMasqConfig(dnsmasqCfg); err == nil {
@@ -599,7 +600,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 				} else {
 					session.DNSMasq = dProc
 					log.Printf("[sim][start] dnsmasq started in %s", nsName)
-					netLogf(id, "[sim] dnsmasq (DHCP) started - range 10.0.0.10-100, gw/dns 10.0.0.1")
+					netLogf(id, "[sim] dnsmasq (DHCP) started - range %s-%s, gw/dns %s", dhcpStart, dhcpEnd, gwIP)
 				}
 			} else {
 				log.Printf("[sim][start] Failed to generate dnsmasq config: %v", err)

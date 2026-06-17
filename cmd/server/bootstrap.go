@@ -68,6 +68,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.BoolField{Name: "internet_passthrough"},
 				&core.BoolField{Name: "portal_auth"},
 				&core.BoolField{Name: "hidden"},
+				&core.TextField{Name: "subnet"},
 			},
 		},
 		{
@@ -178,6 +179,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 	reconcilePortalFields(app)
 	reconcileNetworkPortalAuth(app)
 	reconcileNetworkHidden(app)
+	reconcileNetworkSubnet(app)
 	reconcileSubmissionTimestamps(app)
 	reconcilePortalHTMLLimits(app)
 
@@ -285,6 +287,23 @@ func reconcileNetworkHidden(app *pocketbase.PocketBase) {
 		log.Printf("[bootstrap] failed to add networks.hidden field: %v", err)
 	} else {
 		log.Printf("[bootstrap] added networks.hidden field")
+	}
+}
+
+// reconcileNetworkSubnet adds the networks.subnet text field to databases that predate it.
+func reconcileNetworkSubnet(app *pocketbase.PocketBase) {
+	col, err := app.FindCollectionByNameOrId("networks")
+	if err != nil || col == nil {
+		return
+	}
+	if col.Fields.GetByName("subnet") != nil {
+		return
+	}
+	col.Fields.Add(&core.TextField{Name: "subnet"})
+	if err := app.Save(col); err != nil {
+		log.Printf("[bootstrap] failed to add networks.subnet field: %v", err)
+	} else {
+		log.Printf("[bootstrap] added networks.subnet field")
 	}
 }
 

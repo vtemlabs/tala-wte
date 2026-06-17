@@ -12,6 +12,7 @@ import (
 	"io"
 	"io/fs"
 	"log"
+	"net"
 	"net/http"
 	"net/url"
 	"os"
@@ -172,6 +173,7 @@ func settingsSaveHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *
 		var req struct {
 			UplinkIface string `json:"uplink_iface"`
 			CountryCode string `json:"country_code"`
+			APSubnet    string `json:"ap_subnet"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
 			api.WriteErr(w, http.StatusBadRequest, "invalid json")
@@ -206,10 +208,25 @@ func settingsSaveHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *
 			}
 		}
 
+		// Default AP/LAN subnet for new networks; each network can override it on creation.
+		subnet := strings.TrimSpace(req.APSubnet)
+		if subnet != "" {
+			if _, _, err := net.ParseCIDR(subnet); err != nil {
+				api.WriteErr(w, http.StatusBadRequest, "subnet must be CIDR notation (e.g. 10.0.0.0/24)")
+				return
+			}
+			if err := saveSetting(app, "ap_subnet", subnet); err != nil {
+				log.Printf("[settings] failed to persist ap_subnet: %v", err)
+				api.WriteErr(w, http.StatusInternalServerError, "failed to save subnet setting")
+				return
+			}
+		}
+
 		api.WriteJSON(w, map[string]any{
 			"status":       "saved",
 			"uplink_iface": req.UplinkIface,
 			"country_code": cc,
+			"ap_subnet":    subnet,
 		})
 	}
 }
@@ -232,9 +249,14 @@ func settingsGetHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *h
 			}
 			os.Setenv("TALA_COUNTRY_CODE", countryCode)
 		}
+		apSubnet := loadSetting(app, "ap_subnet")
+		if apSubnet == "" {
+			apSubnet = "10.0.0.0/24" // historical default
+		}
 		api.WriteJSON(w, map[string]any{
 			"uplink_iface": uplinkIface,
 			"country_code": countryCode,
+			"ap_subnet":    apSubnet,
 		})
 	}
 }
