@@ -101,8 +101,13 @@ func systemStatusHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *
 			}
 		}
 
+		mode := "ap"
+		if clientMode() {
+			mode = "client"
+		}
 		api.WriteJSON(w, map[string]any{
 			"status":             "ok",
+			"mode":               mode,
 			"needs_setup":        needsSetup,
 			"radius_running":     radiusRunning,
 			"ldap_running":       ldap.IsRunning(),

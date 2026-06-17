@@ -122,6 +122,26 @@
 
   onDestroy(() => stopPolling());
 
+  async function exportClientConfig() {
+    try {
+      const r = await fetch(`/api/wte/networks/${id}/client-config`, {
+        headers: pb.authStore.token ? { Authorization: pb.authStore.token } : {}
+      });
+      if (!r.ok) throw new Error('export failed');
+      const blob = await r.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `tala-client-${(net?.ssid || 'network').replace(/[^A-Za-z0-9._-]+/g, '_')}.json`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      error = 'Failed to export client config';
+    }
+  }
+
   async function toggleNetwork() {
     if (!net) return;
 
@@ -209,6 +229,9 @@
   </div>
   {#if net}
     <div class="header-actions">
+      <button class="btn btn-secondary" onclick={exportClientConfig} title="Download a config to import into a Tala WTE client">
+        Export client config
+      </button>
       <button
         class="btn"
         class:btn-success={net.status !== 'running'}

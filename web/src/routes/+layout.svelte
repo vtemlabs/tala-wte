@@ -20,6 +20,7 @@
   // Build version + update availability, shown in the footer and as a dot on Settings.
   let appVersion = $state('0.1.0');
   let updateAvailable = $state(false);
+  let mode = $state('ap'); // 'ap' or 'client'
   // Desktop-only icon rail; persisted so the choice survives reloads.
   let collapsed = $state(false);
 
@@ -72,6 +73,15 @@
       return;
     }
     authChecked = true;
+
+    // Detect AP vs client mode so the nav and landing page match the role.
+    try {
+      const s = await fetch('/api/wte/system/status').then((r) => r.json());
+      if (s?.mode) mode = s.mode;
+      if (mode === 'client' && window.location.pathname === '/') goto('/client');
+    } catch {
+      /* default to AP nav */
+    }
 
     // Resolve the running version and surface an update dot if a newer release
     // exists. The GitHub check can be slow, so it runs without blocking render.
@@ -148,14 +158,23 @@
       </div>
 
       <div class="sidebar-nav">
-        <a
-          href="/"
-          class="nav-item"
-          class:active={isActive('/')}
-          onclick={navClick}
-          title="Dashboard">{@render ic('dashboard')}<span>Dashboard</span></a
-        >
-        <div class="nav-group-label">Networks</div>
+        {#if mode === 'client'}
+          <a
+            href="/client"
+            class="nav-item"
+            class:active={isActive('/client')}
+            onclick={navClick}
+            title="Client">{@render ic('dashboard')}<span>Client</span></a
+          >
+        {:else}
+          <a
+            href="/"
+            class="nav-item"
+            class:active={isActive('/')}
+            onclick={navClick}
+            title="Dashboard">{@render ic('dashboard')}<span>Dashboard</span></a
+          >
+          <div class="nav-group-label">Networks</div>
         <a
           href="/networks"
           class="nav-item"
@@ -207,6 +226,7 @@
           onclick={navClick}
           title="Certificates">{@render ic('cert')}<span>Certificates</span></a
         >
+        {/if}
         <div class="nav-divider"></div>
         <a
           href="/settings"

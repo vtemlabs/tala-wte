@@ -147,6 +147,61 @@ func verifyFunctionality() error {
 	return nil
 }
 
+// InstallPackages installs an arbitrary apt package list resiliently: it ensures
+// the right repos, skips packages with no install candidate on this distro, and
+// falls back to per-package installs so one bad package never blocks the rest.
+// Used by client-mode install; a no-op on non-apt systems.
+func InstallPackages(pkgs []string) error {
+	osr := readOSRelease()
+	if osr.ID != "" && !osr.isAptFamily() {
+		log.Printf("[deps] %s is not apt-family; install these manually: %v", osr.ID, pkgs)
+		return nil
+	}
+	if _, err := exec.LookPath("apt-get"); err != nil {
+		log.Printf("[deps] apt-get not found; install these manually: %v", pkgs)
+		return nil
+	}
+	if osr.isUbuntuLike() {
+		ensureUbuntuUniverse()
+	} else {
+		ensureAptSources()
+	}
+
+	missing := []string{}
+	for _, pkg := range pkgs {
+		if !isInstalled(pkg) {
+			missing = append(missing, pkg)
+		}
+	}
+	if len(missing) == 0 {
+		log.Println("[deps] All client packages are satisfied.")
+		return nil
+	}
+	log.Printf("[deps] Missing client packages: %v", missing)
+	if err := runSystemCmd("apt-get", "update"); err != nil {
+		log.Printf("[deps] apt-get update failed: %v (continuing)", err)
+	}
+	installable := []string{}
+	for _, pkg := range missing {
+		if hasCandidate(pkg) {
+			installable = append(installable, pkg)
+		} else {
+			log.Printf("[deps] No install candidate for %q on this system; skipping.", pkg)
+		}
+	}
+	if len(installable) > 0 {
+		if err := runSystemCmd("apt-get", append([]string{"install", "-y"}, installable...)...); err != nil {
+			log.Printf("[deps] Batch install failed (%v); retrying individually.", err)
+			for _, pkg := range installable {
+				if err := runSystemCmd("apt-get", "install", "-y", pkg); err != nil {
+					log.Printf("[deps] Failed to install %q: %v", pkg, err)
+				}
+			}
+		}
+	}
+	return nil
+}
+
 // VerifyAndInstall checks for missing packages and installs them via apt-get,
 // then ensures required kernel modules are loaded.
 func VerifyAndInstall() error {

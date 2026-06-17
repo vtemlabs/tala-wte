@@ -187,6 +187,14 @@ func main() {
 		se.Router.GET("/api/wte/networks/{id}/status", wrapAuth(sim.StatusHandler(app)))
 		se.Router.GET("/api/wte/networks/{id}/clients", wrapAuth(sim.ClientsHandler(app)))
 		se.Router.GET("/api/wte/networks/{id}/logs", wrapAuth(sim.LogsHandler(app)))
+		se.Router.GET("/api/wte/networks/{id}/client-config", wrapAuth(clientConfigExportHandler(app)))
+
+		// Client mode: connect to another Tala WTE AP and generate traffic.
+		se.Router.POST("/api/wte/client/connect", wrapAuth(clientConnectHandler()))
+		se.Router.POST("/api/wte/client/start", wrapAuth(clientStartHandler()))
+		se.Router.POST("/api/wte/client/stop", wrapAuth(clientStopHandler()))
+		se.Router.POST("/api/wte/client/disconnect", wrapAuth(clientDisconnectHandler()))
+		se.Router.GET("/api/wte/client/status", wrapAuth(clientStatusHandler()))
 
 		se.Router.GET("/api/wte/enterprise/preflight", wrapAuth(sim.PreflightHandler()))
 		se.Router.POST("/api/wte/enterprise/provision", wrapAuth(sim.ProvisionHandler()))

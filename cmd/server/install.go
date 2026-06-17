@@ -43,9 +43,117 @@ func maybeRunSubcommand() {
 	switch os.Args[1] {
 	case "install":
 		os.Exit(runInstall(os.Args[2:]))
+	case "install-client":
+		os.Exit(runInstallClient(os.Args[2:]))
 	case "uninstall":
 		os.Exit(runUninstall(os.Args[2:]))
 	}
+}
+
+// clientDepPackages are the apt packages a Tala WTE client needs to join a
+// network and generate traffic.
+var clientDepPackages = []string{"wpa_supplicant", "iw", "isc-dhcp-client", "iputils-ping", "ca-certificates", "wireless-regdb"}
+
+// runInstallClient installs Tala WTE in client mode: it joins another Tala WTE AP
+// from an imported config and generates traffic. Same binary + data dir + unit as
+// the AP, but the unit sets TALA_MODE=client so the console shows the client view.
+func runInstallClient(args []string) int {
+	for _, a := range args {
+		if a == "-h" || a == "--help" {
+			fmt.Println(`Usage: tala-wte install-client
+
+Installs Tala WTE in CLIENT mode as a systemd service (tala-wte.service). The
+client joins another Tala WTE access point from an imported config and generates
+traffic. Open the web UI to import a config and control traffic. Idempotent.`)
+			return 0
+		}
+	}
+	if len(args) > 0 {
+		fmt.Fprintf(os.Stderr, "tala-wte install-client takes no flags; received %q\n", args[0])
+		return 2
+	}
+	if os.Geteuid() != 0 {
+		fmt.Fprintln(os.Stderr, "tala-wte install-client must run as root - rerun: sudo tala-wte install-client")
+		return 1
+	}
+
+	fmt.Println("== Tala WTE client installer ==")
+	fmt.Printf("  arch:   %s\n", runtime.GOARCH)
+	fmt.Printf("  binary: %s\n", installBinaryDest())
+
+	fmt.Println("-> installing client dependencies")
+	deps.InstallPackages(clientDepPackages)
+	fmt.Println("-> recovering any wedged USB Wi-Fi adapters")
+	deps.HealWedgedWifiNow()
+
+	if err := os.MkdirAll(installDataDir, 0o755); err != nil {
+		fmt.Fprintf(os.Stderr, "mkdir %s: %v\n", installDataDir, err)
+		return 1
+	}
+	self, err := os.Executable()
+	if err != nil {
+		fmt.Fprintf(os.Stderr, "locate running binary: %v\n", err)
+		return 1
+	}
+	dest := installBinaryDest()
+	if err := copyBinary(self, dest); err != nil {
+		fmt.Fprintf(os.Stderr, "copy %s -> %s: %v\n", self, dest, err)
+		return 1
+	}
+	fmt.Printf("-> installed binary: %s\n", dest)
+
+	operator := strings.TrimSpace(os.Getenv("SUDO_USER"))
+	if operator == "" || operator == "root" {
+		operator = firstRegularUsername()
+	}
+	if operator != "" {
+		bootstrapETerminal(operator)
+	}
+
+	if err := os.WriteFile(installUnitFile, []byte(renderServiceUnit(dest, operator, "client")), 0o644); err != nil {
+		fmt.Fprintf(os.Stderr, "write %s: %v\n", installUnitFile, err)
+		return 1
+	}
+	fmt.Printf("-> wrote unit (client mode): %s\n", installUnitFile)
+
+	if err := runCmd("systemctl", "daemon-reload"); err != nil {
+		fmt.Fprintf(os.Stderr, "daemon-reload: %v\n", err)
+		return 1
+	}
+	_ = runCmd("systemctl", "enable", installUnitName)
+	if err := runCmd("systemctl", "restart", installUnitName); err != nil {
+		fmt.Fprintf(os.Stderr, "restart: %v\n", err)
+		return 1
+	}
+
+	webReady := false
+	for i := 0; i < 40; i++ {
+		conn, derr := net.DialTimeout("tcp", "127.0.0.1:8443", time.Second)
+		if derr == nil {
+			_ = conn.Close()
+			webReady = true
+			break
+		}
+		time.Sleep(1 * time.Second)
+	}
+	host, _ := os.Hostname()
+	if host == "" {
+		host = "tala-wte-client"
+	}
+	web := "starting"
+	if webReady {
+		web = "ready"
+	}
+	line := "════════════════════════════════════════════════════════════"
+	fmt.Println()
+	fmt.Println(line)
+	fmt.Printf("  Tala WTE client installed - web UI: %s\n", web)
+	fmt.Printf("  Open the console: https://%s:8443/  (import a config, then generate traffic)\n", host)
+	fmt.Println(line)
+	if !webReady {
+		return 1
+	}
+	return 0
 }
 
 func runInstall(args []string) int {
@@ -116,7 +224,7 @@ After install, open the web UI to create your admin account in the browser.`)
 		bootstrapETerminal(operator)
 	}
 
-	if err := os.WriteFile(installUnitFile, []byte(renderServiceUnit(dest, operator)), 0o644); err != nil {
+	if err := os.WriteFile(installUnitFile, []byte(renderServiceUnit(dest, operator, "")), 0o644); err != nil {
 		fmt.Fprintf(os.Stderr, "write %s: %v\n", installUnitFile, err)
 		return 1
 	}
@@ -216,13 +324,18 @@ Stops and removes the tala-wte systemd service.
 	return 0
 }
 
-func renderServiceUnit(execPath, operator string) string {
-	operatorEnv := ""
+func renderServiceUnit(execPath, operator, mode string) string {
+	env := ""
 	if operator != "" {
-		operatorEnv = fmt.Sprintf("Environment=TALA_OPERATOR=%s\n", operator)
+		env += fmt.Sprintf("Environment=TALA_OPERATOR=%s\n", operator)
+	}
+	desc := "Tala WTE - Wireless Training Environment"
+	if mode == "client" {
+		env += "Environment=TALA_MODE=client\n"
+		desc = "Tala WTE - Client (traffic simulator)"
 	}
 	return fmt.Sprintf(`[Unit]
-Description=Tala WTE - Wireless Training Environment
+Description=%s
 After=network-online.target tala-wte-usb3-rescan.service tala-wte-wifi-recover.service
 Wants=network-online.target
 
@@ -236,7 +349,7 @@ RestartSec=3
 
 [Install]
 WantedBy=multi-user.target
-`, installDataDir, operatorEnv, execPath)
+`, desc, installDataDir, env, execPath)
 }
 
 // copyBinary copies src to dest via a temp file + atomic rename, avoiding ETXTBSY when dest is the running service binary.
