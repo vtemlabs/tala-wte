@@ -34,11 +34,66 @@ const (
 	adminPasswordFile = "/var/lib/tala-wte/ldap/.admin_password"
 )
 
+const (
+	slapdAppArmorProfile = "/etc/apparmor.d/usr.sbin.slapd"
+	slapdAppArmorLocal   = "/etc/apparmor.d/local/usr.sbin.slapd"
+	slapdAppArmorDisable = "/etc/apparmor.d/disable/usr.sbin.slapd"
+	apparmorProfilesFile = "/sys/kernel/security/apparmor/profiles"
+)
+
 var (
 	slapdMu   sync.Mutex
 	slapdProc *exec.Cmd
 	slapdCtx  context.CancelFunc
 )
+
+func ensureAppArmor() {
+	if _, err := os.Stat(slapdAppArmorProfile); err != nil {
+		return
+	}
+	parser, err := exec.LookPath("apparmor_parser")
+	if err != nil {
+		return
+	}
+	if profile, err := os.ReadFile(slapdAppArmorProfile); err == nil && strings.Contains(string(profile), "local/usr.sbin.slapd") {
+		if _, err := os.Stat(slapdAppArmorLocal); err != nil {
+			_ = os.MkdirAll(filepath.Dir(slapdAppArmorLocal), 0o755)
+			_ = os.WriteFile(slapdAppArmorLocal, []byte{}, 0o644)
+		}
+	}
+	loaded := false
+	if data, err := os.ReadFile(apparmorProfilesFile); err == nil {
+		loaded = strings.Contains(string(data), "/usr/sbin/slapd")
+	}
+	_, symErr := os.Lstat(slapdAppArmorDisable)
+	if symErr == nil && !loaded {
+		return
+	}
+	if symErr != nil {
+		if err := os.MkdirAll(filepath.Dir(slapdAppArmorDisable), 0o755); err != nil {
+			log.Printf("[ldap] apparmor disable dir: %v", err)
+			return
+		}
+		if err := os.Symlink(slapdAppArmorProfile, slapdAppArmorDisable); err != nil && !os.IsExist(err) {
+			log.Printf("[ldap] apparmor disable symlink: %v", err)
+			return
+		}
+	}
+	if loaded {
+		if out, err := exec.Command(parser, "-R", slapdAppArmorProfile).CombinedOutput(); err != nil {
+			log.Printf("[ldap] apparmor unload: %s: %v", strings.TrimSpace(string(out)), err)
+			return
+		}
+		log.Printf("[ldap] apparmor profile for slapd disabled; WTE manages %s", ldapDataDir)
+	}
+}
+
+func disableStockSlapd() {
+	if out, err := exec.Command("systemctl", "is-active", "--quiet", "slapd").Output(); err == nil && len(out) == 0 {
+		_ = exec.Command("systemctl", "disable", "--now", "slapd").Run()
+		time.Sleep(200 * time.Millisecond)
+	}
+}
 
 // Start launches slapd if not already running.
 func Start() error {
@@ -59,6 +114,9 @@ func Start() error {
 			break
 		}
 	}
+
+	ensureAppArmor()
+	disableStockSlapd()
 
 	// Kill any stale slapd on our port from a previous run.
 	_ = exec.Command("fuser", "-k", "3389/tcp").Run()
@@ -96,12 +154,17 @@ func Start() error {
 	slapdProc = cmd
 	slapdCtx = cancel
 
+	exited := make(chan error, 1)
+	go func() { exited <- cmd.Wait() }()
+
 	// Wait for slapd to start, then verify it accepts connections.
-	for range 5 {
-		time.Sleep(300 * time.Millisecond)
-		if cmd.ProcessState != nil {
+	for range 20 {
+		select {
+		case <-exited:
+			slapdProc = nil
 			cancel()
 			return fmt.Errorf("[ldap] slapd exited immediately: %s", strings.TrimSpace(slapdLog.String()))
+		case <-time.After(300 * time.Millisecond):
 		}
 		probe := exec.Command("ldapsearch", "-x", "-H", ldapHost, "-b", "", "-s", "base", "(objectClass=*)")
 		if err := probe.Run(); err == nil {
@@ -114,6 +177,8 @@ func Start() error {
 	if cmd.Process != nil {
 		_ = cmd.Process.Kill()
 	}
+	<-exited
+	slapdProc = nil
 	return fmt.Errorf("[ldap] slapd started but never accepted connections; slapd output: %s", strings.TrimSpace(slapdLog.String()))
 }
 
@@ -125,10 +190,7 @@ func Stop() {
 		slapdCtx()
 		slapdCtx = nil
 	}
-	if slapdProc != nil && slapdProc.Process != nil {
-		_ = slapdProc.Wait()
-		slapdProc = nil
-	}
+	slapdProc = nil
 }
 
 // IsRunning returns whether slapd is currently running.

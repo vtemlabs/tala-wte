@@ -12,10 +12,28 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	"github.com/vtemlabs/tala-wte/internal/certs"
 	"github.com/vtemlabs/tala-wte/internal/ldap"
 )
+
+func lastConfigError(out []byte) string {
+	lines := strings.Split(strings.TrimSpace(string(out)), "\n")
+	for i := len(lines) - 1; i >= 0; i-- {
+		l := strings.TrimSpace(lines[i])
+		if l == "" {
+			continue
+		}
+		if strings.Contains(strings.ToLower(l), "error") || strings.Contains(l, "/etc/freeradius") {
+			return l
+		}
+	}
+	if n := len(lines); n > 0 {
+		return lines[n-1]
+	}
+	return "unknown error"
+}
 
 const (
 	radiusCertDir = "/etc/freeradius/3.0/certs"
@@ -121,7 +139,21 @@ func AutoProvisionEnterprise() *EnterpriseProvisionResult {
 			"rewrote private_key_file/certificate_file/ca_file in mods-enabled/eap")
 	}
 
-	// 7. Service. Always issue restart so the module + clients.conf changes take effect.
+	// 6c. slapd must be accepting connections before FreeRADIUS binds rlm_ldap.
+	if ldap.IsRunning() {
+		res.add("ldap_running", "OpenLDAP (slapd)", "skipped", "already accepting on 127.0.0.1:3389")
+	} else if err := ldap.Start(); err != nil {
+		res.fail("ldap_running", "OpenLDAP (slapd)", err)
+	} else {
+		res.add("ldap_running", "OpenLDAP (slapd)", "created", "slapd accepting on 127.0.0.1:3389")
+	}
+
+	// 7. Service. Validate the generated config, then restart so module + clients.conf changes take effect.
+	if out, err := exec.Command("freeradius", "-C").CombinedOutput(); err != nil {
+		res.fail("freeradius_config", "FreeRADIUS config check", fmt.Errorf("freeradius -C: %s", lastConfigError(out)))
+	} else {
+		res.add("freeradius_config", "FreeRADIUS config check", "created", "configuration valid")
+	}
 	if err := exec.Command("systemctl", "restart", "freeradius").Run(); err != nil {
 		res.fail("freeradius_running", "FreeRADIUS service", err)
 	} else {
@@ -259,14 +291,15 @@ ldap {
 	}
 
 	pool {
-		start             = ${thread[pool].start_servers}
-		min               = ${thread[pool].min_spare_servers}
+		start             = 0
+		min               = 0
 		max               = ${thread[pool].max_servers}
 		spare             = ${thread[pool].max_spare_servers}
 		uses              = 0
 		retry_delay       = 30
 		lifetime          = 0
 		idle_timeout      = 60
+		connect_timeout   = 3.0
 	}
 }
 `, ldap.AdminPassword())
