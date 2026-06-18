@@ -151,7 +151,9 @@ func denDeployHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 			return
 		}
 		var body struct {
-			NetworkID string `json:"network_id"`
+			NetworkID string                 `json:"network_id"`
+			Traffic   *client.TrafficOptions `json:"traffic"`
+			Reconnect *reconnectSettings     `json:"reconnect"`
 		}
 		_ = json.NewDecoder(r.Body).Decode(&body)
 		net, err := app.FindRecordById("networks", body.NetworkID)
@@ -171,17 +173,30 @@ func denDeployHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 			api.WriteErr(w, http.StatusBadGateway, fmt.Sprintf("member rejected connect (HTTP %d)", resp.StatusCode))
 			return
 		}
+		// The leader can push the full traffic config (every generator + target list
+		// + credentials) and a reconnect-cycling schedule, exactly like configuring a
+		// client by hand; default to a sensible standard mix when none is supplied.
+		opts := client.TrafficOptions{Web: true, DNS: true, Ping: true, Local: true, Internet: true}
+		if body.Traffic != nil {
+			opts = *body.Traffic
+		}
 		member.Set("network_id", body.NetworkID)
 		_ = app.Save(member)
-		go startMemberTrafficWhenConnected(base, key)
+		go startMemberTrafficWhenConnected(base, key, opts, body.Reconnect)
 		api.WriteJSON(w, map[string]any{"status": "deploying"})
 	}
 }
 
+// reconnectSettings is the handshake-capture cycling config a leader can push.
+type reconnectSettings struct {
+	Enabled          bool    `json:"enabled"`
+	FrequencySeconds float64 `json:"frequency_seconds"`
+	JitterSeconds    float64 `json:"jitter_seconds"`
+}
+
 // startMemberTrafficWhenConnected polls the member until it associates, then starts
-// a sensible default traffic mix.
-func startMemberTrafficWhenConnected(base, key string) {
-	opts := client.TrafficOptions{Web: true, DNS: true, Ping: true, Local: true, Internet: true}
+// the requested traffic mix and, if asked, reconnect cycling.
+func startMemberTrafficWhenConnected(base, key string, opts client.TrafficOptions, rc *reconnectSettings) {
 	for i := 0; i < 20; i++ {
 		time.Sleep(3 * time.Second)
 		sr, err := memberRequest(http.MethodGet, base, "/api/wte/client/status", key, nil)
@@ -194,9 +209,13 @@ func startMemberTrafficWhenConnected(base, key string) {
 		_ = json.NewDecoder(sr.Body).Decode(&st)
 		sr.Body.Close()
 		if st.Connected {
-			r2, _ := memberRequest(http.MethodPost, base, "/api/wte/client/start", key, opts)
-			if r2 != nil {
+			if r2, e := memberRequest(http.MethodPost, base, "/api/wte/client/start", key, opts); e == nil {
 				r2.Body.Close()
+			}
+			if rc != nil && rc.Enabled {
+				if r3, e := memberRequest(http.MethodPost, base, "/api/wte/client/reconnect", key, rc); e == nil {
+					r3.Body.Close()
+				}
 			}
 			return
 		}

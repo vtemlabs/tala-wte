@@ -13,6 +13,27 @@
   let networkList = $state<any[]>([]);
   let statuses = $state<Record<string, any>>({});
   let selectedNet = $state<Record<string, string>>({});
+  let selectedProfile = $state<Record<string, string>>({});
+
+  // Deploy profiles bundle the full traffic config (and optional reconnect cycling)
+  // the leader pushes to a member, the same settings you'd set on a client by hand.
+  const PROFILES: Record<string, { label: string; traffic: Record<string, boolean>; reconnect: any }> = {
+    standard: {
+      label: 'Standard traffic',
+      traffic: { web: true, dns: true, ping: true, downloads: false, creds: false, domain: false, local: true, internet: true },
+      reconnect: null
+    },
+    full: {
+      label: 'Full traffic',
+      traffic: { web: true, dns: true, ping: true, downloads: true, creds: true, domain: true, local: true, internet: true },
+      reconnect: null
+    },
+    handshake: {
+      label: 'Handshake capture',
+      traffic: { web: true, dns: true, ping: true, downloads: false, creds: false, domain: false, local: true, internet: true },
+      reconnect: { enabled: true, frequency_seconds: 120, jitter_seconds: 15 }
+    }
+  };
   let busy = $state('');
   let poll: ReturnType<typeof setInterval> | null = null;
 
@@ -88,7 +109,11 @@
       const r = await fetch(`/api/wte/den/${m.id}/deploy`, {
         method: 'POST',
         headers: authHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({ network_id: net })
+        body: JSON.stringify({
+          network_id: net,
+          traffic: PROFILES[selectedProfile[m.id] || 'standard'].traffic,
+          reconnect: PROFILES[selectedProfile[m.id] || 'standard'].reconnect
+        })
       });
       if (!r.ok) throw new Error((await r.json())?.error ?? 'deploy failed');
       toast.success(`Deploying ${m.name} to ${netName(net)}`);
@@ -175,6 +200,9 @@
                 <option value="">Select network...</option>
                 {#each networkList as n}<option value={n.id}>{n.ssid}</option>{/each}
               </select>
+              <select class="input" bind:value={selectedProfile[m.id]}>
+                {#each Object.entries(PROFILES) as [key, p]}<option value={key}>{p.label}</option>{/each}
+              </select>
               <button class="action-btn btn-success" onclick={() => deploy(m)} disabled={busy === m.id}>Deploy</button>
               <button class="action-btn btn-danger" onclick={() => stop(m)} disabled={busy === m.id}>Stop</button>
             </div>
@@ -250,9 +278,11 @@
   .member-actions {
     display: flex;
     align-items: center;
+    flex-wrap: wrap;
     gap: var(--space-sm);
   }
   .member-actions .input {
     flex: 1;
+    min-width: 140px;
   }
 </style>
