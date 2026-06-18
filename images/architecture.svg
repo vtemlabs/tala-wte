@@ -1,160 +1,148 @@
 <svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" font-family="'Inter', system-ui, sans-serif">
   <defs>
-    <radialGradient id="bgGlow" cx="42%" cy="51%" r="58%">
-      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.20"/>
-      <stop offset="42%" stop-color="#1f6feb" stop-opacity="0.06"/>
+    <radialGradient id="bgGlow" cx="39%" cy="45%" r="52%">
+      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.22"/>
+      <stop offset="45%" stop-color="#1f6feb" stop-opacity="0.06"/>
       <stop offset="100%" stop-color="#08090c" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="vignette" cx="50%" cy="50%" r="75%">
-      <stop offset="60%" stop-color="#08090c" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    <radialGradient id="wolfHalo" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#58a0ff" stop-opacity="0.30"/>
+      <stop offset="55%" stop-color="#2f81f7" stop-opacity="0.10"/>
+      <stop offset="100%" stop-color="#2f81f7" stop-opacity="0"/>
     </radialGradient>
-    <linearGradient id="apGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#58a0ff"/>
-      <stop offset="100%" stop-color="#1f6feb"/>
-    </linearGradient>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="74%">
+      <stop offset="62%" stop-color="#08090c" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.6"/>
+    </radialGradient>
     <linearGradient id="cliGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#fbbf6b"/>
-      <stop offset="100%" stop-color="#f97316"/>
+      <stop offset="0%" stop-color="#fbbf6b"/><stop offset="100%" stop-color="#f97316"/>
     </linearGradient>
     <linearGradient id="atkGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#fb7185"/>
-      <stop offset="100%" stop-color="#e11d48"/>
+      <stop offset="0%" stop-color="#fb7185"/><stop offset="100%" stop-color="#e11d48"/>
     </linearGradient>
     <linearGradient id="flowBlue" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#1f6feb" stop-opacity="0.15"/>
       <stop offset="55%" stop-color="#58a0ff" stop-opacity="0.95"/>
       <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.85"/>
     </linearGradient>
-    <linearGradient id="flowAuth" x1="0" y1="1" x2="0" y2="0">
-      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.85"/>
-      <stop offset="100%" stop-color="#2f81f7" stop-opacity="0.85"/>
+    <linearGradient id="flowAuth" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.9"/>
+      <stop offset="100%" stop-color="#22c55e" stop-opacity="0.85"/>
     </linearGradient>
     <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#58a0ff"/>
-      <stop offset="100%" stop-color="#22d3ee"/>
+      <stop offset="0%" stop-color="#58a0ff"/><stop offset="100%" stop-color="#22d3ee"/>
     </linearGradient>
     <filter id="glow" x="-70%" y="-70%" width="240%" height="240%">
-      <feGaussianBlur stdDeviation="6" result="b"/>
-      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+      <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="bigGlow" x="-120%" y="-120%" width="340%" height="340%">
-      <feGaussianBlur stdDeviation="22"/>
+    <filter id="wolfGlow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
+    <filter id="bigGlow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="20"/></filter>
     <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
-      <path d="M44 0 H0 V44" fill="none" stroke="#20242e" stroke-width="1" stroke-opacity="0.45"/>
+      <path d="M44 0 H0 V44" fill="none" stroke="#20242e" stroke-width="1" stroke-opacity="0.4"/>
     </pattern>
     <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
       <path d="M0 0 L10 5 L0 10 z" fill="#22d3ee"/>
     </marker>
   </defs>
 
-  <!-- backdrop -->
   <rect width="1600" height="900" fill="#08090c"/>
   <rect width="1600" height="900" fill="url(#grid)"/>
   <rect width="1600" height="900" fill="url(#bgGlow)"/>
 
   <!-- title -->
-  <text x="66" y="88" font-size="42" font-weight="800" letter-spacing="-1" fill="#e8ebf2">TALA WTE</text>
-  <text x="68" y="118" font-size="13" letter-spacing="5" fill="#6b7384" font-family="'JetBrains Mono', monospace">WIRELESS  TRAINING  ENVIRONMENT</text>
+  <text x="66" y="86" font-size="40" font-weight="800" letter-spacing="-1" fill="#e8ebf2">TALA WTE</text>
+  <text x="68" y="115" font-size="12.5" letter-spacing="5" fill="#6b7384" font-family="'JetBrains Mono', monospace">WIRELESS  TRAINING  ENVIRONMENT</text>
 
-  <!-- ====== connectors (under nodes) ====== -->
-  <!-- AP -> auth backbone -->
-  <path d="M640 540 C 640 660, 600 690, 560 768" fill="none" stroke="url(#flowAuth)" stroke-width="3" opacity="0.8" filter="url(#glow)"/>
-  <path d="M640 540 C 640 660, 600 690, 560 768" fill="none" stroke="#9fe7b8" stroke-width="1.4" stroke-dasharray="2 12" opacity="0.9"/>
+  <!-- radar rings + halo behind wolf -->
+  <circle cx="620" cy="402" r="300" fill="url(#wolfHalo)"/>
+  <g fill="none" stroke="#2f81f7" stroke-opacity="0.18">
+    <circle cx="620" cy="402" r="210"/><circle cx="620" cy="402" r="264"/><circle cx="620" cy="402" r="318"/>
+  </g>
+  <path d="M620 402 L620 84 A318 318 0 0 1 845 178 Z" fill="url(#arcGrad)" opacity="0.06"/>
 
-  <!-- AP -> clients (den) -->
-  <path d="M712 416 C 900 300, 1010 270, 1118 268" fill="none" stroke="url(#flowBlue)" stroke-width="4" filter="url(#glow)" marker-end="url(#arrow)"/>
-  <path d="M722 460 C 950 470, 1080 470, 1262 466" fill="none" stroke="url(#flowBlue)" stroke-width="4" filter="url(#glow)" marker-end="url(#arrow)"/>
-  <path d="M712 504 C 900 620, 1010 652, 1118 672" fill="none" stroke="url(#flowBlue)" stroke-width="4" filter="url(#glow)" marker-end="url(#arrow)"/>
-  <path d="M712 416 C 900 300, 1010 270, 1118 268" fill="none" stroke="#bfe6ff" stroke-width="1.5" stroke-dasharray="3 14" opacity="0.85"/>
-  <path d="M722 460 C 950 470, 1080 470, 1262 466" fill="none" stroke="#bfe6ff" stroke-width="1.5" stroke-dasharray="3 14" opacity="0.85"/>
-  <path d="M712 504 C 900 620, 1010 652, 1118 672" fill="none" stroke="#bfe6ff" stroke-width="1.5" stroke-dasharray="3 14" opacity="0.85"/>
-
+  <!-- ===== connectors (under nodes) ===== -->
   <!-- attacker intercept beam -->
-  <path d="M286 452 C 380 430, 430 430, 486 442" fill="none" stroke="url(#atkGrad)" stroke-width="3" stroke-dasharray="9 9" opacity="0.85" filter="url(#glow)"/>
-  <text x="372" y="404" font-size="12.5" letter-spacing="1.5" fill="#fb7185" font-family="'JetBrains Mono', monospace" text-anchor="middle">intercept</text>
+  <path d="M214 398 C 320 372, 380 372, 452 388" fill="none" stroke="url(#atkGrad)" stroke-width="3" stroke-dasharray="9 9" opacity="0.85" filter="url(#glow)"/>
+  <text x="332" y="350" font-size="12.5" letter-spacing="1.5" fill="#fb7185" font-family="'JetBrains Mono', monospace" text-anchor="middle">intercept</text>
+  <!-- wolf -> networks -->
+  <path d="M792 300 C 840 250, 858 240, 872 233" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)"/>
+  <path d="M806 402 C 845 402, 858 402, 872 402" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)"/>
+  <path d="M792 504 C 840 554, 858 564, 872 571" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)"/>
+  <!-- networks -> clients -->
+  <path d="M1138 233 C 1230 233, 1250 233, 1300 233" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)" marker-end="url(#arrow)"/>
+  <path d="M1138 402 C 1230 402, 1250 402, 1300 402" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)" marker-end="url(#arrow)"/>
+  <path d="M1138 571 C 1230 571, 1250 571, 1300 571" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)" marker-end="url(#arrow)"/>
+  <!-- wolf -> auth -->
+  <path d="M620 560 C 620 700, 600 720, 560 794" fill="none" stroke="url(#flowAuth)" stroke-width="3" opacity="0.85" filter="url(#glow)"/>
+  <path d="M620 560 C 620 700, 600 720, 560 794" fill="none" stroke="#9fe7b8" stroke-width="1.3" stroke-dasharray="2 12" opacity="0.85"/>
 
-  <!-- ====== wireless arcs from AP ====== -->
+  <!-- wireless arcs from wolf -->
   <g fill="none" stroke="url(#arcGrad)" stroke-linecap="round" filter="url(#glow)">
-    <path d="M731 387 A 150 150 0 0 1 731 533" stroke-width="3.2" opacity="0.75"/>
-    <path d="M770 350 A 205 205 0 0 1 770 570" stroke-width="2.6" opacity="0.5"/>
-    <path d="M812 312 A 262 262 0 0 1 812 608" stroke-width="2.1" opacity="0.32"/>
-    <path d="M856 274 A 320 320 0 0 1 856 646" stroke-width="1.7" opacity="0.2"/>
+    <path d="M793 318 A 230 230 0 0 1 793 486" stroke-width="3" opacity="0.55"/>
+    <path d="M832 282 A 290 290 0 0 1 832 522" stroke-width="2.3" opacity="0.34"/>
+    <path d="M872 246 A 352 352 0 0 1 872 558" stroke-width="1.8" opacity="0.2"/>
   </g>
 
-  <!-- ====== attacker node ====== -->
-  <circle cx="232" cy="452" r="86" fill="#e11d48" opacity="0.16" filter="url(#bigGlow)"/>
-  <circle cx="232" cy="452" r="50" fill="#101218" stroke="url(#atkGrad)" stroke-width="2.5" filter="url(#glow)"/>
-  <g stroke="#fb7185" stroke-width="2.2" opacity="0.95">
-    <circle cx="232" cy="452" r="22" fill="none"/>
-    <line x1="232" y1="416" x2="232" y2="438"/>
-    <line x1="232" y1="466" x2="232" y2="488"/>
-    <line x1="196" y1="452" x2="218" y2="452"/>
-    <line x1="246" y1="452" x2="268" y2="452"/>
+  <!-- ===== attacker ===== -->
+  <circle cx="160" cy="398" r="80" fill="#e11d48" opacity="0.15" filter="url(#bigGlow)"/>
+  <circle cx="160" cy="398" r="48" fill="#101218" stroke="url(#atkGrad)" stroke-width="2.4" filter="url(#glow)"/>
+  <g stroke="#fb7185" stroke-width="2.1" opacity="0.95">
+    <circle cx="160" cy="398" r="21" fill="none"/>
+    <line x1="160" y1="364" x2="160" y2="384"/><line x1="160" y1="412" x2="160" y2="432"/>
+    <line x1="126" y1="398" x2="146" y2="398"/><line x1="174" y1="398" x2="194" y2="398"/>
   </g>
-  <circle cx="232" cy="452" r="3.5" fill="#fb7185"/>
-  <text x="232" y="544" font-size="15" font-weight="700" letter-spacing="2" fill="#fb7185" text-anchor="middle" font-family="'JetBrains Mono', monospace">ATTACKER</text>
-  <text x="232" y="566" font-size="12" fill="#6b7384" text-anchor="middle">capture &#183; crack &#183; evil-twin</text>
+  <circle cx="160" cy="398" r="3.3" fill="#fb7185"/>
+  <text x="160" y="488" font-size="14.5" font-weight="700" letter-spacing="2" fill="#fb7185" text-anchor="middle" font-family="'JetBrains Mono', monospace">ATTACKER</text>
+  <text x="160" y="509" font-size="11.5" fill="#6b7384" text-anchor="middle">capture &#183; crack &#183; evil-twin</text>
 
-  <!-- ====== AP / den leader (wolf) ====== -->
-  <circle cx="640" cy="460" r="120" fill="#2f81f7" opacity="0.18" filter="url(#bigGlow)"/>
-  <circle cx="640" cy="460" r="84" fill="#0d0f14" stroke="url(#apGrad)" stroke-width="3" filter="url(#glow)"/>
-  <circle cx="640" cy="460" r="84" fill="url(#apGrad)" opacity="0.10"/>
-  <!-- angular wolf head -->
-  <g transform="translate(640 458)" filter="url(#glow)">
-    <path d="M-40 -46 L -14 -20 L 0 -30 L 14 -20 L 40 -46 L 33 10 L 0 44 L -33 10 Z" fill="#e8ebf2"/>
-    <path d="M-19 -8 L -7 -8 L -13 4 Z" fill="#1f6feb"/>
-    <path d="M19 -8 L 7 -8 L 13 4 Z" fill="#1f6feb"/>
-    <path d="M0 14 L 6 24 L 0 30 L -6 24 Z" fill="#0d0f14"/>
+  <!-- ===== wolf: AP / den leader ===== -->
+  <image href="tala-wolf-radar.png" x="437" y="219" width="366" height="366" opacity="0.96" filter="url(#wolfGlow)"/>
+  <text x="620" y="634" font-size="15" font-weight="700" letter-spacing="1.6" fill="#93c5fd" text-anchor="middle" font-family="'JetBrains Mono', monospace">ACCESS POINT &#183; DEN LEADER</text>
+  <text x="620" y="656" font-size="11.5" fill="#6b7384" text-anchor="middle" font-family="'JetBrains Mono', monospace">WEP &#8594; WPA3-Enterprise &#183; NAT &#183; per-network isolation</text>
+
+  <!-- ===== network capsules (SSIDs + features) ===== -->
+  <g font-family="'JetBrains Mono', monospace">
+    <!-- enterprise -->
+    <g transform="translate(875 233)">
+      <rect x="0" y="-33" width="263" height="66" rx="11" fill="#101218" stroke="#2b303c" stroke-width="1.5" filter="url(#glow)"/>
+      <text x="18" y="-6" font-size="16" font-weight="600" fill="#e8ebf2" font-family="'Inter', sans-serif">Acme-Corp</text>
+      <rect x="18" y="6" width="160" height="20" rx="5" fill="#a855f7" fill-opacity="0.16" stroke="#a855f7" stroke-width="1"/>
+      <text x="28" y="20" font-size="11" fill="#c4b5fd">WPA2-ENTERPRISE</text>
+    </g>
+    <!-- captive portal -->
+    <g transform="translate(875 402)">
+      <rect x="0" y="-33" width="263" height="66" rx="11" fill="#101218" stroke="#2b303c" stroke-width="1.5" filter="url(#glow)"/>
+      <text x="18" y="-6" font-size="16" font-weight="600" fill="#e8ebf2" font-family="'Inter', sans-serif">Acme-Guest</text>
+      <rect x="18" y="6" width="186" height="20" rx="5" fill="#f97316" fill-opacity="0.16" stroke="#f97316" stroke-width="1"/>
+      <text x="28" y="20" font-size="11" fill="#fbbf6b">OPEN &#183; CAPTIVE PORTAL</text>
+    </g>
+    <!-- hidden + isolated -->
+    <g transform="translate(875 571)">
+      <rect x="0" y="-33" width="263" height="66" rx="11" fill="#0c0e13" stroke="#2b303c" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#glow)"/>
+      <text x="18" y="-6" font-size="16" font-weight="600" fill="#9aa3b4" font-family="'Inter', sans-serif">Conference-5G</text>
+      <rect x="18" y="6" width="214" height="20" rx="5" fill="#22d3ee" fill-opacity="0.14" stroke="#22d3ee" stroke-width="1"/>
+      <text x="28" y="20" font-size="11" fill="#7fe3f4">WPA3 &#183; HIDDEN &#183; ISOLATED</text>
+    </g>
   </g>
-  <text x="640" y="582" font-size="15" font-weight="700" letter-spacing="1.5" fill="#93c5fd" text-anchor="middle" font-family="'JetBrains Mono', monospace">ACCESS POINT &#183; DEN LEADER</text>
-  <text x="640" y="604" font-size="12" fill="#6b7384" text-anchor="middle">hostapd &#183; WEP through WPA3-Enterprise</text>
 
-  <!-- ====== den client pack ====== -->
-  <text x="1210" y="150" font-size="15" font-weight="700" letter-spacing="2" fill="#fbbf6b" text-anchor="middle" font-family="'JetBrains Mono', monospace">THE DEN &#183; CLIENT PACK</text>
-  <text x="1210" y="172" font-size="12" fill="#6b7384" text-anchor="middle">traffic generation &#183; saved networks &#183; handshake capture</text>
+  <!-- ===== client pack / den ===== -->
+  <text x="1345" y="120" font-size="14.5" font-weight="700" letter-spacing="2" fill="#fbbf6b" text-anchor="middle" font-family="'JetBrains Mono', monospace">THE DEN</text>
+  <text x="1345" y="141" font-size="11" fill="#6b7384" text-anchor="middle">client pack &#183; traffic generation</text>
   <g>
-    <!-- client template repeated -->
-    <g transform="translate(1140 250)">
-      <circle r="64" fill="#f97316" opacity="0.14" filter="url(#bigGlow)"/>
-      <circle r="44" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.5" filter="url(#glow)"/>
-      <rect x="-20" y="-16" width="40" height="28" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.3"/>
-      <line x1="-9" y1="18" x2="9" y2="18" stroke="#fbbf6b" stroke-width="2.3"/>
-      <circle cx="0" cy="-2" r="3" fill="#fbbf6b"/>
-    </g>
-    <g transform="translate(1310 460)">
-      <circle r="64" fill="#f97316" opacity="0.14" filter="url(#bigGlow)"/>
-      <circle r="44" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.5" filter="url(#glow)"/>
-      <rect x="-20" y="-16" width="40" height="28" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.3"/>
-      <line x1="-9" y1="18" x2="9" y2="18" stroke="#fbbf6b" stroke-width="2.3"/>
-      <circle cx="0" cy="-2" r="3" fill="#fbbf6b"/>
-    </g>
-    <g transform="translate(1140 672)">
-      <circle r="64" fill="#f97316" opacity="0.14" filter="url(#bigGlow)"/>
-      <circle r="44" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.5" filter="url(#glow)"/>
-      <rect x="-20" y="-16" width="40" height="28" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.3"/>
-      <line x1="-9" y1="18" x2="9" y2="18" stroke="#fbbf6b" stroke-width="2.3"/>
-      <circle cx="0" cy="-2" r="3" fill="#fbbf6b"/>
-    </g>
+    <g transform="translate(1345 233)"><circle r="58" fill="#f97316" opacity="0.13" filter="url(#bigGlow)"/><circle r="40" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.4" filter="url(#glow)"/><rect x="-18" y="-15" width="36" height="26" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.2"/><line x1="-8" y1="16" x2="8" y2="16" stroke="#fbbf6b" stroke-width="2.2"/><circle cx="0" cy="-2" r="2.6" fill="#fbbf6b"/></g>
+    <g transform="translate(1345 402)"><circle r="58" fill="#f97316" opacity="0.13" filter="url(#bigGlow)"/><circle r="40" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.4" filter="url(#glow)"/><rect x="-18" y="-15" width="36" height="26" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.2"/><line x1="-8" y1="16" x2="8" y2="16" stroke="#fbbf6b" stroke-width="2.2"/><circle cx="0" cy="-2" r="2.6" fill="#fbbf6b"/></g>
+    <g transform="translate(1345 571)"><circle r="58" fill="#f97316" opacity="0.13" filter="url(#bigGlow)"/><circle r="40" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.4" filter="url(#glow)"/><rect x="-18" y="-15" width="36" height="26" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.2"/><line x1="-8" y1="16" x2="8" y2="16" stroke="#fbbf6b" stroke-width="2.2"/><circle cx="0" cy="-2" r="2.6" fill="#fbbf6b"/></g>
   </g>
 
-  <!-- ====== enterprise auth backbone ====== -->
-  <text x="372" y="800" font-size="13" font-weight="700" letter-spacing="1.5" fill="#4ade80" text-anchor="end" font-family="'JetBrains Mono', monospace">802.1X / EAP</text>
+  <!-- ===== enterprise auth backbone ===== -->
+  <text x="372" y="828" font-size="13" font-weight="700" letter-spacing="1.5" fill="#4ade80" text-anchor="end" font-family="'JetBrains Mono', monospace">802.1X / EAP</text>
   <g font-family="'JetBrains Mono', monospace" font-size="14" text-anchor="middle">
-    <line x1="500" y1="813" x2="940" y2="813" stroke="#22c55e" stroke-width="1.4" stroke-dasharray="2 10" opacity="0.7"/>
-    <g transform="translate(560 813)">
-      <rect x="-66" y="-22" width="132" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.8" filter="url(#glow)"/>
-      <text y="5" fill="#93c5fd">FreeRADIUS</text>
-    </g>
-    <g transform="translate(720 813)">
-      <rect x="-62" y="-22" width="124" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.8" filter="url(#glow)"/>
-      <text y="5" fill="#93c5fd">OpenLDAP</text>
-    </g>
-    <g transform="translate(888 813)">
-      <rect x="-74" y="-22" width="148" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.8" filter="url(#glow)"/>
-      <text y="5" fill="#93c5fd">Cert Authority</text>
-    </g>
+    <line x1="500" y1="822" x2="940" y2="822" stroke="#22c55e" stroke-width="1.3" stroke-dasharray="2 10" opacity="0.6"/>
+    <g transform="translate(560 822)"><rect x="-66" y="-22" width="132" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.7" filter="url(#glow)"/><text y="5" fill="#93c5fd">FreeRADIUS</text></g>
+    <g transform="translate(720 822)"><rect x="-62" y="-22" width="124" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.7" filter="url(#glow)"/><text y="5" fill="#93c5fd">OpenLDAP</text></g>
+    <g transform="translate(888 822)"><rect x="-74" y="-22" width="148" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.7" filter="url(#glow)"/><text y="5" fill="#93c5fd">Cert Authority</text></g>
   </g>
 
   <rect width="1600" height="900" fill="url(#vignette)"/>
