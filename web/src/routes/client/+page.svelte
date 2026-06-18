@@ -8,6 +8,10 @@
   import { onMount, onDestroy } from 'svelte';
   import { pb, system } from '$lib/api';
   import type { WirelessInterface } from '$lib/types';
+  import GuideModal from '$lib/components/GuideModal.svelte';
+  import { GUIDES } from '$lib/guides';
+
+  let guideOpen = $state(false);
 
   type ClientStatus = {
     connected: boolean;
@@ -81,8 +85,13 @@
     <h1 class="page-title">Dashboard</h1>
     <p class="page-subtitle">Traffic generation agent status</p>
   </div>
-  <a href="/client/traffic" class="btn btn-primary">Open traffic console</a>
+  <div class="header-actions">
+    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
+    <a href="/client/traffic" class="btn btn-primary">Open traffic console</a>
+  </div>
 </div>
+
+<GuideModal bind:open={guideOpen} title={GUIDES.client.title} doc={GUIDES.client.doc} />
 
 {#if !loading && unsupported.length > 0}
   <div class="error-toast hw-warn">

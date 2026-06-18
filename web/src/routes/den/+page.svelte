@@ -8,6 +8,8 @@
   import { onMount, onDestroy } from 'svelte';
   import { pb } from '$lib/api';
   import { toast } from '$lib/stores/toast';
+  import GuideModal from '$lib/components/GuideModal.svelte';
+  import { GUIDES } from '$lib/guides';
 
   let members = $state<any[]>([]);
   let networkList = $state<any[]>([]);
@@ -41,6 +43,7 @@
   let address = $state('');
   let agentKey = $state('');
   let adding = $state(false);
+  let guideOpen = $state(false);
 
   function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
     return pb.authStore.token ? { Authorization: pb.authStore.token, ...extra } : extra;
@@ -158,7 +161,10 @@
     <h1 class="page-title">Den</h1>
     <p class="page-subtitle">Drive a pack of client members from the den leader</p>
   </div>
+  <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
 </div>
+
+<GuideModal bind:open={guideOpen} title={GUIDES.den.title} doc={GUIDES.den.doc} />
 
 <div class="split-main">
   <div class="panel">

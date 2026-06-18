@@ -1,8 +1,8 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. See the LICENSE file.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
@@ -10,10 +10,13 @@
   import { toast } from '$lib/stores/toast';
   import HardwareCard from '$lib/HardwareCard.svelte';
   import LicenseModal from '$lib/components/LicenseModal.svelte';
+  import GuideModal from '$lib/components/GuideModal.svelte';
+  import { GUIDES } from '$lib/guides';
 
   import type { WirelessInterface } from '$lib/types';
 
   let showLicense = $state(false);
+  let guideOpen = $state(false);
 
   // Software updates (current version + GitHub release check).
   let versionInfo = $state<VersionStatus | null>(null);
@@ -235,11 +238,14 @@
   </div>
   <div class="header-actions">
     {#if saved}<span class="badge badge-success">Saved</span>{/if}
+    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
     <button class="btn btn-primary" onclick={save} disabled={saving}
       >{saving ? 'Saving...' : 'Save Changes'}</button
     >
   </div>
 </div>
+
+<GuideModal bind:open={guideOpen} title={GUIDES.settings.title} doc={GUIDES.settings.doc} />
 
 <div class="grid grid-2" style="align-items:start">
   <div class="stack">

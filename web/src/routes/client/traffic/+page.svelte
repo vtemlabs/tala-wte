@@ -1,14 +1,16 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. See the LICENSE file.
 -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
   import { pb } from '$lib/api';
   import { toast } from '$lib/stores/toast';
   import LogWindow from '$lib/components/LogWindow.svelte';
+  import GuideModal from '$lib/components/GuideModal.svelte';
+  import { GUIDES } from '$lib/guides';
 
   type ClientStatus = {
     connected: boolean;
@@ -77,6 +79,7 @@
   }
 
   let logOpen = $state(false);
+  let guideOpen = $state(false);
   let logLines = $state<string[]>([]);
 
   async function refresh() {
@@ -296,7 +299,10 @@
     <h1 class="page-title">Traffic Console</h1>
     <p class="page-subtitle">Join a network and generate realistic traffic</p>
   </div>
-  <button class="btn" onclick={() => (logOpen = true)}>Live Log</button>
+  <div class="header-actions">
+    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
+    <button class="btn" onclick={() => (logOpen = true)}>Live Log</button>
+  </div>
 </div>
 
 <div class="panel section">
@@ -555,6 +561,7 @@
   lines={logLines}
   streaming={!!status?.connected || !!status?.generating}
 />
+<GuideModal bind:open={guideOpen} title={GUIDES.traffic.title} doc={GUIDES.traffic.doc} />
 
 <style>
   .saved-head {
