@@ -437,27 +437,32 @@ func (a *Agent) httpClient() *http.Client { return &http.Client{Timeout: 10 * ti
 
 func (a *Agent) genWeb(ctx context.Context, opts TrafficOptions, gw string) {
 	c := a.httpClient()
+	// Target pool: operator URLs plus, when enabled, public browsing sites and the
+	// local gateway, so custom URLs augment the mix rather than replacing the
+	// internet/local browsing the toggles asked for.
+	var pool []string
+	pool = append(pool, opts.URLs...)
+	if opts.Internet {
+		pool = append(pool, browseSites...)
+	}
+	if opts.Local && gw != "" {
+		pool = append(pool, "http://"+gw+"/")
+	}
 	for {
 		if ctx.Err() != nil {
 			return
 		}
-		var target string
-		switch {
-		case len(opts.URLs) > 0:
-			target = opts.URLs[rand.Intn(len(opts.URLs))]
-		case opts.Internet:
-			target = browseSites[rand.Intn(len(browseSites))]
-		case opts.Local && gw != "":
-			target = "http://" + gw + "/"
+		if len(pool) == 0 {
+			sleepJitter(ctx, 2*time.Second, 4*time.Second)
+			continue
 		}
-		if target != "" {
-			if resp, err := c.Get(target); err == nil {
-				n, _ := io.Copy(io.Discard, resp.Body)
-				resp.Body.Close()
-				a.inc(1, n)
-			} else {
-				a.setErr("web: %v", err)
-			}
+		target := pool[rand.Intn(len(pool))]
+		if resp, err := c.Get(target); err == nil {
+			n, _ := io.Copy(io.Discard, resp.Body)
+			resp.Body.Close()
+			a.inc(1, n)
+		} else {
+			a.setErr("web: %v", err)
 		}
 		sleepJitter(ctx, 2*time.Second, 4*time.Second)
 	}
@@ -506,9 +511,15 @@ func (a *Agent) genCreds(ctx context.Context, opts TrafficOptions) {
 
 func (a *Agent) genDNS(ctx context.Context, opts TrafficOptions) {
 	r := &net.Resolver{}
-	domains := lookupDomains
-	if len(opts.Domains) > 0 {
-		domains = opts.Domains
+	// Augment operator domains with the default lookup set when Internet is on, so
+	// custom domains add to the mix rather than replacing it.
+	var domains []string
+	domains = append(domains, opts.Domains...)
+	if opts.Internet {
+		domains = append(domains, lookupDomains...)
+	}
+	if len(domains) == 0 {
+		domains = lookupDomains
 	}
 	for {
 		if ctx.Err() != nil {
