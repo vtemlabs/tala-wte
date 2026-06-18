@@ -375,11 +375,12 @@ func denUpdateHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 				results = append(results, res)
 				continue
 			}
-			if e := pushToMember(app, m, b.path, b.ver, b.sha, arch); e != nil {
+			detail, e := pushToMember(app, m, b.path, b.ver, b.sha, arch)
+			if e != nil {
 				res.Detail = e.Error()
 			} else {
 				res.OK = true
-				res.Detail = "pushed " + b.ver + " (" + arch + ")"
+				res.Detail = detail
 			}
 			results = append(results, res)
 		}
@@ -430,16 +431,16 @@ func pullUpdate(app *pocketbase.PocketBase, member *core.Record) (bool, string) 
 // pushToMember streams a downloaded, checksum-verified binary to a member's
 // /system/apply over the pinned agent channel. A member predating push support
 // answers 404, in which case it falls back to a pull update.
-func pushToMember(app *pocketbase.PocketBase, member *core.Record, binPath, ver, sha, arch string) error {
+func pushToMember(app *pocketbase.PocketBase, member *core.Record, binPath, ver, sha, arch string) (string, error) {
 	f, err := os.Open(binPath)
 	if err != nil {
-		return err
+		return "", err
 	}
 	defer f.Close()
 	fp := member.GetString("cert_fingerprint")
 	req, err := http.NewRequest(http.MethodPost, memberBaseURL(member.GetString("address"))+"/api/wte/system/apply", f)
 	if err != nil {
-		return err
+		return "", err
 	}
 	if fi, e := f.Stat(); e == nil {
 		req.ContentLength = fi.Size()
@@ -451,7 +452,7 @@ func pushToMember(app *pocketbase.PocketBase, member *core.Record, binPath, ver,
 	req.Header.Set("X-Update-Arch", arch)
 	resp, err := memberHTTPClient(fp, 10*time.Minute).Do(req)
 	if err != nil {
-		return fmt.Errorf("unreachable: %w", err)
+		return "", fmt.Errorf("unreachable: %w", err)
 	}
 	defer resp.Body.Close()
 	// Trust-on-first-use: record the member's certificate on first contact.
@@ -460,24 +461,16 @@ func pushToMember(app *pocketbase.PocketBase, member *core.Record, binPath, ver,
 		member.Set("cert_fingerprint", hex.EncodeToString(sum[:]))
 		_ = app.Save(member)
 	}
-	if resp.StatusCode == http.StatusNotFound {
+	if resp.StatusCode >= 300 {
+		// Push rejected (older member without the endpoint, a body-size limit, an
+		// arch mismatch, etc.); fall back to having the member pull the release.
 		ok, detail := pullUpdate(app, member)
 		if ok {
-			return nil
+			return fmt.Sprintf("%s (push rejected: HTTP %d)", detail, resp.StatusCode), nil
 		}
-		return fmt.Errorf("push unsupported; pull fallback: %s", detail)
+		return "", fmt.Errorf("push failed (HTTP %d) and pull fallback failed: %s", resp.StatusCode, detail)
 	}
-	if resp.StatusCode >= 300 {
-		var body struct {
-			Error string `json:"error"`
-		}
-		_ = json.NewDecoder(resp.Body).Decode(&body)
-		if body.Error != "" {
-			return fmt.Errorf("member rejected push: %s", body.Error)
-		}
-		return fmt.Errorf("member rejected push (HTTP %d)", resp.StatusCode)
-	}
-	return nil
+	return "pushed " + ver + " (" + arch + ")", nil
 }
 
 // teardownDenForNetwork disconnects every member assigned to a network. The leader

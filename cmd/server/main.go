@@ -20,6 +20,7 @@ import (
 	"golang.org/x/sys/unix"
 
 	"github.com/pocketbase/pocketbase"
+	"github.com/pocketbase/pocketbase/apis"
 	"github.com/pocketbase/pocketbase/core"
 	"github.com/pocketbase/pocketbase/plugins/migratecmd"
 
@@ -251,7 +252,9 @@ func main() {
 		se.Router.GET("/api/wte/system/version", wrapAuth(versionHandler()))
 		// wrapAgent so a den leader can trigger a member's self-update with its agent key.
 		se.Router.POST("/api/wte/system/update", wrapAgent(app, updateHandler()))
-		se.Router.POST("/api/wte/system/apply", wrapAgent(app, applyHandler()))
+		// A pushed binary is ~60 MB, well over PocketBase's 32 MB default; raise the
+		// body limit for this route only so a den leader can stream a release to it.
+		se.Router.POST("/api/wte/system/apply", wrapAgent(app, applyHandler())).Bind(apis.BodyLimit(256 << 20))
 		se.Router.GET("/api/wte/system/settings", wrapAuth(settingsGetHandler(app)))
 		se.Router.POST("/api/wte/system/settings", wrapAuth(settingsSaveHandler(app)))
 
