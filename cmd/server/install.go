@@ -23,7 +23,24 @@ import (
 	"time"
 
 	"github.com/vtemlabs/tala-wte/internal/deps"
+	"github.com/vtemlabs/tala-wte/internal/iface"
 )
+
+// warnUnsupportedAdapters prints a notice for any USB wireless adapter that is
+// present but has no driver/firmware support, so the operator knows to install a
+// driver. Recognized adapters with firmware come up automatically.
+func warnUnsupportedAdapters() {
+	un := iface.UnsupportedAdapters()
+	if len(un) == 0 {
+		return
+	}
+	fmt.Println()
+	fmt.Println("!! Wireless adapter(s) detected without driver support:")
+	for _, a := range un {
+		fmt.Printf("   - %s [%s]\n", a.Name, a.USBID)
+	}
+	fmt.Println("   These need a driver/firmware installed before they can be used as radios.")
+}
 
 const (
 	installDataDir  = "/var/lib/tala-wte"
@@ -52,7 +69,7 @@ func maybeRunSubcommand() {
 
 // clientDepPackages are the apt packages a Tala WTE client needs to join a
 // network and generate traffic.
-var clientDepPackages = []string{"wpa_supplicant", "iw", "isc-dhcp-client", "iputils-ping", "ca-certificates", "wireless-regdb"}
+var clientDepPackages = []string{"wpasupplicant", "iw", "isc-dhcp-client", "iputils-ping", "ca-certificates", "wireless-regdb"}
 
 // runInstallClient installs Tala WTE in client mode: it joins another Tala WTE AP
 // from an imported config and generates traffic. Same binary + data dir + unit as
@@ -85,6 +102,7 @@ traffic. Open the web UI to import a config and control traffic. Idempotent.`)
 	deps.InstallPackages(clientDepPackages)
 	fmt.Println("-> recovering any wedged USB Wi-Fi adapters")
 	deps.HealWedgedWifiNow()
+	warnUnsupportedAdapters()
 
 	if err := os.MkdirAll(installDataDir, 0o755); err != nil {
 		fmt.Fprintf(os.Stderr, "mkdir %s: %v\n", installDataDir, err)
@@ -195,6 +213,7 @@ After install, open the web UI to create your admin account in the browser.`)
 	// Heal a USB Wi-Fi adapter wedged on first probe so it surfaces without a reboot.
 	fmt.Println("-> recovering any wedged USB Wi-Fi adapters")
 	deps.HealWedgedWifiNow()
+	warnUnsupportedAdapters()
 
 	if err := os.MkdirAll(installDataDir, 0o755); err != nil {
 		fmt.Fprintf(os.Stderr, "mkdir %s: %v\n", installDataDir, err)

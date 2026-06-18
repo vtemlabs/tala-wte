@@ -75,8 +75,9 @@ func interfacesHandler() func(http.ResponseWriter, *http.Request) {
 			}
 		}
 		api.WriteJSON(w, map[string]any{
-			"interfaces": ifaces,
-			"in_use":     sim.InUseInterfaces(),
+			"interfaces":  ifaces,
+			"in_use":      sim.InUseInterfaces(),
+			"unsupported": iface.UnsupportedAdapters(),
 		})
 	}
 }

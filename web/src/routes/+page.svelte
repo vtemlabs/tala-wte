@@ -14,6 +14,7 @@
   let networkList = $state<Record<string, any>[]>([]);
   let interfaces = $state<WirelessInterface[]>([]);
   let inUse = $state<Record<string, string>>({});
+  let unsupported = $state<{ usb_id: string; name: string; reason: string }[]>([]);
   let loading = $state(true);
   let unsubscribe: (() => void) | null = null;
 
@@ -49,6 +50,7 @@
       networkList = nets;
       interfaces = sys.interfaces ?? [];
       inUse = sys.in_use ?? {};
+      unsupported = sys.unsupported ?? [];
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to load dashboard data');
     }
@@ -84,6 +86,16 @@
       >No wireless hardware detected. Networks will not broadcast over the air until a USB wireless
       adapter is plugged in.</span
     >
+  </div>
+{/if}
+
+{#if !loading && unsupported.length > 0}
+  <div class="error-toast hw-warn">
+    <span>
+      Wireless adapter(s) detected without driver support: {unsupported.map((a) => a.name).join(', ')}.
+      Find and install the driver/firmware for {unsupported.length > 1 ? 'these adapters' : 'this adapter'}
+      before {unsupported.length > 1 ? 'they' : 'it'} can be used as a radio.
+    </span>
   </div>
 {/if}
 

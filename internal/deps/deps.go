@@ -56,14 +56,23 @@ var criticalPackages = map[string]bool{
 // packages that don't exist on Ubuntu.
 func optionalFirmware(osr osInfo) []string {
 	if osr.isUbuntuLike() {
+		// Ubuntu ships one monolithic package covering every driver's firmware.
 		return []string{"linux-firmware"}
 	}
+	// Debian/Kali split firmware per vendor. Install the full wireless set so any
+	// adapter works with no manual step; installOptional skips any package with no
+	// install candidate on this release, so the list adapts per OS version.
 	return []string{
-		"firmware-mediatek",     // MediaTek MT7921/MT7961/MT7925 (ALFA AWUS036AXML, AX-class USB)
-		"firmware-atheros",      // Atheros adapters (Debian <= bookworm)
-		"firmware-ath9k-htc",    // Atheros AR9271 (ALFA AWUS036NHA; Debian >= trixie)
-		"firmware-realtek",      // Realtek RTL88xx USB adapters
-		"firmware-misc-nonfree", // catch-all for other non-free driver firmware
+		"firmware-mediatek",        // MediaTek MT76xx/MT79xx (ALFA AWUS036AXML/ACM, AX-class USB)
+		"firmware-realtek",         // Realtek RTL8xxx USB adapters
+		"firmware-atheros",         // Atheros (Debian <= bookworm)
+		"firmware-ath9k-htc",       // Atheros AR9271 (ALFA AWUS036NHA; Debian >= trixie)
+		"firmware-iwlwifi",         // Intel wireless
+		"firmware-libertas",        // Marvell Libertas / SD8xxx
+		"firmware-brcm80211",       // Broadcom
+		"firmware-ti-connectivity", // TI WiLink
+		"firmware-zd1211",          // ZyDAS ZD1211
+		"firmware-misc-nonfree",    // catch-all for other non-free driver firmware
 	}
 }
 

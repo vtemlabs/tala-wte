@@ -127,6 +127,23 @@ for iface in /sys/bus/usb/devices/*:*; do
     WIFI_DEVS["$dev"]=1
 done
 
+# Also recover adapters whose driver probe FAILED outright (no interface driver
+# bound) -- e.g. the firmware was not present when the driver first probed at
+# boot, so it errored and never retried. Identify them by known Wi-Fi chip
+# vendor IDs; a device-level re-bind re-probes them with firmware now in place.
+# Without this, such an adapter stays dark until the user manually replugs it.
+WIFI_VENDORS=" 0e8d 148f 0bda 0cf3 168c 8087 0846 2357 2cf0 0b05 13b1 0411 7392 148f 0489 "
+for devdir in /sys/bus/usb/devices/*; do
+    [ -f "$devdir/idVendor" ] || continue
+    dev=$(basename "$devdir")
+    case "$dev" in *:*) continue ;; esac
+    vendor=$(cat "$devdir/idVendor" 2>/dev/null)
+    case "$WIFI_VENDORS" in *" $vendor "*) ;; *) continue ;; esac
+    bound=0
+    for iface in "$devdir":*; do [ -L "$iface/driver" ] && bound=1; done
+    [ "$bound" = 0 ] && WIFI_DEVS["$dev"]=1
+done
+
 # Use the +set modifier (not ${#arr[@]}) so an empty associative array does
 # not trip "unbound variable" under set -u when no USB Wi-Fi adapter is bound.
 [ -n "${WIFI_DEVS[*]+x}" ] || { echo "tala-wte-wifi-recover: no USB Wi-Fi adapters present" >&2; exit 0; }
