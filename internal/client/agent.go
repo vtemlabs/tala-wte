@@ -24,6 +24,7 @@ import (
 // handling, and the traffic generators. One per process.
 type Agent struct {
 	mu          sync.Mutex
+	connectMu   sync.Mutex // serializes Connect so overlapping connects (reconnect cycle + a manual/den connect) can't leave stray wpa_supplicant
 	cfg         Config
 	opts        TrafficOptions
 	status      Status
@@ -31,6 +32,7 @@ type Agent struct {
 	cycleCancel context.CancelFunc // stops the reconnect cycle
 	cycling     bool               // reconnect cycling active (survives Connect's status reset)
 	cycles      int                // completed reconnect cycles
+	logLines    []string           // ring buffer of timestamped activity for the client log window
 	wpaProc     *exec.Cmd
 	iface       string
 }
@@ -113,21 +115,49 @@ func (a *Agent) reconnectLoop(ctx context.Context, cfg Config, freq, jitter time
 func (a *Agent) Status() Status { return a.snapshot() }
 
 func (a *Agent) setEvent(format string, args ...any) {
+	msg := fmt.Sprintf(format, args...)
 	a.mu.Lock()
-	a.status.LastEvent = fmt.Sprintf(format, args...)
+	a.status.LastEvent = msg
+	a.appendLogLocked(msg)
 	a.mu.Unlock()
 }
 
 func (a *Agent) setErr(format string, args ...any) {
+	msg := fmt.Sprintf(format, args...)
 	a.mu.Lock()
-	a.status.LastError = fmt.Sprintf(format, args...)
+	a.status.LastError = msg
 	a.status.Errors++
+	a.appendLogLocked("error: " + msg)
 	a.mu.Unlock()
+}
+
+// clientLogCap bounds the in-memory client activity log.
+const clientLogCap = 600
+
+// appendLogLocked adds a timestamped line to the activity log. Caller holds a.mu.
+func (a *Agent) appendLogLocked(line string) {
+	a.logLines = append(a.logLines, time.Now().Format("15:04:05")+" "+line)
+	if len(a.logLines) > clientLogCap {
+		a.logLines = a.logLines[len(a.logLines)-clientLogCap:]
+	}
+}
+
+// Logs returns a copy of the buffered activity log for the client log window.
+func (a *Agent) Logs() []string {
+	a.mu.Lock()
+	defer a.mu.Unlock()
+	out := make([]string, len(a.logLines))
+	copy(out, a.logLines)
+	return out
 }
 
 // Connect joins the network described by cfg: it associates with wpa_supplicant,
 // pulls a DHCP lease, and gets past a captive portal if one is present.
 func (a *Agent) Connect(cfg Config) error {
+	// Serialize connects: a reconnect cycle and a manual/den connect must not race,
+	// or each would pkill then spawn its own wpa_supplicant and they would pile up.
+	a.connectMu.Lock()
+	defer a.connectMu.Unlock()
 	a.Stop() // tear down any prior session first
 
 	ifc, err := findWirelessInterface()
@@ -255,7 +285,23 @@ func (a *Agent) StartTraffic(opts TrafficOptions) error {
 	a.status.Generating = true
 	gw := a.status.Gateway
 	a.mu.Unlock()
-	a.setEvent("traffic generation started")
+	gens := []string{}
+	for _, g := range []struct {
+		on bool
+		n  string
+	}{{opts.Web, "web"}, {opts.DNS, "dns"}, {opts.Ping, "ping"}, {opts.Downloads, "downloads"}, {opts.Creds, "creds"}, {opts.Domain, "domain"}} {
+		if g.on {
+			gens = append(gens, g.n)
+		}
+	}
+	scope := []string{}
+	if opts.Local {
+		scope = append(scope, "local")
+	}
+	if opts.Internet {
+		scope = append(scope, "internet")
+	}
+	a.setEvent("traffic started: [%s] scope:[%s]", strings.Join(gens, ", "), strings.Join(scope, ", "))
 
 	if opts.Web {
 		go a.genWeb(ctx, opts, gw)

@@ -8,6 +8,7 @@
   import { onMount, onDestroy } from 'svelte';
   import { pb } from '$lib/api';
   import { toast } from '$lib/stores/toast';
+  import LogWindow from '$lib/components/LogWindow.svelte';
 
   type ClientStatus = {
     connected: boolean;
@@ -75,11 +76,21 @@
     return pb.authStore.token ? { Authorization: pb.authStore.token, ...extra } : extra;
   }
 
+  let logOpen = $state(false);
+  let logLines = $state<string[]>([]);
+
   async function refresh() {
     try {
       status = await fetch('/api/wte/client/status', { headers: authHeaders() }).then((r) => r.json());
     } catch {
       /* ignore transient poll errors */
+    }
+    if (logOpen) {
+      try {
+        logLines = (await fetch('/api/wte/client/logs', { headers: authHeaders() }).then((r) => r.json())).lines ?? [];
+      } catch {
+        /* ignore */
+      }
     }
   }
 
@@ -285,6 +296,7 @@
     <h1 class="page-title">Traffic Console</h1>
     <p class="page-subtitle">Join a network and generate realistic traffic</p>
   </div>
+  <button class="btn" onclick={() => (logOpen = true)}>Live Log</button>
 </div>
 
 <div class="panel section">
@@ -536,6 +548,13 @@
     {#if status?.last_error}<p class="event err">last error: {status.last_error}</p>{/if}
   </div>
 </div>
+
+<LogWindow
+  bind:open={logOpen}
+  title="Client Log"
+  lines={logLines}
+  streaming={!!status?.connected || !!status?.generating}
+/>
 
 <style>
   .saved-head {

@@ -173,6 +173,13 @@ func clientStatusHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+// clientLogsHandler returns the client's full activity log for the live log window.
+func clientLogsHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		api.WriteJSON(w, map[string]any{"lines": client.Get().Logs()})
+	}
+}
+
 // clientReconnectHandler toggles reconnect cycling (handshake capture): the client
 // periodically deauths and reassociates so students can capture WPA handshakes.
 func clientReconnectHandler() func(http.ResponseWriter, *http.Request) {
