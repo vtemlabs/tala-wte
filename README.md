@@ -236,13 +236,13 @@ Once the account exists, the setup screen becomes a normal sign-in.
 
 Tala WTE is free for personal and non-profit use.
 
-It may not be used for commercial or for-profit purposes, including paid training, paid Capture-the-Flag projects, or use by, for, or on behalf of any for-profit school, institution, company, or organization, and it may not be rebranded or claimed as another party's work, without prior written authorization and a license from VTEM Labs. Standing up a for-profit wireless penetration testing course or similar offering and using this platform, or any variant or copy of it, as the infrastructure or training material is expressly prohibited without a paid license.
+It may not be used for commercial or for-profit purposes, including paid training, paid Capture-the-Flag projects, or use by, for, or on behalf of any for-profit school, institution, company, or organization, or any government or government agency, and it may not be rebranded or claimed as another party's work, without prior written authorization and a license from VTEM Labs. Standing up a for-profit wireless penetration testing course or similar offering and using this platform, or any variant or copy of it, as the infrastructure or training material is expressly prohibited without a paid license.
 
 See [LICENSE](LICENSE) for the full terms.
 
 ### Commercial licensing and demos
 
-**Tala WTE** is free for personal and non-profit use. Commercial and for-profit use of Tala WTE, including paid training, paid CTF, and use by, for, or on behalf of any for-profit school, institution, company, or organization, requires written authorization and a license from VTEM Labs: [vtemlabs.com/contact](https://vtemlabs.com/contact).
+**Tala WTE** is free for personal and non-profit use. Commercial and for-profit use of Tala WTE, including paid training, paid CTF, and use by, for, or on behalf of any for-profit school, institution, company, or organization, government, or government agency, requires written authorization and a license from VTEM Labs: [vtemlabs.com/contact](https://vtemlabs.com/contact).
 
 **TALA**, the commercial wireless penetration testing platform, is delivered through the VTEM Labs ARROW program. To evaluate it, request a demonstration via the [ARROW Platform](https://arrow.vtemlabs.com/). Government, DoW, and LEO inquiries about the tactical variant are welcome.
 

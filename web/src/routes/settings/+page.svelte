@@ -291,8 +291,9 @@
         </p>
         <p class="about-line dim">
           &copy; 2026 VTEM Labs. Free for personal and non-profit use. Commercial and for-profit
-          use, including paid training, paid CTF, and use by any for-profit school, institution, or
-          company, requires written authorization and a license from VTEM Labs. Redistribution,
+          use, including paid training, paid CTF, and use by any for-profit school, institution,
+          company, government, or government agency, requires written authorization and a license
+          from VTEM Labs. Redistribution,
           rebranding, or claiming this platform (or any variant or copy) as your own is prohibited.
         </p>
         <button class="btn btn-sm license-btn" onclick={() => (showLicense = true)}
