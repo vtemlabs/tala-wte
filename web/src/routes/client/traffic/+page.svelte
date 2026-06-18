@@ -43,18 +43,35 @@
   let local = $state(true);
   let internet = $state(true);
 
-  // Handshake-capture reconnect cycling: frequency + jitter, each value + unit.
+  // Handshake-capture reconnect cycling. A single dropdown each for frequency and
+  // jitter (preset values plus a Custom option) keeps the controls compact.
+  const FREQ_PRESETS = [
+    { v: '30', label: 'Every 30 seconds' },
+    { v: '60', label: 'Every minute' },
+    { v: '120', label: 'Every 2 minutes' },
+    { v: '300', label: 'Every 5 minutes' },
+    { v: '900', label: 'Every 15 minutes' },
+    { v: '1800', label: 'Every 30 minutes' },
+    { v: '3600', label: 'Every hour' },
+    { v: 'custom', label: 'Custom...' }
+  ];
+  const JITTER_PRESETS = [
+    { v: '0', label: 'None' },
+    { v: '5', label: 'Up to 5 seconds' },
+    { v: '15', label: 'Up to 15 seconds' },
+    { v: '30', label: 'Up to 30 seconds' },
+    { v: '60', label: 'Up to 1 minute' },
+    { v: 'custom', label: 'Custom...' }
+  ];
+  let freqSel = $state('120');
+  let jitterSel = $state('15');
   let freqValue = $state(2);
   let freqUnit = $state('m');
   let jitterValue = $state(15);
   let jitterUnit = $state('s');
   const unitSec = (u: string): number => (u === 'h' ? 3600 : u === 'm' ? 60 : 1);
-  function preset(fv: number, fu: string, jv: number, ju: string) {
-    freqValue = fv;
-    freqUnit = fu;
-    jitterValue = jv;
-    jitterUnit = ju;
-  }
+  const freqSeconds = (): number => (freqSel === 'custom' ? freqValue * unitSec(freqUnit) : Number(freqSel));
+  const jitterSeconds = (): number => (jitterSel === 'custom' ? jitterValue * unitSec(jitterUnit) : Number(jitterSel));
 
   // Operator-supplied target lists (one entry per line) and login credentials.
   let urlsText = $state('');
@@ -244,8 +261,8 @@
         headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({
           enabled: true,
-          frequency_seconds: freqValue * unitSec(freqUnit),
-          jitter_seconds: jitterValue * unitSec(jitterUnit)
+          frequency_seconds: freqSeconds(),
+          jitter_seconds: jitterSeconds()
         })
       });
       if (!r.ok) throw new Error((await r.json())?.error ?? 'failed');
@@ -458,35 +475,36 @@
     <div class="cycle-grid">
       <div class="form-group">
         <label class="field-label" for="freq">Frequency</label>
-        <div class="dur-row">
-          <input class="input dur-num" id="freq" type="number" min="1" bind:value={freqValue} />
-          <select class="input" bind:value={freqUnit}>
-            <option value="s">seconds</option>
-            <option value="m">minutes</option>
-            <option value="h">hours</option>
-          </select>
-        </div>
+        <select class="input" id="freq" bind:value={freqSel}>
+          {#each FREQ_PRESETS as p}<option value={p.v}>{p.label}</option>{/each}
+        </select>
+        {#if freqSel === 'custom'}
+          <div class="dur-row">
+            <input class="input dur-num" type="number" min="1" bind:value={freqValue} />
+            <select class="input" bind:value={freqUnit}>
+              <option value="s">seconds</option>
+              <option value="m">minutes</option>
+              <option value="h">hours</option>
+            </select>
+          </div>
+        {/if}
       </div>
       <div class="form-group">
-        <label class="field-label" for="jit">Jitter (random extra)</label>
-        <div class="dur-row">
-          <input class="input dur-num" id="jit" type="number" min="0" bind:value={jitterValue} />
-          <select class="input" bind:value={jitterUnit}>
-            <option value="s">seconds</option>
-            <option value="m">minutes</option>
-            <option value="h">hours</option>
-          </select>
-        </div>
+        <label class="field-label" for="jit">Jitter</label>
+        <select class="input" id="jit" bind:value={jitterSel}>
+          {#each JITTER_PRESETS as p}<option value={p.v}>{p.label}</option>{/each}
+        </select>
+        {#if jitterSel === 'custom'}
+          <div class="dur-row">
+            <input class="input dur-num" type="number" min="0" bind:value={jitterValue} />
+            <select class="input" bind:value={jitterUnit}>
+              <option value="s">seconds</option>
+              <option value="m">minutes</option>
+              <option value="h">hours</option>
+            </select>
+          </div>
+        {/if}
       </div>
-    </div>
-    <div class="presets">
-      <span class="field-desc" style="margin:0">Presets:</span>
-      <button class="btn btn-sm" onclick={() => preset(30, 's', 10, 's')}>30s</button>
-      <button class="btn btn-sm" onclick={() => preset(1, 'm', 15, 's')}>1m</button>
-      <button class="btn btn-sm" onclick={() => preset(2, 'm', 15, 's')}>2m</button>
-      <button class="btn btn-sm" onclick={() => preset(5, 'm', 30, 's')}>5m</button>
-      <button class="btn btn-sm" onclick={() => preset(15, 'm', 1, 'm')}>15m</button>
-      <button class="btn btn-sm" onclick={() => preset(1, 'h', 5, 'm')}>1h</button>
     </div>
     <div class="btn-row">
       <button class="btn btn-primary" onclick={applyCycle} disabled={!status?.connected || busy === 'cycle'}>
@@ -627,12 +645,6 @@
     width: 90px;
     flex-shrink: 0;
   }
-  .presets {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    flex-wrap: wrap;
-  }
   .mono {
     font-family: var(--font-mono);
     color: var(--text-primary);
@@ -645,9 +657,6 @@
     margin: var(--space-md) 0 0;
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
-  }
-  .event.err {
-    color: var(--color-yellow);
   }
   .grid3 {
     display: grid;
@@ -706,10 +715,6 @@
   .dz-sub {
     font-size: var(--font-size-xs);
     color: var(--text-dim);
-  }
-  .head-actions {
-    display: flex;
-    gap: var(--space-sm);
   }
   .sub-label {
     font-size: var(--font-size-xs);
