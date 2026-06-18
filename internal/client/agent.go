@@ -428,6 +428,7 @@ var browseSites = []string{
 	"http://example.com/", "https://www.wikipedia.org/", "https://www.bing.com/",
 	"https://www.cloudflare.com/", "https://news.ycombinator.com/", "https://www.debian.org/",
 }
+
 var lookupDomains = []string{
 	"example.com", "wikipedia.org", "cloudflare.com", "github.com", "debian.org",
 	"ubuntu.com", "google.com", "mozilla.org",

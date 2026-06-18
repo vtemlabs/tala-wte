@@ -14,6 +14,7 @@ package main
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/subtle"
 	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
@@ -79,7 +80,8 @@ func wrapAgent(app *pocketbase.PocketBase, h func(http.ResponseWriter, *http.Req
 			return nil
 		}
 		key := e.Request.Header.Get("X-Agent-Key")
-		if key != "" && key == storedAgentKey(app) {
+		stored := storedAgentKey(app)
+		if key != "" && stored != "" && subtle.ConstantTimeCompare([]byte(key), []byte(stored)) == 1 {
 			h(e.Response, e.Request)
 			return nil
 		}
