@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 package deps
 
@@ -166,7 +167,7 @@ func InstallPackages(pkgs []string) error {
 		log.Printf("[deps] %s is not apt-family; install these manually: %v", osr.ID, pkgs)
 		return nil
 	}
-	if _, err := exec.LookPath("apt-get"); err != nil {
+	if aptPath, _ := exec.LookPath("apt-get"); aptPath == "" {
 		log.Printf("[deps] apt-get not found; install these manually: %v", pkgs)
 		return nil
 	}
@@ -228,7 +229,7 @@ func VerifyAndInstall() error {
 	if osr.ID != "" && !osr.isAptFamily() {
 		log.Printf("[deps] %s is not an apt-family distro; skipping automatic package installation. Install the required tools with your package manager.", osr.ID)
 		apt = false
-	} else if _, err := exec.LookPath("apt-get"); err != nil {
+	} else if aptPath, _ := exec.LookPath("apt-get"); aptPath == "" {
 		log.Println("[deps] apt-get not found; skipping automatic package installation. Assuming packages are managed manually.")
 		apt = false
 	}
@@ -405,7 +406,8 @@ func runSystemCmd(name string, args ...string) error {
 	cmd.Stdout = os.Stdout
 	cmd.Stderr = os.Stderr
 	// Noninteractive: suppress debconf, apt-listchanges, and needrestart prompts.
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(
+		os.Environ(),
 		"DEBIAN_FRONTEND=noninteractive",
 		"APT_LISTCHANGES_FRONTEND=none",
 		"NEEDRESTART_MODE=a",

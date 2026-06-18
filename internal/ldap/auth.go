@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 package ldap
 
@@ -22,5 +23,8 @@ func Authenticate(username, password string) bool {
 		return false
 	}
 	dn := "uid=" + username + ",ou=Users," + defaultBaseDN
-	return execCommand("ldapwhoami", "-x", "-H", ldapHost, "-D", dn, "-w", password).Run() == nil
+	_, err := withPasswordFile(password, func(pw string) ([]byte, error) {
+		return execCommand("ldapwhoami", "-x", "-H", ldapHost, "-D", dn, "-y", pw).CombinedOutput()
+	})
+	return err == nil
 }

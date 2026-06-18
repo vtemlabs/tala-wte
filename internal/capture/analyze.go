@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 // Read-only post-capture analysis of a saved pcap via tshark/capinfos; every
 // sub-analysis is best-effort and yields an empty section rather than failing.

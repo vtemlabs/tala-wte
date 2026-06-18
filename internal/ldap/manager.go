@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 // Package ldap manages the embedded OpenLDAP (slapd) instance.
 package ldap
@@ -241,39 +242,53 @@ func generateAdminPassword(length int) (string, error) {
 	return string(b), nil
 }
 
+// withPasswordFile writes secret to a private (0600) temp file and runs fn with
+// its path, then removes the file. The ldap tools read it via "-y", keeping the
+// password off the process argv (which is world-readable through /proc).
+func withPasswordFile(secret string, fn func(path string) ([]byte, error)) ([]byte, error) {
+	f, err := os.CreateTemp("", "tala-ldap-")
+	if err != nil {
+		return nil, err
+	}
+	defer func() { _ = os.Remove(f.Name()) }()
+	if _, err := f.WriteString(secret); err != nil {
+		f.Close()
+		return nil, err
+	}
+	if err := f.Close(); err != nil {
+		return nil, err
+	}
+	return fn(f.Name())
+}
+
 func ldapadd(ldif string) error {
-	cmd := exec.Command("ldapadd",
-		"-x", "-H", ldapHost,
-		"-D", defaultBindDN,
-		"-w", AdminPassword(),
-	)
-	cmd.Stdin = strings.NewReader(ldif)
-	if out, err := cmd.CombinedOutput(); err != nil {
+	out, err := withPasswordFile(AdminPassword(), func(pw string) ([]byte, error) {
+		cmd := exec.Command("ldapadd", "-x", "-H", ldapHost, "-D", defaultBindDN, "-y", pw)
+		cmd.Stdin = strings.NewReader(ldif)
+		return cmd.CombinedOutput()
+	})
+	if err != nil {
 		return fmt.Errorf("ldapadd: %s: %w", out, err)
 	}
 	return nil
 }
 
 func ldapmodify(ldif string) error {
-	cmd := exec.Command("ldapmodify",
-		"-x", "-H", ldapHost,
-		"-D", defaultBindDN,
-		"-w", AdminPassword(),
-	)
-	cmd.Stdin = strings.NewReader(ldif)
-	if out, err := cmd.CombinedOutput(); err != nil {
+	out, err := withPasswordFile(AdminPassword(), func(pw string) ([]byte, error) {
+		cmd := exec.Command("ldapmodify", "-x", "-H", ldapHost, "-D", defaultBindDN, "-y", pw)
+		cmd.Stdin = strings.NewReader(ldif)
+		return cmd.CombinedOutput()
+	})
+	if err != nil {
 		return fmt.Errorf("ldapmodify: %s: %w", out, err)
 	}
 	return nil
 }
 
 func ldapdelete(dn string) error {
-	out, err := exec.Command("ldapdelete",
-		"-x", "-H", ldapHost,
-		"-D", defaultBindDN,
-		"-w", AdminPassword(),
-		dn,
-	).CombinedOutput()
+	out, err := withPasswordFile(AdminPassword(), func(pw string) ([]byte, error) {
+		return exec.Command("ldapdelete", "-x", "-H", ldapHost, "-D", defaultBindDN, "-y", pw, dn).CombinedOutput()
+	})
 	if err != nil {
 		return fmt.Errorf("ldapdelete %s: %s: %w", dn, out, err)
 	}
@@ -281,14 +296,9 @@ func ldapdelete(dn string) error {
 }
 
 func ldapsearch(filter, base string) ([]map[string]string, error) {
-	out, err := exec.Command("ldapsearch",
-		"-x", "-LLL",
-		"-H", ldapHost,
-		"-D", defaultBindDN,
-		"-w", AdminPassword(),
-		"-b", base,
-		filter,
-	).Output()
+	out, err := withPasswordFile(AdminPassword(), func(pw string) ([]byte, error) {
+		return exec.Command("ldapsearch", "-x", "-LLL", "-H", ldapHost, "-D", defaultBindDN, "-y", pw, "-b", base, filter).Output()
+	})
 	if err != nil {
 		return nil, fmt.Errorf("ldapsearch: %w", err)
 	}

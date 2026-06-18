@@ -19,20 +19,50 @@
 
   // Deploy profiles bundle the full traffic config (and optional reconnect cycling)
   // the leader pushes to a member, the same settings you'd set on a client by hand.
-  const PROFILES: Record<string, { label: string; traffic: Record<string, boolean>; reconnect: any }> = {
+  const PROFILES: Record<
+    string,
+    { label: string; traffic: Record<string, boolean>; reconnect: any }
+  > = {
     standard: {
       label: 'Standard traffic',
-      traffic: { web: true, dns: true, ping: true, downloads: false, creds: false, domain: false, local: true, internet: true },
+      traffic: {
+        web: true,
+        dns: true,
+        ping: true,
+        downloads: false,
+        creds: false,
+        domain: false,
+        local: true,
+        internet: true
+      },
       reconnect: null
     },
     full: {
       label: 'Full traffic',
-      traffic: { web: true, dns: true, ping: true, downloads: true, creds: true, domain: true, local: true, internet: true },
+      traffic: {
+        web: true,
+        dns: true,
+        ping: true,
+        downloads: true,
+        creds: true,
+        domain: true,
+        local: true,
+        internet: true
+      },
       reconnect: null
     },
     handshake: {
       label: 'Handshake capture',
-      traffic: { web: true, dns: true, ping: true, downloads: false, creds: false, domain: false, local: true, internet: true },
+      traffic: {
+        web: true,
+        dns: true,
+        ping: true,
+        downloads: false,
+        creds: false,
+        domain: false,
+        local: true,
+        internet: true
+      },
       reconnect: { enabled: true, frequency_seconds: 120, jitter_seconds: 15 }
     }
   };
@@ -59,7 +89,9 @@
   async function refreshStatuses() {
     for (const m of members) {
       try {
-        statuses[m.id] = await fetch(`/api/wte/den/${m.id}/status`, { headers: authHeaders() }).then((r) => r.json());
+        statuses[m.id] = await fetch(`/api/wte/den/${m.id}/status`, {
+          headers: authHeaders()
+        }).then((r) => r.json());
       } catch {
         statuses[m.id] = { reachable: false };
       }
@@ -157,7 +189,10 @@
   // Update the whole pack: each member pulls and applies the latest release, then
   // restarts, so the leader and its members stay on matching versions.
   async function updateAll() {
-    if (!confirm('Push the latest update to all den members? Each downloads, applies, and restarts.')) return;
+    if (
+      !confirm('Push the latest update to all den members? Each downloads, applies, and restarts.')
+    )
+      return;
     updating = true;
     try {
       const r = await fetch('/api/wte/den/update', { method: 'POST', headers: authHeaders() });
@@ -166,7 +201,9 @@
       const results = j.results ?? [];
       const ok = results.filter((x: any) => x.ok).length;
       for (const x of results) if (!x.ok) toast.err(`${x.name}: ${x.detail}`);
-      toast.success(`Update sent to ${ok}/${results.length} member${results.length === 1 ? '' : 's'}`);
+      toast.success(
+        `Update sent to ${ok}/${results.length} member${results.length === 1 ? '' : 's'}`
+      );
       refreshStatuses();
     } catch (e: any) {
       toast.err(e?.message ?? 'Den update failed');
@@ -214,7 +251,11 @@
                 <span class="member-name">{m.name}</span>
                 <span class="mono dim">{m.address}</span>
               </div>
-              <button class="action-btn del-btn" onclick={() => remove(m)} aria-label="Remove member">Del</button>
+              <button
+                class="action-btn del-btn"
+                onclick={() => remove(m)}
+                aria-label="Remove member">Del</button
+              >
             </div>
             <div class="member-stat">
               {#if !st}
@@ -233,10 +274,17 @@
                 {#each networkList as n}<option value={n.id}>{n.ssid}</option>{/each}
               </select>
               <select class="input" bind:value={selectedProfile[m.id]}>
-                {#each Object.entries(PROFILES) as [key, p]}<option value={key}>{p.label}</option>{/each}
+                {#each Object.entries(PROFILES) as [key, p]}<option value={key}>{p.label}</option
+                  >{/each}
               </select>
-              <button class="action-btn btn-success" onclick={() => deploy(m)} disabled={busy === m.id}>Deploy</button>
-              <button class="action-btn btn-danger" onclick={() => stop(m)} disabled={busy === m.id}>Stop</button>
+              <button
+                class="action-btn btn-success"
+                onclick={() => deploy(m)}
+                disabled={busy === m.id}>Deploy</button
+              >
+              <button class="action-btn btn-danger" onclick={() => stop(m)} disabled={busy === m.id}
+                >Stop</button
+              >
             </div>
           </div>
         {/each}
@@ -253,7 +301,12 @@
       </div>
       <div class="form-group">
         <label class="field-label" for="maddr">Address</label>
-        <input class="input" id="maddr" bind:value={address} placeholder="10.0.0.50 or client-host" />
+        <input
+          class="input"
+          id="maddr"
+          bind:value={address}
+          placeholder="10.0.0.50 or client-host"
+        />
         <span class="field-desc">Host or host:port; https and :8443 are assumed if omitted.</span>
       </div>
       <div class="form-group">

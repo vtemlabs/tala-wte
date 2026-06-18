@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 package main
 
@@ -166,6 +167,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.TextField{Name: "name", Required: true},
 				&core.TextField{Name: "address", Required: true},
 				&core.TextField{Name: "agent_key", Required: true},
+				&core.TextField{Name: "cert_fingerprint"},
 				&core.TextField{Name: "network_id"},
 				&core.AutodateField{Name: "created", OnCreate: true},
 			},
@@ -207,6 +209,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 	// migrate databases created by earlier versions.
 	reconcileNetworkProtocols(app)
 	reconcileCollectionRules(app)
+	reconcileDenMemberSchema(app)
 	removeDefaultUsersCollection(app)
 	reconcilePortalFields(app)
 	reconcileNetworkPortalAuth(app)
@@ -432,7 +435,7 @@ func seedPortalTemplates(app *pocketbase.PocketBase) {
 
 // reconcileCollectionRules locks the managed collections to superusers only (nil rules); PocketBase treats "" as PUBLIC.
 func reconcileCollectionRules(app *pocketbase.PocketBase) {
-	managed := []string{"portals", "networks", "settings", "certificates", "captures", "clients", "radius_config", "portal_submissions"}
+	managed := []string{"portals", "networks", "settings", "certificates", "captures", "clients", "radius_config", "portal_submissions", "den_members", "client_configs"}
 	for _, name := range managed {
 		col, err := app.FindCollectionByNameOrId(name)
 		if err != nil || col == nil {
@@ -452,6 +455,24 @@ func reconcileCollectionRules(app *pocketbase.PocketBase) {
 		} else {
 			log.Printf("[bootstrap] locked collection %s to superusers only", name)
 		}
+	}
+}
+
+// reconcileDenMemberSchema backfills the cert_fingerprint field on a den_members
+// collection created before certificate pinning existed. New installs get it from
+// the collection definition; this upgrades existing ones so the leader can pin
+// each member's self-signed certificate on first contact.
+func reconcileDenMemberSchema(app *pocketbase.PocketBase) {
+	col, err := app.FindCollectionByNameOrId("den_members")
+	if err != nil || col == nil {
+		return
+	}
+	if col.Fields.GetByName("cert_fingerprint") != nil {
+		return
+	}
+	col.Fields.Add(&core.TextField{Name: "cert_fingerprint"})
+	if err := app.Save(col); err != nil {
+		log.Printf("[bootstrap] failed to add cert_fingerprint to den_members: %v", err)
 	}
 }
 

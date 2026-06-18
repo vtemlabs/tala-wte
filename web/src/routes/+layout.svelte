@@ -1,8 +1,9 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import '../app.css';
@@ -195,64 +196,65 @@
             title="Dashboard">{@render ic('dashboard')}<span>Dashboard</span></a
           >
           <div class="nav-group-label">Networks</div>
-        <a
-          href="/networks"
-          class="nav-item"
-          class:active={isActive('/networks')}
-          onclick={navClick}
-          title="Networks">{@render ic('networks')}<span>Networks</span></a
-        >
-        <a
-          href="/portals"
-          class="nav-item"
-          class:active={isActive('/portals') && !page.url.pathname.startsWith('/portals/captured')}
-          onclick={navClick}
-          title="Captive Portals">{@render ic('portal')}<span>Captive Portals</span></a
-        >
-        <a
-          href="/den"
-          class="nav-item"
-          class:active={isActive('/den')}
-          onclick={navClick}
-          title="Den">{@render ic('den')}<span>Den</span></a
-        >
-        <div class="nav-group-label">Monitoring</div>
-        <a
-          href="/captures"
-          class="nav-item"
-          class:active={isActive('/captures')}
-          onclick={navClick}
-          title="Captures">{@render ic('captures')}<span>Captures</span></a
-        >
-        <a
-          href="/portals/captured"
-          class="nav-item"
-          class:active={isActive('/portals/captured')}
-          onclick={navClick}
-          title="Captured Data">{@render ic('data')}<span>Captured Data</span></a
-        >
-        <div class="nav-group-label">Enterprise</div>
-        <a
-          href="/ldap"
-          class="nav-item"
-          class:active={isActive('/ldap')}
-          onclick={navClick}
-          title="LDAP Directory">{@render ic('ldap')}<span>LDAP Directory</span></a
-        >
-        <a
-          href="/radius"
-          class="nav-item"
-          class:active={isActive('/radius')}
-          onclick={navClick}
-          title="RADIUS">{@render ic('radius')}<span>RADIUS</span></a
-        >
-        <a
-          href="/certificates"
-          class="nav-item"
-          class:active={isActive('/certificates')}
-          onclick={navClick}
-          title="Certificates">{@render ic('cert')}<span>Certificates</span></a
-        >
+          <a
+            href="/networks"
+            class="nav-item"
+            class:active={isActive('/networks')}
+            onclick={navClick}
+            title="Networks">{@render ic('networks')}<span>Networks</span></a
+          >
+          <a
+            href="/portals"
+            class="nav-item"
+            class:active={isActive('/portals') &&
+              !page.url.pathname.startsWith('/portals/captured')}
+            onclick={navClick}
+            title="Captive Portals">{@render ic('portal')}<span>Captive Portals</span></a
+          >
+          <a
+            href="/den"
+            class="nav-item"
+            class:active={isActive('/den')}
+            onclick={navClick}
+            title="Den">{@render ic('den')}<span>Den</span></a
+          >
+          <div class="nav-group-label">Monitoring</div>
+          <a
+            href="/captures"
+            class="nav-item"
+            class:active={isActive('/captures')}
+            onclick={navClick}
+            title="Captures">{@render ic('captures')}<span>Captures</span></a
+          >
+          <a
+            href="/portals/captured"
+            class="nav-item"
+            class:active={isActive('/portals/captured')}
+            onclick={navClick}
+            title="Captured Data">{@render ic('data')}<span>Captured Data</span></a
+          >
+          <div class="nav-group-label">Enterprise</div>
+          <a
+            href="/ldap"
+            class="nav-item"
+            class:active={isActive('/ldap')}
+            onclick={navClick}
+            title="LDAP Directory">{@render ic('ldap')}<span>LDAP Directory</span></a
+          >
+          <a
+            href="/radius"
+            class="nav-item"
+            class:active={isActive('/radius')}
+            onclick={navClick}
+            title="RADIUS">{@render ic('radius')}<span>RADIUS</span></a
+          >
+          <a
+            href="/certificates"
+            class="nav-item"
+            class:active={isActive('/certificates')}
+            onclick={navClick}
+            title="Certificates">{@render ic('cert')}<span>Certificates</span></a
+          >
         {/if}
         <div class="nav-divider"></div>
         <a

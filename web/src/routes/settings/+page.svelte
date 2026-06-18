@@ -2,7 +2,8 @@
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
   Free for personal and non-profit use. Commercial, for-profit, and government
-  use require a license from VTEM Labs. See the LICENSE file.
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
@@ -77,8 +78,11 @@
       if (st?.mode) mode = st.mode;
       if (mode === 'client') {
         agentKey =
-          (await fetch('/api/wte/client/agent-key', { headers: { Authorization: pb.authStore.token } }).then((r) => r.json()))
-            ?.key ?? '';
+          (
+            await fetch('/api/wte/client/agent-key', {
+              headers: { Authorization: pb.authStore.token }
+            }).then((r) => r.json())
+          )?.key ?? '';
       }
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to load settings');
@@ -183,13 +187,23 @@
   }
 
   async function regenKey() {
-    if (!confirm('Regenerate the agent key? Any den leader using the old key loses access until you re-add this client.')) {
+    if (
+      !confirm(
+        'Regenerate the agent key? Any den leader using the old key loses access until you re-add this client.'
+      )
+    ) {
       return;
     }
     try {
       agentKey =
-        (await (await fetch('/api/wte/client/agent-key/regenerate', { method: 'POST', headers: { Authorization: pb.authStore.token } })).json())
-          ?.key ?? agentKey;
+        (
+          await (
+            await fetch('/api/wte/client/agent-key/regenerate', {
+              method: 'POST',
+              headers: { Authorization: pb.authStore.token }
+            })
+          ).json()
+        )?.key ?? agentKey;
       toast.success('Agent key regenerated');
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to regenerate key');
@@ -280,7 +294,9 @@
       <section class="panel">
         <div class="panel-head"><h2 class="panel-title">Den Agent Key</h2></div>
         <div class="panel-body">
-          <span class="field-desc">Add this client to a den leader using its address and this key.</span>
+          <span class="field-desc"
+            >Add this client to a den leader using its address and this key.</span
+          >
           <div class="key-val">{agentKey || 'generating...'}</div>
           <div class="key-actions">
             <button class="btn btn-sm btn-secondary" onclick={copyKey}>Copy key</button>
@@ -343,8 +359,8 @@
           &copy; 2026 VTEM Labs. Free for personal and non-profit use. Commercial and for-profit
           use, including paid training, paid CTF, and use by any for-profit school, institution,
           company, government, or government agency, requires written authorization and a license
-          from VTEM Labs. Redistribution,
-          rebranding, or claiming this platform (or any variant or copy) as your own is prohibited.
+          from VTEM Labs. Redistribution, rebranding, or claiming this platform (or any variant or
+          copy) as your own is prohibited.
         </p>
         <button class="btn btn-sm license-btn" onclick={() => (showLicense = true)}
           >View Full License</button

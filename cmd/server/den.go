@@ -14,18 +14,21 @@ package main
 import (
 	"bytes"
 	"crypto/rand"
+	"crypto/sha256"
 	"crypto/subtle"
 	"crypto/tls"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 	"time"
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
+
 	"github.com/vtemlabs/tala-wte/internal/api"
 	"github.com/vtemlabs/tala-wte/internal/client"
 )
@@ -35,7 +38,9 @@ import (
 // newAgentKey returns a random control token a den leader uses to drive a member.
 func newAgentKey() string {
 	b := make([]byte, 24)
-	_, _ = rand.Read(b)
+	if _, err := rand.Read(b); err != nil {
+		log.Fatalf("[den] agent key generation failed (no system entropy): %v", err)
+	}
 	return hex.EncodeToString(b)
 }
 
@@ -92,10 +97,35 @@ func wrapAgent(app *pocketbase.PocketBase, h func(http.ResponseWriter, *http.Req
 
 // ---- leader side: reach members ----
 
-// denHTTPClient talks to member clients over their self-signed HTTPS.
-var denHTTPClient = &http.Client{
-	Timeout:   15 * time.Second,
-	Transport: &http.Transport{TLSClientConfig: &tls.Config{InsecureSkipVerify: true}},
+// memberHTTPClient talks to a den member over its self-signed HTTPS, pinning the
+// member's leaf certificate to the expected SHA-256 fingerprint instead of a CA
+// chain. An empty fp means trust-on-first-use: the connection is allowed and the
+// caller records the fingerprint it observed, so a later MITM that swaps the
+// certificate is rejected.
+func memberHTTPClient(fp string) *http.Client {
+	return &http.Client{
+		Timeout: 15 * time.Second,
+		Transport: &http.Transport{
+			// Self-signed members have no CA chain, so default verification is
+			// off and we pin the leaf fingerprint in VerifyConnection instead.
+			TLSClientConfig: &tls.Config{
+				InsecureSkipVerify: true,
+				VerifyConnection: func(cs tls.ConnectionState) error {
+					if len(cs.PeerCertificates) == 0 {
+						return fmt.Errorf("member presented no certificate")
+					}
+					if fp == "" {
+						return nil // trust on first use; caller persists the observed fingerprint
+					}
+					sum := sha256.Sum256(cs.PeerCertificates[0].Raw)
+					if subtle.ConstantTimeCompare([]byte(hex.EncodeToString(sum[:])), []byte(fp)) != 1 {
+						return fmt.Errorf("member certificate fingerprint mismatch (possible MITM); remove and re-add the member to re-pin")
+					}
+					return nil
+				},
+			},
+		},
+	}
 }
 
 // memberBaseURL normalizes a stored address into an https base URL, defaulting the
@@ -111,7 +141,7 @@ func memberBaseURL(addr string) string {
 	return "https://" + addr
 }
 
-func memberRequest(method, base, path, key string, body any) (*http.Response, error) {
+func memberRequest(method, base, path, key, fp string, body any) (*http.Response, error) {
 	var rdr io.Reader
 	if body != nil {
 		b, _ := json.Marshal(body)
@@ -125,7 +155,25 @@ func memberRequest(method, base, path, key string, body any) (*http.Response, er
 		req.Header.Set("Content-Type", "application/json")
 	}
 	req.Header.Set("X-Agent-Key", key)
-	return denHTTPClient.Do(req)
+	return memberHTTPClient(fp).Do(req)
+}
+
+// memberCall sends a request to a den member over its pinned channel using the
+// member's stored agent key and certificate fingerprint. On first contact (no
+// stored fingerprint) it pins trust-on-first-use and persists the fingerprint it
+// observed, so later calls reject a swapped certificate.
+func memberCall(app *pocketbase.PocketBase, member *core.Record, method, path string, body any) (*http.Response, error) {
+	fp := member.GetString("cert_fingerprint")
+	resp, err := memberRequest(method, memberBaseURL(member.GetString("address")), path, member.GetString("agent_key"), fp, body)
+	if err != nil {
+		return nil, err
+	}
+	if fp == "" && resp.TLS != nil && len(resp.TLS.PeerCertificates) > 0 {
+		sum := sha256.Sum256(resp.TLS.PeerCertificates[0].Raw)
+		member.Set("cert_fingerprint", hex.EncodeToString(sum[:]))
+		_ = app.Save(member)
+	}
+	return resp, nil
 }
 
 // clientConfigFromNetwork builds a client connection profile from a network record.
@@ -165,7 +213,7 @@ func denDeployHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 		}
 		base := memberBaseURL(member.GetString("address"))
 		key := member.GetString("agent_key")
-		resp, err := memberRequest(http.MethodPost, base, "/api/wte/client/connect", key, clientConfigFromNetwork(net))
+		resp, err := memberCall(app, member, http.MethodPost, "/api/wte/client/connect", clientConfigFromNetwork(net))
 		if err != nil {
 			api.WriteErr(w, http.StatusBadGateway, "could not reach member: "+err.Error())
 			return
@@ -184,7 +232,7 @@ func denDeployHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 		}
 		member.Set("network_id", body.NetworkID)
 		_ = app.Save(member)
-		go startMemberTrafficWhenConnected(base, key, opts, body.Reconnect)
+		go startMemberTrafficWhenConnected(base, key, member.GetString("cert_fingerprint"), opts, body.Reconnect)
 		api.WriteJSON(w, map[string]any{"status": "deploying"})
 	}
 }
@@ -198,10 +246,10 @@ type reconnectSettings struct {
 
 // startMemberTrafficWhenConnected polls the member until it associates, then starts
 // the requested traffic mix and, if asked, reconnect cycling.
-func startMemberTrafficWhenConnected(base, key string, opts client.TrafficOptions, rc *reconnectSettings) {
+func startMemberTrafficWhenConnected(base, key, fp string, opts client.TrafficOptions, rc *reconnectSettings) {
 	for i := 0; i < 20; i++ {
 		time.Sleep(3 * time.Second)
-		sr, err := memberRequest(http.MethodGet, base, "/api/wte/client/status", key, nil)
+		sr, err := memberRequest(http.MethodGet, base, "/api/wte/client/status", key, fp, nil)
 		if err != nil {
 			continue
 		}
@@ -211,11 +259,11 @@ func startMemberTrafficWhenConnected(base, key string, opts client.TrafficOption
 		_ = json.NewDecoder(sr.Body).Decode(&st)
 		sr.Body.Close()
 		if st.Connected {
-			if r2, e := memberRequest(http.MethodPost, base, "/api/wte/client/start", key, opts); e == nil {
+			if r2, e := memberRequest(http.MethodPost, base, "/api/wte/client/start", key, fp, opts); e == nil {
 				r2.Body.Close()
 			}
 			if rc != nil && rc.Enabled {
-				if r3, e := memberRequest(http.MethodPost, base, "/api/wte/client/reconnect", key, rc); e == nil {
+				if r3, e := memberRequest(http.MethodPost, base, "/api/wte/client/reconnect", key, fp, rc); e == nil {
 					r3.Body.Close()
 				}
 			}
@@ -232,9 +280,7 @@ func denStopHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.
 			api.WriteErr(w, http.StatusNotFound, "den member not found")
 			return
 		}
-		base := memberBaseURL(member.GetString("address"))
-		key := member.GetString("agent_key")
-		if resp, e := memberRequest(http.MethodPost, base, "/api/wte/client/disconnect", key, nil); e == nil {
+		if resp, e := memberCall(app, member, http.MethodPost, "/api/wte/client/disconnect", nil); e == nil {
 			resp.Body.Close()
 		}
 		member.Set("network_id", "")
@@ -252,9 +298,7 @@ func denStatusHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 			api.WriteErr(w, http.StatusNotFound, "den member not found")
 			return
 		}
-		base := memberBaseURL(member.GetString("address"))
-		key := member.GetString("agent_key")
-		resp, err := memberRequest(http.MethodGet, base, "/api/wte/client/status", key, nil)
+		resp, err := memberCall(app, member, http.MethodGet, "/api/wte/client/status", nil)
 		if err != nil {
 			api.WriteJSON(w, map[string]any{"reachable": false, "error": err.Error()})
 			return
@@ -287,10 +331,8 @@ func denUpdateHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 		}
 		results := make([]updateResult, 0, len(members))
 		for _, m := range members {
-			base := memberBaseURL(m.GetString("address"))
-			key := m.GetString("agent_key")
 			res := updateResult{Name: m.GetString("name")}
-			resp, e := memberRequest(http.MethodPost, base, "/api/wte/system/update", key, nil)
+			resp, e := memberCall(app, m, http.MethodPost, "/api/wte/system/update", nil)
 			if e != nil {
 				res.Detail = "unreachable: " + e.Error()
 			} else {
@@ -328,11 +370,9 @@ func teardownDenForNetwork(app *pocketbase.PocketBase, networkID string) {
 		return
 	}
 	for _, m := range members {
-		base := memberBaseURL(m.GetString("address"))
-		key := m.GetString("agent_key")
 		rec := m
 		go func() {
-			if resp, e := memberRequest(http.MethodPost, base, "/api/wte/client/disconnect", key, nil); e == nil {
+			if resp, e := memberCall(app, rec, http.MethodPost, "/api/wte/client/disconnect", nil); e == nil {
 				resp.Body.Close()
 			}
 			rec.Set("network_id", "")

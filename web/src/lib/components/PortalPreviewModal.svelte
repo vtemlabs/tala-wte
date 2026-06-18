@@ -1,8 +1,9 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   let {
@@ -22,7 +23,11 @@
   }
 </script>
 
-<svelte:window onkeydown={(e) => { if (e.key === 'Escape' && open) close(); }} />
+<svelte:window
+  onkeydown={(e) => {
+    if (e.key === 'Escape' && open) close();
+  }}
+/>
 
 {#if open && portalId}
   <button class="backdrop" onclick={close} aria-label="Close" tabindex="-1"></button>
@@ -30,11 +35,15 @@
     <div class="modal-header">
       <span class="title">Portal preview{portalName ? ` - ${portalName}` : ''}</span>
       <div class="seg">
-        <button class="seg-btn" class:active={device === 'desktop'} onclick={() => (device = 'desktop')}
-          >Desktop</button
+        <button
+          class="seg-btn"
+          class:active={device === 'desktop'}
+          onclick={() => (device = 'desktop')}>Desktop</button
         >
-        <button class="seg-btn" class:active={device === 'mobile'} onclick={() => (device = 'mobile')}
-          >Mobile</button
+        <button
+          class="seg-btn"
+          class:active={device === 'mobile'}
+          onclick={() => (device = 'mobile')}>Mobile</button
         >
       </div>
       <button class="close-btn" onclick={close} aria-label="Close">×</button>

@@ -89,7 +89,7 @@ func (a *Agent) SetReconnect(enabled bool, freq, jitter time.Duration) {
 }
 
 // reconnectLoop waits freq (+ up to jitter), then reassociates, repeating until
-// the cycle is cancelled. Connect re-runs the association, producing a handshake.
+// the cycle is canceled. Connect re-runs the association, producing a handshake.
 func (a *Agent) reconnectLoop(ctx context.Context, cfg Config, freq, jitter time.Duration) {
 	for {
 		wait := freq
@@ -228,8 +228,8 @@ func (a *Agent) Connect(cfg Config) error {
 	// (NetworkManager/netplan) that would otherwise fight our standalone session.
 	_ = exec.Command("pkill", "-x", "wpa_supplicant").Run()
 	_ = exec.Command("pkill", "-f", "dhclient").Run()
-	exec.Command("ip", "addr", "flush", "dev", ifc).Run()
-	exec.Command("ip", "link", "set", ifc, "up").Run()
+	_ = exec.Command("ip", "addr", "flush", "dev", ifc).Run()
+	_ = exec.Command("ip", "link", "set", ifc, "up").Run()
 	time.Sleep(500 * time.Millisecond)
 
 	confPath, err := writeWPAConf(cfg)
@@ -406,7 +406,7 @@ func (a *Agent) Stop() {
 	}
 	if ifc != "" {
 		_ = exec.Command("pkill", "-f", "dhclient.*"+ifc).Run()
-		exec.Command("ip", "addr", "flush", "dev", ifc).Run()
+		_ = exec.Command("ip", "addr", "flush", "dev", ifc).Run()
 	}
 	a.mu.Lock()
 	a.status.Connected = false
@@ -489,7 +489,7 @@ func (a *Agent) genCreds(ctx context.Context, opts TrafficOptions) {
 			if req, err := http.NewRequestWithContext(ctx, http.MethodGet, cr.URL, nil); err == nil {
 				req.SetBasicAuth(cr.Username, cr.Password)
 				if resp, err := c.Do(req); err == nil {
-					io.Copy(io.Discard, resp.Body)
+					_, _ = io.Copy(io.Discard, resp.Body)
 					resp.Body.Close()
 					a.inc(1, 0)
 				} else {
@@ -499,7 +499,7 @@ func (a *Agent) genCreds(ctx context.Context, opts TrafficOptions) {
 			// Form POST (credentials in the body).
 			form := url.Values{"username": {cr.Username}, "password": {cr.Password}}
 			if resp, err := c.PostForm(cr.URL, form); err == nil {
-				io.Copy(io.Discard, resp.Body)
+				_, _ = io.Copy(io.Discard, resp.Body)
 				resp.Body.Close()
 				a.inc(1, 0)
 			} else {
@@ -687,7 +687,7 @@ func (a *Agent) runDHCP(ifc string) error {
 			if len(msg) > 200 {
 				msg = msg[len(msg)-200:]
 			}
-			return fmt.Errorf("%v: %s", err, msg)
+			return fmt.Errorf("%w: %s", err, msg)
 		}
 		return nil
 	}

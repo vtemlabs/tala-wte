@@ -8,16 +8,16 @@
 // referenced side by side while adjusting settings and running tasks.
 
 export interface Guide {
-  title: string;
-  subtitle?: string;
-  doc: string;
+	title: string;
+	subtitle?: string;
+	doc: string;
 }
 
 export const GUIDES: Record<string, Guide> = {
-  networks: {
-    title: "Networks Guide",
-    subtitle: "Create and broadcast wireless access points across every security protocol",
-    doc: `## Overview
+	networks: {
+		title: 'Networks Guide',
+		subtitle: 'Create and broadcast wireless access points across every security protocol',
+		doc: `## Overview
 
 The **Networks** page is where you build and broadcast the wireless access points your exercise revolves around. A network here is not a simulation: it is a real **hostapd** access point that clients can scan for, join, and that external tools can target over the air. Each network you create captures a complete AP profile - SSID, security protocol, key material, band, channel, and the hardware radio it runs on - and you start or stop it on demand.
 
@@ -151,11 +151,11 @@ The full set offered in the **Security Protocol** dropdown, and what each is use
 - Leave **Client Isolation** off when you want to show lateral movement; turn it on to model a hardened guest network.
 - Run concurrent networks by assigning each to a free interface; the form flags which adapters are already in use.
 - For Enterprise networks, let the preflight gate auto-provision the backend the first time rather than wiring RADIUS, LDAP, and certs by hand.`
-  },
-  captures: {
-    title: "Packet Captures Guide",
-    subtitle: "Passive wireless and network-layer capture and analysis",
-    doc: `
+	},
+	captures: {
+		title: 'Packet Captures Guide',
+		subtitle: 'Passive wireless and network-layer capture and analysis',
+		doc: `
 ## What this page is for
 
 The Packet Captures page records traffic from your training networks so you can
@@ -348,11 +348,11 @@ a handshake before you move on to offline analysis.
 For setting up and running the networks you capture from, see the
 [Networks guide](/networks/guide).
 `
-  },
-  portals: {
-    title: "Portal Guide",
-    subtitle: "How to create, edit, clone, and deploy captive portals",
-    doc: `## Overview
+	},
+	portals: {
+		title: 'Portal Guide',
+		subtitle: 'How to create, edit, clone, and deploy captive portals',
+		doc: `## Overview
 
 A **captive portal** is the splash page a client sees after joining an open Wi-Fi network, before it can reach the internet. In Tala WTE a portal is assigned to an **Open** network; when a client connects, all of its web traffic is intercepted and redirected to the portal until it submits the form. Every value the client enters is captured to **Captured Data**, and portals can optionally validate those credentials against the embedded directory, behaving like a real credentialed hotspot.
 
@@ -427,11 +427,11 @@ The built-in templates link to **Terms of Service**, **Acceptable Use Policy**, 
 - Keep credential field names conventional so auto-capture and validation work without manual wiring.
 - Clone, do not edit, when you want a variation of a built-in template.
 - Match the venue. The closer your portal looks to a network the client expects, the more convincing the exercise.`
-  },
-  ldap: {
-    title: "LDAP Directory Guide",
-    subtitle: "The embedded directory that backs enterprise authentication",
-    doc: `
+	},
+	ldap: {
+		title: 'LDAP Directory Guide',
+		subtitle: 'The embedded directory that backs enterprise authentication',
+		doc: `
 ## What this page is
 
 The LDAP Directory is the embedded user store that backs enterprise wireless
@@ -615,11 +615,11 @@ Provision a believable directory, verify a couple of accounts on the Test Auth
 tab, and your enterprise networks and credential-checking portals are ready to
 exercise against real, known credentials.
 `
-  },
-  radius: {
-    title: "RADIUS Guide",
-    subtitle: "The 802.1X authentication server for WPA-Enterprise networks",
-    doc: `## Overview
+	},
+	radius: {
+		title: 'RADIUS Guide',
+		subtitle: 'The 802.1X authentication server for WPA-Enterprise networks',
+		doc: `## Overview
 
 **RADIUS** (Remote Authentication Dial-In User Service) is the authentication server that stands behind every **WPA2-Enterprise** and **WPA3-Enterprise** Wi-Fi network. Tala WTE runs **FreeRADIUS 3.x** as that server. When an enterprise access point needs to decide whether a client is allowed onto the network, it does not check the password itself. It hands the question off to RADIUS over the **802.1X** framework, and RADIUS answers with a yes or no.
 
@@ -708,11 +708,11 @@ RADIUS does not work alone. Three other pages feed into it:
 ---
 
 Together these four pieces (a network on hostapd, this RADIUS server, the LDAP directory, and the certificates) form a complete, realistic enterprise Wi-Fi authentication stack you can attack, defend, and demonstrate.`
-  },
-  certificates: {
-    title: "Certificates Guide",
-    subtitle: "The certificate authority behind EAP and WPA-Enterprise",
-    doc: `
+	},
+	certificates: {
+		title: 'Certificates Guide',
+		subtitle: 'The certificate authority behind EAP and WPA-Enterprise',
+		doc: `
 ## What this page is for
 
 WPA2-Enterprise and WPA3-Enterprise do not use a single shared passphrase. Instead, every client authenticates individually over **EAP** (the Extensible Authentication Protocol), brokered by a RADIUS server. EAP is built on TLS, and TLS is built on **X.509 certificates**. That is why this page exists: it is the certificate authority that issues and signs the certificates the rest of the enterprise stack depends on.
@@ -795,11 +795,11 @@ The certificate authority is the foundation the enterprise authentication stack 
 
 Initialize the CA first, issue a server certificate so RADIUS can authenticate at all, then issue client certificates only if you are running EAP-TLS.
 `
-  },
-  client: {
-    title: "Client Mode",
-    subtitle: "Run this box as a traffic-generating client",
-    doc: `## Overview
+	},
+	client: {
+		title: 'Client Mode',
+		subtitle: 'Run this box as a traffic-generating client',
+		doc: `## Overview
 
 In **client mode** a Tala WTE box stops broadcasting access points and instead joins another Tala WTE network as an ordinary station. It associates with the SSID, pulls a DHCP lease, gets past a captive portal if there is one, and generates realistic traffic. Use a client to populate a training network with believable activity, to give a packet capture something real to record, and to put capturable handshakes and cleartext credentials on the air for trainees.
 
@@ -835,11 +835,11 @@ A box can be a server (access point) or a client, and you can switch with one bu
 ## Joining a den
 
 A client can be driven remotely by a **den leader** so you do not have to configure each client by hand. Copy this client's **Den Agent Key** from **Settings -> Den Agent Key** and register the client on the leader's **Den** page by address and key. The leader can then push a network config, start traffic, and stop it for you. See the Den guide.`
-  },
-  traffic: {
-    title: "Traffic Console",
-    subtitle: "Join a network and generate realistic traffic",
-    doc: `## Overview
+	},
+	traffic: {
+		title: 'Traffic Console',
+		subtitle: 'Join a network and generate realistic traffic',
+		doc: `## Overview
 
 The **Traffic Console** is where a client joins a network and generates realistic traffic against it. It keeps a library of saved networks, runs a set of traffic generators you choose, replays operator-supplied targets and credentials, and can cycle the connection to produce fresh WPA handshakes. Everything it does is real traffic on the wire, so a packet capture on the access point records exactly what a live device would send.
 
@@ -893,11 +893,11 @@ Make the traffic hit hosts you control instead of the built-in defaults:
 ## Live stats
 
 The **Live Stats** panel tracks **Requests**, **Received** bytes, and **Errors** for the running generators, plus the last event and last error.`
-  },
-  den: {
-    title: "The Den",
-    subtitle: "Drive a pack of client members from one leader",
-    doc: `## Overview
+	},
+	den: {
+		title: 'The Den',
+		subtitle: 'Drive a pack of client members from one leader',
+		doc: `## Overview
 
 The **den** turns one access-point server into the leader of a pack of clients. The leader (this server) drives each registered client - a **member** - over the network: it pushes a network config, starts the chosen traffic, reports live status, and stops it again, all without anyone logging into the members. Use the den to stand up a whole room of believable clients on a training network from a single console.
 
@@ -938,11 +938,11 @@ When you stop or delete a network on the leader, every member assigned to that n
 ## Status
 
 The Den page polls each member's live status through the leader (using the agent key), so the Members list reflects reachability, the joined SSID, IP, and request counts without you opening each member's own console.`
-  },
-  settings: {
-    title: "Settings",
-    subtitle: "Instance role, radio, uplink, agent key, and updates",
-    doc: `## Overview
+	},
+	settings: {
+		title: 'Settings',
+		subtitle: 'Instance role, radio, uplink, agent key, and updates',
+		doc: `## Overview
 
 The **Settings** page is the per-box configuration: the role it runs as, the radio and uplink it uses, the den agent key (in client mode), and software updates. The same page serves both server and client mode; the panels that do not apply to the current role are simply not shown.
 
@@ -977,5 +977,5 @@ The right column lists the box's **Wireless Interfaces** with their model, chips
 ## Software Updates
 
 Shows the **Installed** and **Latest release** versions. On a released build, updating downloads the verified binary, replaces the running service, and restarts it; the console reconnects automatically. Development builds disable in-place updates - install a released binary to enable them.`
-  },
+	}
 };

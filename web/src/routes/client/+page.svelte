@@ -54,7 +54,9 @@
 
   async function refreshStatus() {
     try {
-      status = await fetch('/api/wte/client/status', { headers: authHeaders() }).then((r) => r.json());
+      status = await fetch('/api/wte/client/status', { headers: authHeaders() }).then((r) =>
+        r.json()
+      );
     } catch {
       /* ignore transient poll errors */
     }
@@ -96,8 +98,9 @@
 {#if !loading && unsupported.length > 0}
   <div class="error-toast hw-warn">
     <span>
-      Wireless adapter(s) detected without driver support: {unsupported.map((a) => a.name).join(', ')}.
-      Install the driver before {unsupported.length > 1 ? 'they' : 'it'} can connect.
+      Wireless adapter(s) detected without driver support: {unsupported
+        .map((a) => a.name)
+        .join(', ')}. Install the driver before {unsupported.length > 1 ? 'they' : 'it'} can connect.
     </span>
   </div>
 {/if}
@@ -107,7 +110,9 @@
     <div class="stat-cell">
       <span class="k">Connection</span>
       <span class="v" style={connected ? 'color:var(--color-green)' : 'color:var(--text-dim)'}>
-        {#if connected}<span class="status-dot active"></span>{/if}{connected ? 'Online' : 'Offline'}
+        {#if connected}<span class="status-dot active"></span>{/if}{connected
+          ? 'Online'
+          : 'Offline'}
       </span>
     </div>
     <div class="stat-cell">
@@ -120,7 +125,10 @@
     </div>
     <div class="stat-cell">
       <span class="k">Wireless Adapters</span>
-      <span class="v" style={interfaces.length ? 'color:var(--color-cyan)' : 'color:var(--color-yellow)'}>
+      <span
+        class="v"
+        style={interfaces.length ? 'color:var(--color-cyan)' : 'color:var(--color-yellow)'}
+      >
         {interfaces.length}
       </span>
     </div>
@@ -135,12 +143,30 @@
         <span class="status-dot" class:active={connected} class:inactive={!connected}></span>
       </div>
       <div class="kv-list">
-        <div class="kv-row"><span class="kv-k">Status</span><span class="kv-v">{connected ? 'Connected' : 'Offline'}</span></div>
-        <div class="kv-row"><span class="kv-k">SSID</span><span class="kv-v">{status?.ssid || '-'}</span></div>
-        <div class="kv-row"><span class="kv-k">Interface</span><span class="kv-v mono">{status?.interface || '-'}</span></div>
-        <div class="kv-row"><span class="kv-k">IP address</span><span class="kv-v mono">{status?.ip || '-'}</span></div>
-        <div class="kv-row"><span class="kv-k">Gateway</span><span class="kv-v mono">{status?.gateway || '-'}</span></div>
-        <div class="kv-row"><span class="kv-k">Captive portal</span><span class="kv-v">{status?.portal_state || 'none'}</span></div>
+        <div class="kv-row">
+          <span class="kv-k">Status</span><span class="kv-v"
+            >{connected ? 'Connected' : 'Offline'}</span
+          >
+        </div>
+        <div class="kv-row">
+          <span class="kv-k">SSID</span><span class="kv-v">{status?.ssid || '-'}</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-k">Interface</span><span class="kv-v mono"
+            >{status?.interface || '-'}</span
+          >
+        </div>
+        <div class="kv-row">
+          <span class="kv-k">IP address</span><span class="kv-v mono">{status?.ip || '-'}</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-k">Gateway</span><span class="kv-v mono">{status?.gateway || '-'}</span>
+        </div>
+        <div class="kv-row">
+          <span class="kv-k">Captive portal</span><span class="kv-v"
+            >{status?.portal_state || 'none'}</span
+          >
+        </div>
       </div>
     </div>
 
@@ -153,14 +179,22 @@
         <div class="stat-cell">
           <span class="k">Generating</span>
           <span class="v" style={generating ? 'color:var(--color-green)' : ''}>
-            {#if generating}<span class="status-dot active"></span>{/if}{generating ? 'Active' : 'Idle'}
+            {#if generating}<span class="status-dot active"></span>{/if}{generating
+              ? 'Active'
+              : 'Idle'}
           </span>
         </div>
-        <div class="stat-cell"><span class="k">Requests</span><span class="v">{status?.requests ?? 0}</span></div>
-        <div class="stat-cell"><span class="k">Received</span><span class="v">{fmtBytes(status?.bytes_rx ?? 0)}</span></div>
+        <div class="stat-cell">
+          <span class="k">Requests</span><span class="v">{status?.requests ?? 0}</span>
+        </div>
+        <div class="stat-cell">
+          <span class="k">Received</span><span class="v">{fmtBytes(status?.bytes_rx ?? 0)}</span>
+        </div>
         <div class="stat-cell">
           <span class="k">Errors</span>
-          <span class="v" style={(status?.errors ?? 0) > 0 ? 'color:var(--color-orange)' : ''}>{status?.errors ?? 0}</span>
+          <span class="v" style={(status?.errors ?? 0) > 0 ? 'color:var(--color-orange)' : ''}
+            >{status?.errors ?? 0}</span
+          >
         </div>
       </div>
     </div>

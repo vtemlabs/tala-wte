@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 // Package sim manages the lifecycle of wireless networks via hostapd.
 package sim
@@ -609,7 +610,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 
 		// Enterprise networks reach FreeRADIUS via the namespace gateway; no per-network NAT plumbing required.
 		if protocol == "wpa2_enterprise" || protocol == "wpa3_enterprise" {
-			log.Printf("[sim][start] Enterprise mode: hostapd → %s:1812 → FreeRADIUS (namespace src %s)", topology.HostIP, topology.PeerIP)
+			log.Printf("[sim][start] Enterprise mode: hostapd -> %s:1812 -> FreeRADIUS (namespace src %s)", topology.HostIP, topology.PeerIP)
 		}
 
 		startFailed = false

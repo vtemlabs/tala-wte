@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 package main
 
@@ -99,7 +100,7 @@ traffic. Open the web UI to import a config and control traffic. Idempotent.`)
 	fmt.Printf("  binary: %s\n", installBinaryDest())
 
 	fmt.Println("-> installing client dependencies")
-	deps.InstallPackages(clientDepPackages)
+	_ = deps.InstallPackages(clientDepPackages)
 	fmt.Println("-> recovering any wedged USB Wi-Fi adapters")
 	deps.HealWedgedWifiNow()
 	warnUnsupportedAdapters()
@@ -298,6 +299,8 @@ After install, open the web UI to create your admin account in the browser.`)
 	fmt.Printf("  Tala WTE installed - service: %s, web UI: %s\n", state, web)
 	fmt.Printf("  Open the web UI:  https://%s:8443/\n", host)
 	fmt.Println("  On first visit, create your admin account in the browser.")
+	fmt.Println("  The wizard asks for a one-time setup token. Retrieve it with:")
+	fmt.Println("    journalctl -u tala-wte | grep 'SETUP TOKEN'")
 	fmt.Println(line)
 	if state != "active" || !webReady {
 		fmt.Fprintln(os.Stderr, "note: service not fully ready yet; check: journalctl -u tala-wte -n 50")

@@ -1,8 +1,9 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { goto } from '$app/navigation';
@@ -104,8 +105,12 @@
   let saving = $state(false);
   let error = $state('');
 
-  const selectedPortalHTML = $derived(portalsList.find((p) => p.id === selectedPortalId)?.html ?? '');
-  const selectedPortalName = $derived(portalsList.find((p) => p.id === selectedPortalId)?.name ?? '');
+  const selectedPortalHTML = $derived(
+    portalsList.find((p) => p.id === selectedPortalId)?.html ?? ''
+  );
+  const selectedPortalName = $derived(
+    portalsList.find((p) => p.id === selectedPortalId)?.name ?? ''
+  );
   let previewModalOpen = $state(false);
 
   const availableChannels = $derived(channelMap[band] ?? channelMap['2.4']);
@@ -416,8 +421,9 @@
           <label class="field-label" for="subnet">Network Subnet</label>
           <input class="input" id="subnet" bind:value={subnet} placeholder="10.0.0.0/24" />
           <span class="field-desc">
-            CIDR for the LAN clients join (gateway <code>.1</code>, DHCP <code>.10</code>-<code>.250</code>).
-            Defaults from Settings.
+            CIDR for the LAN clients join (gateway <code>.1</code>, DHCP <code>.10</code>-<code
+              >.250</code
+            >). Defaults from Settings.
           </span>
         </div>
 
@@ -468,7 +474,11 @@
                 <div class="portal-preview">
                   <div class="portal-preview-head">
                     <span>Preview</span>
-                    <button type="button" class="popout-btn" onclick={() => (previewModalOpen = true)}>
+                    <button
+                      type="button"
+                      class="popout-btn"
+                      onclick={() => (previewModalOpen = true)}
+                    >
                       Pop out
                     </button>
                   </div>

@@ -35,6 +35,12 @@ Subject to these terms, VTEM Labs grants you a non-exclusive, non-transferable,
 revocable license to download, install, run, and modify the Software solely for
 Permitted Use.
 
+Non-profit use of the Software at any event, including any non-profit
+Capture-the-Flag (CTF) event, class, workshop, competition, or conference, is
+permitted only if you (a) obtain prior written approval from VTEM Labs; (b)
+prominently display the VTEM Labs logo and the words "Powered by VTEM Labs" at
+the event; and (c) link to vtemlabs.com.
+
 ------------------------------------------------------------------------------
 3. RESTRICTIONS
 ------------------------------------------------------------------------------
@@ -63,6 +69,10 @@ license from VTEM Labs, you may NOT, and may not permit others to:
   f. Rebrand the Software or any Derivative, remove or alter its notices or
      branding, claim authorship or ownership of it, or otherwise represent it
      (or any Derivative) as your own or your organization's product or asset.
+
+  g. Copy, reproduce, distribute, redistribute, publish, mirror, post, or
+     otherwise share or make the Software or any Derivative available to any
+     third party, in whole or in part.
 
 For clarity: standing up a for-profit wireless penetration testing course,
 security program, or CTF, and using the Software or any Derivative as its

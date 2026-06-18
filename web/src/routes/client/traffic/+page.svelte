@@ -24,6 +24,8 @@
     requests: number;
     bytes_rx: number;
     errors: number;
+    cycling?: boolean;
+    cycles?: number;
     last_error?: string;
     last_event?: string;
   };
@@ -70,8 +72,10 @@
   let jitterValue = $state(15);
   let jitterUnit = $state('s');
   const unitSec = (u: string): number => (u === 'h' ? 3600 : u === 'm' ? 60 : 1);
-  const freqSeconds = (): number => (freqSel === 'custom' ? freqValue * unitSec(freqUnit) : Number(freqSel));
-  const jitterSeconds = (): number => (jitterSel === 'custom' ? jitterValue * unitSec(jitterUnit) : Number(jitterSel));
+  const freqSeconds = (): number =>
+    freqSel === 'custom' ? freqValue * unitSec(freqUnit) : Number(freqSel);
+  const jitterSeconds = (): number =>
+    jitterSel === 'custom' ? jitterValue * unitSec(jitterUnit) : Number(jitterSel);
 
   // Operator-supplied target lists (one entry per line) and login credentials.
   let urlsText = $state('');
@@ -102,13 +106,17 @@
 
   async function refresh() {
     try {
-      status = await fetch('/api/wte/client/status', { headers: authHeaders() }).then((r) => r.json());
+      status = await fetch('/api/wte/client/status', { headers: authHeaders() }).then((r) =>
+        r.json()
+      );
     } catch {
       /* ignore transient poll errors */
     }
     if (logOpen) {
       try {
-        logLines = (await fetch('/api/wte/client/logs', { headers: authHeaders() }).then((r) => r.json())).lines ?? [];
+        logLines =
+          (await fetch('/api/wte/client/logs', { headers: authHeaders() }).then((r) => r.json()))
+            .lines ?? [];
       } catch {
         /* ignore */
       }
@@ -180,7 +188,11 @@
           hidden: rec.hidden,
           identity: rec.identity,
           eap_password: rec.eap_password,
-          portal: { enabled: rec.portal_enabled, username: rec.portal_username, password: rec.portal_password }
+          portal: {
+            enabled: rec.portal_enabled,
+            username: rec.portal_username,
+            password: rec.portal_password
+          }
         })
       });
       if (!r.ok) throw new Error((await r.json())?.error ?? 'connect failed');
@@ -366,9 +378,17 @@
       ondragleave={() => (dragging = false)}
       ondrop={onDrop}
     >
-      <input class="file-hidden" id="cfg" type="file" accept=".json,application/json" onchange={onFile} />
+      <input
+        class="file-hidden"
+        id="cfg"
+        type="file"
+        accept=".json,application/json"
+        onchange={onFile}
+      />
       <span class="dz-title">Drop a client config here, or click to browse</span>
-      <span class="dz-sub">Upload configs exported from access points; each is saved below to reuse anytime.</span>
+      <span class="dz-sub"
+        >Upload configs exported from access points; each is saved below to reuse anytime.</span
+      >
     </label>
 
     <div class="saved-head">
@@ -387,7 +407,9 @@
           <div class="saved-row" class:connected={isConnected}>
             <div class="saved-meta">
               <span class="mono saved-ssid">{rec.ssid}</span>
-              <span class="saved-proto">{(rec.protocol || 'open').replace('_', '-').toUpperCase()}</span>
+              <span class="saved-proto"
+                >{(rec.protocol || 'open').replace('_', '-').toUpperCase()}</span
+              >
               {#if isConnected}<span class="saved-badge">connected</span>{/if}
             </div>
             <div class="saved-actions">
@@ -397,9 +419,17 @@
                 onclick={() => connectTo(rec)}
                 disabled={busy === 'connect:' + rec.id || isConnected}
               >
-                {busy === 'connect:' + rec.id ? 'Connecting...' : isConnected ? 'Connected' : 'Connect'}
+                {busy === 'connect:' + rec.id
+                  ? 'Connecting...'
+                  : isConnected
+                    ? 'Connected'
+                    : 'Connect'}
               </button>
-              <button class="action-btn del-btn" onclick={() => deleteSaved(rec)} aria-label="Delete network">Del</button>
+              <button
+                class="action-btn del-btn"
+                onclick={() => deleteSaved(rec)}
+                aria-label="Delete network">Del</button
+              >
             </div>
           </div>
         {/each}
@@ -413,52 +443,88 @@
 <div class="panel section">
   <div class="panel-head">
     <span class="panel-title">Traffic Generation</span>
-    {#if status?.generating}<span class="count-pill" style="color:var(--color-green)">generating</span>{/if}
+    {#if status?.generating}<span class="count-pill" style="color:var(--color-green)"
+        >generating</span
+      >{/if}
   </div>
   <div class="panel-body">
     <div class="sub-label">Traffic types</div>
     <div class="toggle-grid">
       <div class="toggle-field">
-        <div><div class="toggle-name">Web browsing</div><div class="field-desc">HTTP/HTTPS GETs</div></div>
+        <div>
+          <div class="toggle-name">Web browsing</div>
+          <div class="field-desc">HTTP/HTTPS GETs</div>
+        </div>
         <input type="checkbox" bind:checked={web} />
       </div>
       <div class="toggle-field">
-        <div><div class="toggle-name">DNS lookups</div><div class="field-desc">Background name resolution</div></div>
+        <div>
+          <div class="toggle-name">DNS lookups</div>
+          <div class="field-desc">Background name resolution</div>
+        </div>
         <input type="checkbox" bind:checked={dns} />
       </div>
       <div class="toggle-field">
-        <div><div class="toggle-name">Ping / local LAN</div><div class="field-desc">ICMP + intra-LAN chatter</div></div>
+        <div>
+          <div class="toggle-name">Ping / local LAN</div>
+          <div class="field-desc">ICMP + intra-LAN chatter</div>
+        </div>
         <input type="checkbox" bind:checked={ping} />
       </div>
       <div class="toggle-field">
-        <div><div class="toggle-name">Downloads / bandwidth</div><div class="field-desc">Periodic larger transfers</div></div>
+        <div>
+          <div class="toggle-name">Downloads / bandwidth</div>
+          <div class="field-desc">Periodic larger transfers</div>
+        </div>
         <input type="checkbox" bind:checked={downloads} />
       </div>
       <div class="toggle-field">
-        <div><div class="toggle-name">Credential logins</div><div class="field-desc">Replays the logins below in cleartext (HTTP Basic + form POST) - capturable</div></div>
+        <div>
+          <div class="toggle-name">Credential logins</div>
+          <div class="field-desc">
+            Replays the logins below in cleartext (HTTP Basic + form POST) - capturable
+          </div>
+        </div>
         <input type="checkbox" bind:checked={creds} />
       </div>
       <div class="toggle-field">
-        <div><div class="toggle-name">Domain chatter (responder bait)</div><div class="field-desc">LLMNR / NBT-NS / mDNS name lookups for poisoning attacks</div></div>
+        <div>
+          <div class="toggle-name">Domain chatter (responder bait)</div>
+          <div class="field-desc">LLMNR / NBT-NS / mDNS name lookups for poisoning attacks</div>
+        </div>
         <input type="checkbox" bind:checked={domainBait} />
       </div>
     </div>
     <div class="sub-label">Target scope</div>
     <div class="toggle-grid">
       <div class="toggle-field">
-        <div><div class="toggle-name">Local targets</div><div class="field-desc">Gateway and LAN hosts</div></div>
+        <div>
+          <div class="toggle-name">Local targets</div>
+          <div class="field-desc">Gateway and LAN hosts</div>
+        </div>
         <input type="checkbox" bind:checked={local} />
       </div>
       <div class="toggle-field">
-        <div><div class="toggle-name">Internet targets</div><div class="field-desc">Public sites and hosts</div></div>
+        <div>
+          <div class="toggle-name">Internet targets</div>
+          <div class="field-desc">Public sites and hosts</div>
+        </div>
         <input type="checkbox" bind:checked={internet} />
       </div>
     </div>
     <div class="btn-row" style="margin-top:var(--space-lg)">
-      <button class="btn btn-primary" onclick={startTraffic} disabled={!status?.connected || busy === 'start'}>
+      <button
+        class="btn btn-primary"
+        onclick={startTraffic}
+        disabled={!status?.connected || busy === 'start'}
+      >
         {busy === 'start' ? 'Starting...' : 'Start traffic'}
       </button>
-      <button class="btn btn-secondary" onclick={stopTraffic} disabled={!status?.generating || busy === 'stop'}>
+      <button
+        class="btn btn-secondary"
+        onclick={stopTraffic}
+        disabled={!status?.generating || busy === 'stop'}
+      >
         Stop
       </button>
     </div>
@@ -468,10 +534,14 @@
 <div class="panel section">
   <div class="panel-head">
     <span class="panel-title">Handshake Capture</span>
-    {#if status?.cycling}<span class="count-pill" style="color:var(--color-green)">cycling · {status?.cycles ?? 0}</span>{/if}
+    {#if status?.cycling}<span class="count-pill" style="color:var(--color-green)"
+        >cycling · {status?.cycles ?? 0}</span
+      >{/if}
   </div>
   <div class="panel-body stack">
-    <span class="field-desc">Periodically deauth and reassociate so students can capture a fresh WPA handshake each cycle.</span>
+    <span class="field-desc"
+      >Periodically deauth and reassociate so students can capture a fresh WPA handshake each cycle.</span
+    >
     <div class="cycle-grid">
       <div class="form-group">
         <label class="field-label" for="freq">Frequency</label>
@@ -507,11 +577,17 @@
       </div>
     </div>
     <div class="btn-row">
-      <button class="btn btn-primary" onclick={applyCycle} disabled={!status?.connected || busy === 'cycle'}>
+      <button
+        class="btn btn-primary"
+        onclick={applyCycle}
+        disabled={!status?.connected || busy === 'cycle'}
+      >
         {status?.cycling ? 'Update cycling' : 'Start cycling'}
       </button>
       {#if status?.cycling}
-        <button class="btn btn-secondary" onclick={stopCycle} disabled={busy === 'cycle'}>Stop cycling</button>
+        <button class="btn btn-secondary" onclick={stopCycle} disabled={busy === 'cycle'}
+          >Stop cycling</button
+        >
       {/if}
     </div>
   </div>
@@ -523,17 +599,27 @@
     <div class="grid3">
       <div class="form-group">
         <label class="field-label" for="urls">URLs to browse</label>
-        <textarea class="input ta" id="urls" bind:value={urlsText} placeholder={"http://intranet.local/\nhttp://10.0.0.1/login"}></textarea>
+        <textarea
+          class="input ta"
+          id="urls"
+          bind:value={urlsText}
+          placeholder="http://intranet.local/"
+        ></textarea>
         <span class="field-desc">One per line; used by the Web generator.</span>
       </div>
       <div class="form-group">
         <label class="field-label" for="domains">Domains to resolve</label>
-        <textarea class="input ta" id="domains" bind:value={domainsText} placeholder={"intranet.local\nfileserver.corp"}></textarea>
+        <textarea
+          class="input ta"
+          id="domains"
+          bind:value={domainsText}
+          placeholder="intranet.local"
+        ></textarea>
         <span class="field-desc">One per line; used by DNS + domain chatter.</span>
       </div>
       <div class="form-group">
         <label class="field-label" for="ips">IPs to reach</label>
-        <textarea class="input ta" id="ips" bind:value={ipsText} placeholder={"10.0.0.1\n10.0.0.50"}></textarea>
+        <textarea class="input ta" id="ips" bind:value={ipsText} placeholder="10.0.0.1"></textarea>
         <span class="field-desc">One per line; used by the Ping generator.</span>
       </div>
     </div>
@@ -548,11 +634,15 @@
           <input class="input" placeholder="http://target/login" bind:value={c.url} />
           <input class="input" placeholder="username" bind:value={c.username} />
           <input class="input" placeholder="password" bind:value={c.password} />
-          <button class="btn btn-sm btn-danger" onclick={() => removeCred(i)} aria-label="Remove">×</button>
+          <button class="btn btn-sm btn-danger" onclick={() => removeCred(i)} aria-label="Remove"
+            >×</button
+          >
         </div>
       {/each}
       {#if credsList.length === 0}
-        <span class="field-desc">Add logins the client replays; then enable "Credential logins" above.</span>
+        <span class="field-desc"
+          >Add logins the client replays; then enable "Credential logins" above.</span
+        >
       {/if}
     </div>
   </div>
@@ -561,13 +651,26 @@
 <div class="panel section">
   <div class="panel-head">
     <span class="panel-title">Live Stats</span>
-    {#if status?.generating}<span class="count-pill" style="color:var(--color-green)">generating</span>{/if}
+    {#if status?.generating}<span class="count-pill" style="color:var(--color-green)"
+        >generating</span
+      >{/if}
   </div>
   <div class="panel-body">
     <div class="stat-strip">
-      <div class="stat-cell"><span class="k">Requests</span><span class="v">{status?.requests ?? 0}</span></div>
-      <div class="stat-cell"><span class="k">Received</span><span class="v" style="font-size:var(--font-size-md)">{fmtBytes(status?.bytes_rx ?? 0)}</span></div>
-      <div class="stat-cell"><span class="k">Errors</span><span class="v" style={status?.errors ? 'color:var(--color-yellow)' : ''}>{status?.errors ?? 0}</span></div>
+      <div class="stat-cell">
+        <span class="k">Requests</span><span class="v">{status?.requests ?? 0}</span>
+      </div>
+      <div class="stat-cell">
+        <span class="k">Received</span><span class="v" style="font-size:var(--font-size-md)"
+          >{fmtBytes(status?.bytes_rx ?? 0)}</span
+        >
+      </div>
+      <div class="stat-cell">
+        <span class="k">Errors</span><span
+          class="v"
+          style={status?.errors ? 'color:var(--color-yellow)' : ''}>{status?.errors ?? 0}</span
+        >
+      </div>
     </div>
     <p class="event dim">Open <strong>Live Log</strong> (top right) for full terminal output.</p>
   </div>

@@ -1,8 +1,9 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { page } from '$app/state';
@@ -229,7 +230,11 @@
   </div>
   {#if net}
     <div class="header-actions">
-      <button class="btn btn-secondary" onclick={exportClientConfig} title="Download a config to import into a Tala WTE client">
+      <button
+        class="btn btn-secondary"
+        onclick={exportClientConfig}
+        title="Download a config to import into a Tala WTE client"
+      >
         Export client config
       </button>
       <button

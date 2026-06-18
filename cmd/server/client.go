@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 package main
 
@@ -16,6 +17,7 @@ import (
 	"time"
 
 	"github.com/pocketbase/pocketbase"
+
 	"github.com/vtemlabs/tala-wte/internal/api"
 	"github.com/vtemlabs/tala-wte/internal/client"
 	"github.com/vtemlabs/tala-wte/internal/deps"
@@ -72,7 +74,7 @@ func systemModeSwapHandler() func(http.ResponseWriter, *http.Request) {
 func swapModeAsync(target string) {
 	time.Sleep(500 * time.Millisecond)
 	if target == "client" {
-		deps.InstallPackages(clientDepPackages)
+		_ = deps.InstallPackages(clientDepPackages)
 	} else {
 		_ = deps.VerifyAndInstall()
 	}

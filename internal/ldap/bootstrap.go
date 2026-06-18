@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 package ldap
 
@@ -13,6 +14,7 @@ import (
 	"fmt"
 	"os"
 	"os/exec"
+	"strings"
 	"text/template"
 )
 
@@ -29,12 +31,28 @@ func hashSSHA(password string) string {
 	return "{SSHA}" + base64.StdEncoding.EncodeToString(append(hash, salt...))
 }
 
+// hashRootpw hashes password for slapd using SHA-512 crypt ({CRYPT}$6$), which
+// slapd verifies natively through crypt(3). It shells to slappasswd (shipped
+// with slapd) and falls back to salted SSHA only if slappasswd is missing or
+// fails, so password hashing never blocks LDAP bring-up.
+func hashRootpw(password string) string {
+	out, err := withPasswordFile(password, func(p string) ([]byte, error) {
+		return exec.Command("slappasswd", "-h", "{CRYPT}", "-c", "$6$%.16s", "-T", p).Output()
+	})
+	if err == nil {
+		if h := strings.TrimSpace(string(out)); strings.HasPrefix(h, "{CRYPT}$6$") {
+			return h
+		}
+	}
+	return hashSSHA(password)
+}
+
 func writeDefaultConfig() error {
 	tmpl := template.Must(template.New("slapd").Parse(slapdConfTemplate))
 	var buf bytes.Buffer
 	if err := tmpl.Execute(&buf, map[string]string{
 		"DataDir":       ldapDataDir,
-		"AdminPassword": hashSSHA(AdminPassword()),
+		"AdminPassword": hashRootpw(AdminPassword()),
 	}); err != nil {
 		return err
 	}
@@ -68,7 +86,7 @@ objectClass: top
 objectClass: organizationalUnit
 ou: Groups
 
-`, defaultBaseDN, defaultBaseDN, AdminPassword(), defaultBaseDN, defaultBaseDN)
+`, defaultBaseDN, defaultBaseDN, hashRootpw(AdminPassword()), defaultBaseDN, defaultBaseDN)
 	ldif.WriteString(baseLdif)
 
 	firstNames := []string{"James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda", "David", "Elizabeth", "William", "Barbara", "Richard", "Susan", "Joseph"}

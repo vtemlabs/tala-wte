@@ -1,8 +1,9 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
@@ -92,8 +93,11 @@
 {#if !loading && unsupported.length > 0}
   <div class="error-toast hw-warn">
     <span>
-      Wireless adapter(s) detected without driver support: {unsupported.map((a) => a.name).join(', ')}.
-      Find and install the driver/firmware for {unsupported.length > 1 ? 'these adapters' : 'this adapter'}
+      Wireless adapter(s) detected without driver support: {unsupported
+        .map((a) => a.name)
+        .join(', ')}. Find and install the driver/firmware for {unsupported.length > 1
+        ? 'these adapters'
+        : 'this adapter'}
       before {unsupported.length > 1 ? 'they' : 'it'} can be used as a radio.
     </span>
   </div>

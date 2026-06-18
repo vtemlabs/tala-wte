@@ -111,10 +111,15 @@
       role="toolbar"
       tabindex="-1"
     >
-      <span class="gw-name">{title}{#if minimized} (click to restore){/if}</span>
+      <span class="gw-name"
+        >{title}{#if minimized}
+          (click to restore){/if}</span
+      >
       <div class="gw-win">
         <button onclick={toggleMin} title="Minimize" aria-label="Minimize">-</button>
-        <button onclick={toggleMax} title={maximized ? 'Restore' : 'Maximize'} aria-label="Maximize">▢</button>
+        <button onclick={toggleMax} title={maximized ? 'Restore' : 'Maximize'} aria-label="Maximize"
+          >▢</button
+        >
         <button onclick={close} title="Close" aria-label="Close">×</button>
       </div>
     </div>
@@ -124,9 +129,27 @@
     </div>
 
     {#if !maximized && !minimized}
-      <div class="rz rz-e" onmousedown={(e) => start(e, 'e')} role="separator" tabindex="-1" aria-label="Resize width"></div>
-      <div class="rz rz-s" onmousedown={(e) => start(e, 's')} role="separator" tabindex="-1" aria-label="Resize height"></div>
-      <div class="rz rz-se" onmousedown={(e) => start(e, 'se')} role="separator" tabindex="-1" aria-label="Resize"></div>
+      <div
+        class="rz rz-e"
+        onmousedown={(e) => start(e, 'e')}
+        role="separator"
+        tabindex="-1"
+        aria-label="Resize width"
+      ></div>
+      <div
+        class="rz rz-s"
+        onmousedown={(e) => start(e, 's')}
+        role="separator"
+        tabindex="-1"
+        aria-label="Resize height"
+      ></div>
+      <div
+        class="rz rz-se"
+        onmousedown={(e) => start(e, 'se')}
+        role="separator"
+        tabindex="-1"
+        aria-label="Resize"
+      ></div>
     {/if}
   </div>
 {/if}
