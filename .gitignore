@@ -93,6 +93,5 @@ docs/
 /server
 credentials.txt
 
-
 # Vendored e-terminal (pulled fresh at build time by `make eterminal`)
 internal/eterminal/assets/e-terminal/
