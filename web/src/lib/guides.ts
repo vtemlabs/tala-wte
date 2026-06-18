@@ -37,6 +37,8 @@ Every protocol from broken legacy WEP through WPA3-Enterprise is available, so a
 
 ## Creating a network
 
+![The new-network form](/guide/networks-new.png)
+
 Click **+ New Network** to open the configuration form. It is split into **Network Profile**, **Hardware**, and **Topology** sections, with the live **Protocol Guide** panel alongside.
 
 ### SSID Name
@@ -90,6 +92,8 @@ For non-Enterprise protocols the start is immediate. **Enterprise** protocols al
 
 ## The network detail page
 
+![The network detail page](/guide/network-detail.png)
+
 Opening a network (via its SSID link or **Details**) shows the full operational view.
 
 ### Status strip
@@ -112,6 +116,8 @@ The detail page polls status, clients, and logs every few seconds while running.
 
 ## Enterprise networks and the preflight gate
 
+![The enterprise preflight gate](/guide/networks-preflight.png)
+
 **WPA2-Enterprise** and **WPA3-Enterprise** authenticate per user against a RADIUS server backed by an LDAP directory and TLS certificates, instead of a shared passphrase. Because that backend has to be in place for EAP to work, starting an Enterprise network always opens the **preflight gate** first.
 
 The preflight checks what the Enterprise path needs - the RADIUS service, an LDAP directory with users, and server certificates - and reports anything missing. From the same dialog you can **auto-provision** the missing pieces so the network can start, rather than configuring each service by hand. Once preflight passes, the network starts like any other.
@@ -119,6 +125,8 @@ The preflight checks what the Enterprise path needs - the RADIUS service, an LDA
 To manage these services directly, see the [RADIUS guide](/radius/guide), the [LDAP guide](/ldap/guide), and the [Certificates guide](/certificates/guide).
 
 ## The built-in Protocol Guide
+
+![The Protocol Guide panel](/guide/networks-protocol.png)
 
 Both the new-network form and the detail page carry a **Protocol Guide** panel that updates to match the selected protocol. For each one it explains what the protocol is, what it **provides** and **does not provide**, the known **vulnerability classes** (with CVE references where relevant), the **external tools** you would point at it from another device, and **recommended use cases**. It is an informational reference for planning an exercise; the actual testing is done with external tools against the live network.
 
@@ -219,6 +227,8 @@ serving the access point.
 
 ## Starting a capture
 
+![Start a new capture](/guide/captures-start.png)
+
 The Start New Capture panel has four inputs. Fill them in top to bottom, then
 press **Start Capture**.
 
@@ -286,6 +296,8 @@ whether the session is still running.
 ---
 
 ## The built-in PCAP viewer
+
+![The PCAP analysis view](/guide/capture-analysis.png)
 
 You do not need to leave the app to review a capture. **View** on any stopped
 session opens an in-app viewer with two tabs:
@@ -358,6 +370,8 @@ The **Captive Portals** page is your template library. Each card is a portal you
 
 ## Creating a portal
 
+![Four ways to add a portal](/guide/portals-actions.png)
+
 There are four ways to add a portal. All of them land you in the editor, where you can refine the HTML and preview it live.
 
 ### 1. Clone a built-in template
@@ -393,6 +407,8 @@ Every field a client submits is recorded to **Captured Data** with the client's 
 When a portal is assigned to a network with **Validate credentials** enabled, Tala WTE checks the submitted username and password against the embedded LDAP directory before granting access, exactly like a real credentialed hotspot. The result (\`success\` or \`fail\`) is stored alongside each submission, and failed logins are re-prompted instead of being waved through.
 
 ## Assigning a portal to a network
+
+![Assign a portal in the network form](/guide/portals-assign.png)
 
 A portal does nothing until it is attached to a running **Open** network.
 
@@ -456,6 +472,8 @@ Below the header a status strip reports the directory's coordinates:
 
 ## Directory Provisioning
 
+![Directory provisioning](/guide/ldap-provision.png)
+
 Provisioning **wipes and rebuilds the entire directory** with a fresh set of
 generated users, groups, and credentials. Use it to stand up a believable
 corporate directory in one click instead of adding accounts by hand. Every
@@ -509,6 +527,8 @@ exercise before navigating away.
 
 ## Managing users
 
+![The Users tab](/guide/ldap-users.png)
+
 Below the provisioning panel, the **Users** tab lists every account and lets you
 add or remove them individually.
 
@@ -552,6 +572,8 @@ networks or pass a portal credential check.
 
 ## Groups
 
+![The Groups tab](/guide/ldap-groups.png)
+
 The **Groups** tab lists the directory's groups and lets you create new ones.
 Enter a **Group CN** (for example \`wifi-users\`) and press **Create Group**.
 Each group card shows the group's common name, its full DN, and any members it
@@ -559,6 +581,8 @@ contains. Groups are useful for organizing accounts and for any policy that
 keys off group membership.
 
 ## Test Auth
+
+![The Test Auth tab](/guide/ldap-testauth.png)
 
 The **Test Auth** tab is a quick credential check that runs a real bind against
 the directory, exactly the way RADIUS does during 802.1X. Use it to confirm a
@@ -615,6 +639,8 @@ The badge in the page header shows whether **FreeRADIUS** is currently **running
 
 ## EAP configuration
 
+![EAP configuration](/guide/radius-eap.png)
+
 The **EAP Configuration** panel controls how clients prove who they are. There are three settings.
 
 ### Default EAP Type
@@ -644,6 +670,8 @@ The **Shared Secret** is the password between the **access point** and the **RAD
 Click **Save Configuration** to apply the EAP type, inner method, and shared secret.
 
 ## The authentication chain
+
+![The authentication chain](/guide/radius-chain.png)
 
 The **Authentication Chain** panel diagrams the full end-to-end flow exactly as a client experiences it. From association to a connected session, the path is:
 
@@ -702,6 +730,8 @@ A **certificate authority (CA)** is the trust anchor that signs both. A certific
 
 ## Step 1: Initialize the Certificate Authority
 
+![The certificate authority](/guide/certs-ca.png)
+
 Until a CA exists, the Certificate Authority panel shows a **Required** badge and a single **Initialize CA** button. Click it once.
 
 Initializing the CA produces a self-signed **root CA**. This root is the top of the trust chain: it signs every server and client certificate you issue afterward, and its signature is what makes those certificates verifiable. The page reflects the new state right away:
@@ -715,6 +745,8 @@ Initializing the CA produces a self-signed **root CA**. This root is the top of 
 ---
 
 ## Step 2: Issue a server certificate for FreeRADIUS
+
+![Issue a certificate](/guide/certs-new.png)
 
 In the **New Certificate** panel, set **Type** to **Server (FreeRADIUS)** and give it a **Name**, for example \`radius-server\`. Click **Create Certificate**.
 
@@ -737,6 +769,8 @@ EAP-TLS is the strongest enterprise method because authentication is **mutual** 
 ---
 
 ## The certificates list
+
+![The certificates table](/guide/certs-table.png)
 
 The **Certificates** table at the bottom is the inventory of everything the CA has produced. Each row shows:
 
@@ -775,6 +809,10 @@ A box is put into client mode either at install time (\`tala-wte install-client\
 
 ## The client dashboard
 
+![Connection details](/guide/client-connection.png)
+
+![Wireless adapters](/guide/client-adapters.png)
+
 The Dashboard is the landing page and a live status board for the client:
 
 - **Connection** - **Online** or **Offline**, the joined SSID, and the leased IP address, summarized across the top.
@@ -785,6 +823,8 @@ The Dashboard is the landing page and a live status board for the client:
 The connection state is verified against the radio on every refresh: if the access point goes away (stops, moves, or deauthenticates the client) the dashboard flips to **Offline** rather than showing a stale connection.
 
 ## Joining a network and generating traffic
+
+![Traffic generation status](/guide/client-traffic.png)
 
 Click **Open traffic console** to reach the **Traffic Console**, where you import network configs, connect, and drive the traffic generators and handshake-capture cycling. See the Traffic Console guide for the full workflow.
 
@@ -807,6 +847,8 @@ The **Traffic Console** is where a client joins a network and generates realisti
 
 ## Saved networks
 
+![Saved networks](/guide/traffic-saved.png)
+
 Export a **client config** from any access point on its network detail page, then bring it here. Drop the \`.json\` file on the upload zone or click to browse - each upload is **saved** to a library, so you can keep several networks on hand and switch between them at any time.
 
 - **Connect** on a saved network joins it: the client associates, pulls DHCP, and auto-bypasses a captive portal when the config has one.
@@ -815,6 +857,8 @@ Export a **client config** from any access point on its network detail page, the
 - **Del** removes a saved network from the library.
 
 ## Traffic generation
+
+![Traffic generators](/guide/traffic-generators.png)
 
 Choose which generators run, set the target scope, then **Start traffic**. The generators are:
 
@@ -829,6 +873,8 @@ Choose which generators run, set the target scope, then **Start traffic**. The g
 
 ## Targets and credentials
 
+![Targets and credentials](/guide/traffic-targets.png)
+
 Make the traffic hit hosts you control instead of the built-in defaults:
 
 - **URLs to browse**, **Domains to resolve**, and **IPs to reach** - one entry per line, fed to the web, DNS/domain, and ping generators respectively.
@@ -836,9 +882,13 @@ Make the traffic hit hosts you control instead of the built-in defaults:
 
 ## Handshake capture (reconnect cycling)
 
+![Handshake capture controls](/guide/traffic-handshake.png)
+
 **Reconnect cycling** periodically deauthenticates and reassociates the client so students can capture a fresh WPA four-way handshake on every cycle. Set a **Frequency** (the base interval) and a **Jitter** (a random extra wait added on top so the timing is not perfectly periodic). Use the presets (30s, 1m, 2m, 5m, 15m, 1h) or enter a custom value in seconds, minutes, or hours. **Start cycling** begins; the header shows the live cycle count, and **Stop cycling** ends it while keeping the connection up.
 
 ## Live Log
+
+![The Live Log window](/guide/traffic-livelog.png)
 
 **Live Log** opens a draggable, resizable window streaming the full client activity log - the connection lifecycle (associating, DHCP, portal), which generators started, the reconnect cycles, and every error - so you can watch what the client is doing while you work elsewhere in the console.
 
@@ -861,6 +911,8 @@ Each member authenticates the leader with an **agent key** instead of a login. O
 
 ## Registering a member
 
+![Add a member](/guide/den-add.png)
+
 On the leader's **Den** page, use **Add member**:
 
 - **Name** - any label for the member, for example \`lab-client-1\`.
@@ -870,6 +922,8 @@ On the leader's **Den** page, use **Add member**:
 Once added, the member appears in the **Members** list with a live **Reachable / unreachable** dot and its current state (idle, or connected to a network with its IP and request count). **Del** removes a member from the den.
 
 ## Deploying
+
+![Deploy to a member](/guide/den-members.png)
 
 For each member pick a **network** and a **profile**, then **Deploy**. The profiles bundle the full traffic configuration the leader pushes:
 
@@ -898,13 +952,19 @@ The **Settings** page is the per-box configuration: the role it runs as, the rad
 
 ## Instance role
 
+![The instance role swap](/guide/settings-role.png)
+
 Switch the box between **Server (AP)** and **Client** with one button. Switching persists the chosen role, installs the other role's dependencies, and restarts the service into the new mode; the console disconnects and reloads on its own when it is back, which can take a minute. Server mode broadcasts networks and runs the den leader; client mode joins a network and generates traffic. The persisted role wins over the install-time mode, so a box installed as one role can become the other without reinstalling.
 
 ## Den Agent Key (client mode)
 
+![The den agent key](/guide/settings-agentkey.png)
+
 In client mode the **Den Agent Key** is the control token a den leader uses to drive this client. **Copy key** puts it on your clipboard to paste into a leader's Den page; **Regenerate** issues a new key and revokes any leader still using the old one. See the Den guide.
 
 ## Radio & Network
+
+![Radio and network](/guide/settings-radio.png)
 
 - **Regulatory Domain** - the country hostapd advertises, applied with \`iw reg set\`. It decides which channels are legal and whether 5 GHz / 6 GHz AP mode is allowed; the world domain blocks 5 GHz beaconing, so this must match where the box actually operates.
 - **Uplink Interface** - the interface connected to the internet, used for NAT passthrough on networks that allow it (for example \`eth0\`).
