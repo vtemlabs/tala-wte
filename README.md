@@ -8,6 +8,8 @@
 
 Build realistic wireless environments in minutes, then learn and practice wireless penetration testing against them. Every Wi-Fi security protocol on real radios, captive portals that show what a rogue splash page captures, a full enterprise 802.1X stack, traffic-generating clients you can orchestrate as a den, and in-app packet capture and analysis, all from a single binary and a clean web console.
 
+<img src="images/architecture.png" alt="Tala WTE architecture: the access point and den leader broadcasting to a client pack, an enterprise 802.1X auth backbone (RADIUS, LDAP, CA), and an attacker capturing over the air" width="920">
+
 Free for personal and non-profit use, and the open counterpart to [**TALA**](#background), the VTEM Labs wireless penetration testing platform.
 
 </div>

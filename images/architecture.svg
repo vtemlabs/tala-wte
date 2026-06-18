@@ -1,0 +1,161 @@
+<svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" font-family="'Inter', system-ui, sans-serif">
+  <defs>
+    <radialGradient id="bgGlow" cx="42%" cy="51%" r="58%">
+      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.20"/>
+      <stop offset="42%" stop-color="#1f6feb" stop-opacity="0.06"/>
+      <stop offset="100%" stop-color="#08090c" stop-opacity="0"/>
+    </radialGradient>
+    <radialGradient id="vignette" cx="50%" cy="50%" r="75%">
+      <stop offset="60%" stop-color="#08090c" stop-opacity="0"/>
+      <stop offset="100%" stop-color="#000000" stop-opacity="0.55"/>
+    </radialGradient>
+    <linearGradient id="apGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#58a0ff"/>
+      <stop offset="100%" stop-color="#1f6feb"/>
+    </linearGradient>
+    <linearGradient id="cliGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fbbf6b"/>
+      <stop offset="100%" stop-color="#f97316"/>
+    </linearGradient>
+    <linearGradient id="atkGrad" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0%" stop-color="#fb7185"/>
+      <stop offset="100%" stop-color="#e11d48"/>
+    </linearGradient>
+    <linearGradient id="flowBlue" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#1f6feb" stop-opacity="0.15"/>
+      <stop offset="55%" stop-color="#58a0ff" stop-opacity="0.95"/>
+      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="flowAuth" x1="0" y1="1" x2="0" y2="0">
+      <stop offset="0%" stop-color="#22c55e" stop-opacity="0.85"/>
+      <stop offset="100%" stop-color="#2f81f7" stop-opacity="0.85"/>
+    </linearGradient>
+    <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#58a0ff"/>
+      <stop offset="100%" stop-color="#22d3ee"/>
+    </linearGradient>
+    <filter id="glow" x="-70%" y="-70%" width="240%" height="240%">
+      <feGaussianBlur stdDeviation="6" result="b"/>
+      <feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+    <filter id="bigGlow" x="-120%" y="-120%" width="340%" height="340%">
+      <feGaussianBlur stdDeviation="22"/>
+    </filter>
+    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
+      <path d="M44 0 H0 V44" fill="none" stroke="#20242e" stroke-width="1" stroke-opacity="0.45"/>
+    </pattern>
+    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+      <path d="M0 0 L10 5 L0 10 z" fill="#22d3ee"/>
+    </marker>
+  </defs>
+
+  <!-- backdrop -->
+  <rect width="1600" height="900" fill="#08090c"/>
+  <rect width="1600" height="900" fill="url(#grid)"/>
+  <rect width="1600" height="900" fill="url(#bgGlow)"/>
+
+  <!-- title -->
+  <text x="66" y="88" font-size="42" font-weight="800" letter-spacing="-1" fill="#e8ebf2">TALA WTE</text>
+  <text x="68" y="118" font-size="13" letter-spacing="5" fill="#6b7384" font-family="'JetBrains Mono', monospace">WIRELESS  TRAINING  ENVIRONMENT</text>
+
+  <!-- ====== connectors (under nodes) ====== -->
+  <!-- AP -> auth backbone -->
+  <path d="M640 540 C 640 660, 600 690, 560 768" fill="none" stroke="url(#flowAuth)" stroke-width="3" opacity="0.8" filter="url(#glow)"/>
+  <path d="M640 540 C 640 660, 600 690, 560 768" fill="none" stroke="#9fe7b8" stroke-width="1.4" stroke-dasharray="2 12" opacity="0.9"/>
+
+  <!-- AP -> clients (den) -->
+  <path d="M712 416 C 900 300, 1010 270, 1118 268" fill="none" stroke="url(#flowBlue)" stroke-width="4" filter="url(#glow)" marker-end="url(#arrow)"/>
+  <path d="M722 460 C 950 470, 1080 470, 1262 466" fill="none" stroke="url(#flowBlue)" stroke-width="4" filter="url(#glow)" marker-end="url(#arrow)"/>
+  <path d="M712 504 C 900 620, 1010 652, 1118 672" fill="none" stroke="url(#flowBlue)" stroke-width="4" filter="url(#glow)" marker-end="url(#arrow)"/>
+  <path d="M712 416 C 900 300, 1010 270, 1118 268" fill="none" stroke="#bfe6ff" stroke-width="1.5" stroke-dasharray="3 14" opacity="0.85"/>
+  <path d="M722 460 C 950 470, 1080 470, 1262 466" fill="none" stroke="#bfe6ff" stroke-width="1.5" stroke-dasharray="3 14" opacity="0.85"/>
+  <path d="M712 504 C 900 620, 1010 652, 1118 672" fill="none" stroke="#bfe6ff" stroke-width="1.5" stroke-dasharray="3 14" opacity="0.85"/>
+
+  <!-- attacker intercept beam -->
+  <path d="M286 452 C 380 430, 430 430, 486 442" fill="none" stroke="url(#atkGrad)" stroke-width="3" stroke-dasharray="9 9" opacity="0.85" filter="url(#glow)"/>
+  <text x="372" y="404" font-size="12.5" letter-spacing="1.5" fill="#fb7185" font-family="'JetBrains Mono', monospace" text-anchor="middle">intercept</text>
+
+  <!-- ====== wireless arcs from AP ====== -->
+  <g fill="none" stroke="url(#arcGrad)" stroke-linecap="round" filter="url(#glow)">
+    <path d="M731 387 A 150 150 0 0 1 731 533" stroke-width="3.2" opacity="0.75"/>
+    <path d="M770 350 A 205 205 0 0 1 770 570" stroke-width="2.6" opacity="0.5"/>
+    <path d="M812 312 A 262 262 0 0 1 812 608" stroke-width="2.1" opacity="0.32"/>
+    <path d="M856 274 A 320 320 0 0 1 856 646" stroke-width="1.7" opacity="0.2"/>
+  </g>
+
+  <!-- ====== attacker node ====== -->
+  <circle cx="232" cy="452" r="86" fill="#e11d48" opacity="0.16" filter="url(#bigGlow)"/>
+  <circle cx="232" cy="452" r="50" fill="#101218" stroke="url(#atkGrad)" stroke-width="2.5" filter="url(#glow)"/>
+  <g stroke="#fb7185" stroke-width="2.2" opacity="0.95">
+    <circle cx="232" cy="452" r="22" fill="none"/>
+    <line x1="232" y1="416" x2="232" y2="438"/>
+    <line x1="232" y1="466" x2="232" y2="488"/>
+    <line x1="196" y1="452" x2="218" y2="452"/>
+    <line x1="246" y1="452" x2="268" y2="452"/>
+  </g>
+  <circle cx="232" cy="452" r="3.5" fill="#fb7185"/>
+  <text x="232" y="544" font-size="15" font-weight="700" letter-spacing="2" fill="#fb7185" text-anchor="middle" font-family="'JetBrains Mono', monospace">ATTACKER</text>
+  <text x="232" y="566" font-size="12" fill="#6b7384" text-anchor="middle">capture &#183; crack &#183; evil-twin</text>
+
+  <!-- ====== AP / den leader (wolf) ====== -->
+  <circle cx="640" cy="460" r="120" fill="#2f81f7" opacity="0.18" filter="url(#bigGlow)"/>
+  <circle cx="640" cy="460" r="84" fill="#0d0f14" stroke="url(#apGrad)" stroke-width="3" filter="url(#glow)"/>
+  <circle cx="640" cy="460" r="84" fill="url(#apGrad)" opacity="0.10"/>
+  <!-- angular wolf head -->
+  <g transform="translate(640 458)" filter="url(#glow)">
+    <path d="M-40 -46 L -14 -20 L 0 -30 L 14 -20 L 40 -46 L 33 10 L 0 44 L -33 10 Z" fill="#e8ebf2"/>
+    <path d="M-19 -8 L -7 -8 L -13 4 Z" fill="#1f6feb"/>
+    <path d="M19 -8 L 7 -8 L 13 4 Z" fill="#1f6feb"/>
+    <path d="M0 14 L 6 24 L 0 30 L -6 24 Z" fill="#0d0f14"/>
+  </g>
+  <text x="640" y="582" font-size="15" font-weight="700" letter-spacing="1.5" fill="#93c5fd" text-anchor="middle" font-family="'JetBrains Mono', monospace">ACCESS POINT &#183; DEN LEADER</text>
+  <text x="640" y="604" font-size="12" fill="#6b7384" text-anchor="middle">hostapd &#183; WEP through WPA3-Enterprise</text>
+
+  <!-- ====== den client pack ====== -->
+  <text x="1210" y="150" font-size="15" font-weight="700" letter-spacing="2" fill="#fbbf6b" text-anchor="middle" font-family="'JetBrains Mono', monospace">THE DEN &#183; CLIENT PACK</text>
+  <text x="1210" y="172" font-size="12" fill="#6b7384" text-anchor="middle">traffic generation &#183; saved networks &#183; handshake capture</text>
+  <g>
+    <!-- client template repeated -->
+    <g transform="translate(1140 250)">
+      <circle r="64" fill="#f97316" opacity="0.14" filter="url(#bigGlow)"/>
+      <circle r="44" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.5" filter="url(#glow)"/>
+      <rect x="-20" y="-16" width="40" height="28" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.3"/>
+      <line x1="-9" y1="18" x2="9" y2="18" stroke="#fbbf6b" stroke-width="2.3"/>
+      <circle cx="0" cy="-2" r="3" fill="#fbbf6b"/>
+    </g>
+    <g transform="translate(1310 460)">
+      <circle r="64" fill="#f97316" opacity="0.14" filter="url(#bigGlow)"/>
+      <circle r="44" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.5" filter="url(#glow)"/>
+      <rect x="-20" y="-16" width="40" height="28" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.3"/>
+      <line x1="-9" y1="18" x2="9" y2="18" stroke="#fbbf6b" stroke-width="2.3"/>
+      <circle cx="0" cy="-2" r="3" fill="#fbbf6b"/>
+    </g>
+    <g transform="translate(1140 672)">
+      <circle r="64" fill="#f97316" opacity="0.14" filter="url(#bigGlow)"/>
+      <circle r="44" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.5" filter="url(#glow)"/>
+      <rect x="-20" y="-16" width="40" height="28" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.3"/>
+      <line x1="-9" y1="18" x2="9" y2="18" stroke="#fbbf6b" stroke-width="2.3"/>
+      <circle cx="0" cy="-2" r="3" fill="#fbbf6b"/>
+    </g>
+  </g>
+
+  <!-- ====== enterprise auth backbone ====== -->
+  <text x="372" y="800" font-size="13" font-weight="700" letter-spacing="1.5" fill="#4ade80" text-anchor="end" font-family="'JetBrains Mono', monospace">802.1X / EAP</text>
+  <g font-family="'JetBrains Mono', monospace" font-size="14" text-anchor="middle">
+    <line x1="500" y1="813" x2="940" y2="813" stroke="#22c55e" stroke-width="1.4" stroke-dasharray="2 10" opacity="0.7"/>
+    <g transform="translate(560 813)">
+      <rect x="-66" y="-22" width="132" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.8" filter="url(#glow)"/>
+      <text y="5" fill="#93c5fd">FreeRADIUS</text>
+    </g>
+    <g transform="translate(720 813)">
+      <rect x="-62" y="-22" width="124" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.8" filter="url(#glow)"/>
+      <text y="5" fill="#93c5fd">OpenLDAP</text>
+    </g>
+    <g transform="translate(888 813)">
+      <rect x="-74" y="-22" width="148" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.8" filter="url(#glow)"/>
+      <text y="5" fill="#93c5fd">Cert Authority</text>
+    </g>
+  </g>
+
+  <rect width="1600" height="900" fill="url(#vignette)"/>
+</svg>
