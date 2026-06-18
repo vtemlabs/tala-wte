@@ -179,6 +179,30 @@ func (a *Agent) Logs() []string {
 	return out
 }
 
+// logRaw appends a single raw line (e.g. subprocess output) to the activity log.
+func (a *Agent) logRaw(line string) {
+	a.mu.Lock()
+	a.appendLogLocked(line)
+	a.mu.Unlock()
+}
+
+// agentLogWriter funnels a subprocess's stdout/stderr into the activity log so the
+// Live Log window shows real terminal output (wpa_supplicant, dhclient) the same
+// way the server's network log streams hostapd.
+type agentLogWriter struct {
+	a      *Agent
+	prefix string
+}
+
+func (w *agentLogWriter) Write(p []byte) (int, error) {
+	for _, line := range strings.Split(strings.TrimRight(string(p), "\n"), "\n") {
+		if strings.TrimSpace(line) != "" {
+			w.a.logRaw(w.prefix + line)
+		}
+	}
+	return len(p), nil
+}
+
 // Connect joins the network described by cfg: it associates with wpa_supplicant,
 // pulls a DHCP lease, and gets past a captive portal if one is present.
 func (a *Agent) Connect(cfg Config) error {
@@ -215,7 +239,12 @@ func (a *Agent) Connect(cfg Config) error {
 	}
 
 	a.setEvent("associating with %q", cfg.SSID)
-	wpa := exec.Command("wpa_supplicant", "-i", ifc, "-c", confPath)
+	// -d gives verbose association/EAPOL output, streamed into the activity log so
+	// the Live Log shows real terminal output like the server's hostapd -d.
+	wpa := exec.Command("wpa_supplicant", "-d", "-i", ifc, "-c", confPath)
+	wlw := &agentLogWriter{a: a, prefix: ""}
+	wpa.Stdout = wlw
+	wpa.Stderr = wlw
 	if err := wpa.Start(); err != nil {
 		a.setErr("wpa_supplicant: %v", err)
 		return err
@@ -241,7 +270,7 @@ func (a *Agent) Connect(cfg Config) error {
 	a.setEvent("associated; requesting DHCP lease")
 
 	// DHCP.
-	if err := runDHCP(ifc); err != nil {
+	if err := a.runDHCP(ifc); err != nil {
 		a.setErr("dhcp: %v", err)
 		return err
 	}
@@ -630,11 +659,17 @@ func confEscape(s string) string {
 // runDHCP pulls a lease, retrying because a single attempt right after
 // association often fails (exit 1) before the link has settled enough to pass
 // DHCP. Each attempt is hard-bounded so a stuck client never wedges connect.
-func runDHCP(ifc string) error {
+func (a *Agent) runDHCP(ifc string) error {
 	attempt := func(name string, args ...string) error {
+		a.logRaw("dhcp: running " + name + " " + strings.Join(args, " "))
 		ctx, cancel := context.WithTimeout(context.Background(), 20*time.Second)
 		defer cancel()
 		out, err := exec.CommandContext(ctx, name, args...).CombinedOutput()
+		for _, line := range strings.Split(strings.TrimRight(string(out), "\n"), "\n") {
+			if strings.TrimSpace(line) != "" {
+				a.logRaw("dhclient: " + line)
+			}
+		}
 		if err != nil {
 			msg := strings.TrimSpace(string(out))
 			if len(msg) > 200 {

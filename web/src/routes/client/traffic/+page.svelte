@@ -2,7 +2,8 @@
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
   Free for personal and non-profit use. Commercial, for-profit, and government
-  use require a license from VTEM Labs. See the LICENSE file.
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
@@ -550,8 +551,7 @@
       <div class="stat-cell"><span class="k">Received</span><span class="v" style="font-size:var(--font-size-md)">{fmtBytes(status?.bytes_rx ?? 0)}</span></div>
       <div class="stat-cell"><span class="k">Errors</span><span class="v" style={status?.errors ? 'color:var(--color-yellow)' : ''}>{status?.errors ?? 0}</span></div>
     </div>
-    {#if status?.last_event}<p class="event">{status.last_event}</p>{/if}
-    {#if status?.last_error}<p class="event err">last error: {status.last_error}</p>{/if}
+    <p class="event dim">Open <strong>Live Log</strong> (top right) for full terminal output.</p>
   </div>
 </div>
 

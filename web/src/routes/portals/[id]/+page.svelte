@@ -1,8 +1,9 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { page } from '$app/state';
@@ -74,11 +75,9 @@
     </div>
     <div class="head-actions">
       {#if saved}<span class="badge badge-success">Saved</span>{/if}
-      <a href={portals.previewURL(id)} target="_blank" rel="noopener" class="btn btn-sm"
-        >Open Preview</a
-      >
-      <a href="/portals" class="btn btn-sm">Back</a>
-      <button class="btn btn-primary btn-sm" onclick={save} disabled={saving}
+      <a href={portals.previewURL(id)} target="_blank" rel="noopener" class="btn">Open Preview</a>
+      <a href="/portals" class="btn">Back</a>
+      <button class="btn btn-primary" onclick={save} disabled={saving}
         >{saving ? 'Saving...' : 'Save Changes'}</button
       >
     </div>
