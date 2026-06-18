@@ -2,13 +2,13 @@
 
 <img src="web/static/brand/tala-logo.png" alt="Tala" height="84">
 
-# Tala WTE
+# Wireless Training Environment
 
-**The Wireless Training Environment by VTEM Labs**
+**by VTEM Labs**
 
 <img src="images/architecture.png" alt="Tala WTE architecture: the access point and den leader broadcasting WPA2-Enterprise, open + captive-portal, and hidden + isolated networks to a client pack doing 802.1X auth, portal logins, and traffic, with a FreeRADIUS / OpenLDAP / CA auth backbone and an attacker capturing handshakes and cleartext over the air" width="940">
 
-Build realistic wireless environments in minutes, then learn and practice wireless penetration testing against them. Every Wi-Fi security protocol on real radios, captive portals that show what a rogue splash page captures, a full enterprise 802.1X stack, traffic-generating clients you can orchestrate as a den, and in-app packet capture and analysis, all from a single binary and a clean web console.
+Build realistic wireless environments in minutes, then learn and practice wireless penetration testing against them. Every Wi-Fi security protocol on real radios, captive portals for you to learn how to clone and deploy your own rogue splash page captures, a full enterprise 802.1X stack, traffic-generating clients you can orchestrate as a den, and in-app packet capture and analysis, all from a single binary and a clean web console.
 
 Free for personal and non-profit use, and the open counterpart to [**TALA**](#background), the VTEM Labs wireless penetration testing platform.
 
@@ -26,33 +26,37 @@ The platform has two roles in one binary. An access-point (server) role broadcas
 
 ![Dashboard](images/dashboard.png)
 
+### As a wireless honeypot
+
+The same pieces also make Tala WTE usable as a wireless honeypot. It broadcasts a real, inviting network (an open SSID with a captive portal, or a familiar-looking WPA2 network) that is never silent, because its own clients generate realistic traffic, and it records what happens around it: hostapd logs every association, the captive portal captures any submitted credentials along with the device MAC, IP, and browser, the connected-client list updates live, and the built-in packet capture saves the air for offline analysis. It is built as a training range rather than a hardened sensor, so catching an active attacker (deauthentication floods, offline handshake cracking, and the like) would want alerting beyond what ships today, but as a passive decoy that records who shows up and what they try, the groundwork is already there.
+
 ## Background
 
-Tala WTE is the open training and development counterpart to TALA, the VTEM Labs wireless penetration testing platform. Tala WTE is the safe range you learn and rehearse on; TALA is the platform professionals use to run real wireless penetration tests.
+Tala WTE is the open training and development counterpart to TALA, the VTEM Labs wireless penetration testing platform. Tala WTE is the safe range you learn and rehearse on; **TALA is VTEM Labs' professional wireless penetration testing platform. That is available exclusively (for free) to ARROW customers.**
 
 ### Government variant
 
-A separate, tactical build of TALA serves authorized government, Department of War (DoW), and law enforcement (LEO) operators. It is multi-modal, fusing 802.11, Bluetooth and BLE, cellular, and wideband RF through software-defined radio with GNSS, camera and video, and direction finding, for counter-surveillance, locating and characterizing rogue or surveillance transmitters, pattern-of-life development, and device deconfliction. It runs on specialized collection hardware in man-portable and vehicle-mounted form factors, is export-controlled, and is available only to authorized parties.
+A separate, build of TALA serves authorized government, Department of War (DoW), and law enforcement (LEO) operators. It is multi-modal, fusing 802.11, Bluetooth and BLE, cellular, and wideband RF through software-defined radio with GNSS, camera and video, and direction finding, for counter-surveillance, locating and characterizing rogue or surveillance transmitters, pattern-of-life development, and device deconfliction. It runs on specialized collection hardware in man-portable and vehicle-mounted form factors, is export-controlled, and is available only to authorized parties.
 
-TALA and its government variant are delivered through the VTEM Labs ARROW program; see [Commercial licensing and demos](#commercial-licensing-and-demos).
+TALA and its government variant are delivered through the VTEM Labs; learn more at [VTEMLabs.com](https://vtemlabs.com/contact).
 
 ## Screenshots
 
-| Networks | Network detail and live log |
-| --- | --- |
+| Networks                         | Network detail and live log                  |
+| -------------------------------- | -------------------------------------------- |
 | ![Networks](images/networks.png) | ![Network detail](images/network-detail.png) |
 
-| Captive portals | Captured credentials |
-| --- | --- |
+| Captive portals                        | Captured credentials                       |
+| -------------------------------------- | ------------------------------------------ |
 | ![Captive portals](images/portals.png) | ![Captured data](images/captured-data.png) |
 
-| LDAP directory | RADIUS |
-| --- | --- |
+| LDAP directory           | RADIUS                       |
+| ------------------------ | ---------------------------- |
 | ![LDAP](images/ldap.png) | ![RADIUS](images/radius.png) |
 
-| Traffic generators | The den |
-| --- | --- |
-| ![Traffic generators](images/traffic-generators.png) | ![The den](images/den.png) |
+| Traffic console                                | The den                    |
+| ---------------------------------------------- | -------------------------- |
+| ![Traffic console](images/traffic-console.png) | ![The den](images/den.png) |
 
 ## Features
 
@@ -60,28 +64,28 @@ TALA and its government variant are delivered through the VTEM Labs ARROW progra
 
 Create and broadcast access points across the full range of security protocols, from open and legacy through WPA3 and 802.1X Enterprise. Each network is a real hostapd access point that connecting clients can join and that tools can be pointed at.
 
-| Network type | Authentication | Cipher | Key or credential | Captive portal | Demonstrates |
-| --- | --- | --- | --- | :---: | --- |
-| Open | None | None | None | Yes | Rogue access points, evil-twin attacks, and captive-portal credential harvesting |
-| WEP | Shared key | RC4, 40 or 104-bit | ASCII or hex, auto-fitted to a valid length | No | IV and keystream recovery with FMS, KoreK, and PTW |
-| WPA (TKIP) | Pre-shared key | TKIP over RC4 | Passphrase | No | Legacy TKIP weaknesses and EAPOL handshake capture |
-| WPA2-Personal | Pre-shared key | CCMP / AES | Passphrase | No | 4-way handshake capture, offline dictionary attacks, and PMKID |
-| WPA2 with WPS | Pre-shared key plus WPS | CCMP / AES | Passphrase, WPS enabled | No | WPS PIN brute force and Pixie Dust |
-| WPA3-Personal | SAE | CCMP / AES | Passphrase | No | SAE handshake behavior and the Dragonblood class of issues |
-| WPA3-Transition | SAE with PSK fallback | CCMP / AES | Passphrase | No | Downgrade from WPA3 to WPA2 pre-shared key |
-| WPA2-Enterprise | 802.1X / EAP | CCMP / AES | Directory account, LDAP via RADIUS | No | EAP flows, rogue RADIUS, and enterprise evil-twin credential theft |
-| WPA3-Enterprise | 802.1X / EAP | GCMP-256 / CCMP | Directory account, LDAP via RADIUS | No | Hardened enterprise authentication and certificate-based EAP |
+| Network type    | Authentication          | Cipher             | Key or credential                           | Captive portal | Demonstrates                                                                     |
+| --------------- | ----------------------- | ------------------ | ------------------------------------------- | :------------: | -------------------------------------------------------------------------------- |
+| Open            | None                    | None               | None                                        |      Yes       | Rogue access points, evil-twin attacks, and captive-portal credential harvesting |
+| WEP             | Shared key              | RC4, 40 or 104-bit | ASCII or hex, auto-fitted to a valid length |       No       | IV and keystream recovery with FMS, KoreK, and PTW                               |
+| WPA (TKIP)      | Pre-shared key          | TKIP over RC4      | Passphrase                                  |       No       | Legacy TKIP weaknesses and EAPOL handshake capture                               |
+| WPA2-Personal   | Pre-shared key          | CCMP / AES         | Passphrase                                  |       No       | 4-way handshake capture, offline dictionary attacks, and PMKID                   |
+| WPA2 with WPS   | Pre-shared key plus WPS | CCMP / AES         | Passphrase, WPS enabled                     |       No       | WPS PIN brute force and Pixie Dust                                               |
+| WPA3-Personal   | SAE                     | CCMP / AES         | Passphrase                                  |       No       | SAE handshake behavior and the Dragonblood class of issues                       |
+| WPA3-Transition | SAE with PSK fallback   | CCMP / AES         | Passphrase                                  |       No       | Downgrade from WPA3 to WPA2 pre-shared key                                       |
+| WPA2-Enterprise | 802.1X / EAP            | CCMP / AES         | Directory account, LDAP via RADIUS          |       No       | EAP flows, rogue RADIUS, and enterprise evil-twin credential theft               |
+| WPA3-Enterprise | 802.1X / EAP            | GCMP-256 / CCMP    | Directory account, LDAP via RADIUS          |       No       | Hardened enterprise authentication and certificate-based EAP                     |
 
 Every network also exposes a set of options that tie into the scenario you are building:
 
-| Option | Applies to | Default | Effect |
-| --- | --- | --- | --- |
-| Client isolation | All networks | Off | Blocks station-to-station traffic at the access point so connected clients cannot see or reach each other. Enable it to show segmentation, or leave it off to demonstrate lateral movement between victims on the same network. |
-| Internet passthrough (NAT) | All networks | On | NATs client traffic out the uplink interface so clients reach the internet and pass operating-system connectivity checks. Turn it off to keep the network walled for closed exercises. |
-| Captive portal | Open networks | Off | Redirects client web traffic to a portal page until the client submits, capturing everything entered along with the device MAC, IP, and browser. |
-| Credential validation | Open networks with a portal | Off | Validates portal logins against the embedded LDAP directory before granting access, so the portal behaves like a real credentialed hotspot and records which captured credentials were valid. |
-| Band and channel | All networks | 2.4 GHz | Selectable across 2.4 GHz, 5 GHz, and 6 GHz, constrained to the bands the chosen adapter can actually host as an access point. |
-| Regulatory domain | Global, set in Settings | US | Sets the country hostapd advertises and applies it live, governing which channels are legal and whether 5 GHz and 6 GHz access points are allowed. |
+| Option                     | Applies to                  | Default | Effect                                                                                                                                                                                                                          |
+| -------------------------- | --------------------------- | ------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Client isolation           | All networks                | Off     | Blocks station-to-station traffic at the access point so connected clients cannot see or reach each other. Enable it to show segmentation, or leave it off to demonstrate lateral movement between victims on the same network. |
+| Internet passthrough (NAT) | All networks                | On      | NATs client traffic out the uplink interface so clients reach the internet and pass operating-system connectivity checks. Turn it off to keep the network walled for closed exercises.                                          |
+| Captive portal             | Open networks               | Off     | Redirects client web traffic to a portal page until the client submits, capturing everything entered along with the device MAC, IP, and browser.                                                                                |
+| Credential validation      | Open networks with a portal | Off     | Validates portal logins against the embedded LDAP directory before granting access, so the portal behaves like a real credentialed hotspot and records which captured credentials were valid.                                   |
+| Band and channel           | All networks                | 2.4 GHz | Selectable across 2.4 GHz, 5 GHz, and 6 GHz, constrained to the bands the chosen adapter can actually host as an access point.                                                                                                  |
+| Regulatory domain          | Global, set in Settings     | US      | Sets the country hostapd advertises and applies it live, governing which channels are legal and whether 5 GHz and 6 GHz access points are allowed.                                                                              |
 
 Each protocol page includes a built-in guide that explains what the protocol provides, what it does not, its known vulnerability classes, and the external tools used to exercise it. Every running network streams a live log and shows its connected clients. Every page guide opens in a floating, resizable window so it can be read alongside the controls it describes.
 
@@ -91,7 +95,7 @@ The same binary runs as a client as well as an access point. A one-button switch
 
 ![Client dashboard](images/client-dashboard.png)
 
-The client dashboard shows the live connection, the wireless adapters present, and running traffic statistics. The Traffic Console drives the rest - saved networks, the generators, and handshake-capture cycling:
+The client dashboard shows the live connection, the wireless adapters present, and running traffic statistics. The Traffic Console drives the rest - saved networks, the generators, target and credential lists, and handshake-capture cycling:
 
 ![Saved networks](images/traffic-saved.png)
 
@@ -173,17 +177,17 @@ Access points are brought up with hostapd. Per network isolation is provided thr
 
 ## Software stack
 
-| Layer | Technologies |
-| --- | --- |
-| Backend | Go 1.25, PocketBase 0.36 (embedded database, realtime, and superuser auth), Go standard `net/http` |
-| Frontend | SvelteKit 2 with Svelte 5 (runes), TypeScript 5, Vite 6, `adapter-static` |
-| Packaging | A single Go binary, with the web console, license, and embedded terminal baked in via `go:embed` |
-| Access points | hostapd, iw (regulatory domain and radio control) |
-| Network services | dnsmasq (DHCP and captive DNS), iptables and iproute2 (NAT and per-network Linux namespaces) |
-| Enterprise auth | FreeRADIUS (802.1X / EAP), OpenLDAP (directory), and a built-in certificate authority |
-| Capture and analysis | tshark, tcpdump, and capinfos (Wireshark CLI suite) |
-| Embedded terminal | e-terminal |
-| Build and tooling | Make, pnpm, and cross-compilation for `linux/amd64` and `linux/arm64` |
+| Layer                | Technologies                                                                                       |
+| -------------------- | -------------------------------------------------------------------------------------------------- |
+| Backend              | Go 1.25, PocketBase 0.36 (embedded database, realtime, and superuser auth), Go standard `net/http` |
+| Frontend             | SvelteKit 2 with Svelte 5 (runes), TypeScript 5, Vite 6, `adapter-static`                          |
+| Packaging            | A single Go binary, with the web console, license, and embedded terminal baked in via `go:embed`   |
+| Access points        | hostapd, iw (regulatory domain and radio control)                                                  |
+| Network services     | dnsmasq (DHCP and captive DNS), iptables and iproute2 (NAT and per-network Linux namespaces)       |
+| Enterprise auth      | FreeRADIUS (802.1X / EAP), OpenLDAP (directory), and a built-in certificate authority              |
+| Capture and analysis | tshark, tcpdump, and capinfos (Wireshark CLI suite)                                                |
+| Embedded terminal    | e-terminal                                                                                         |
+| Build and tooling    | Make, pnpm, and cross-compilation for `linux/amd64` and `linux/arm64`                              |
 
 ## Requirements
 
@@ -197,14 +201,14 @@ Tala WTE broadcasts access points in standard AP (master) mode. It does not use 
 
 The adapters below are recognized out of the box and surface their manufacturer, model, chipset, and hostable bands in the interface picker. This is a convenience, not a compatibility list. Unlisted adapters work just as well; they are shown by their driver name, and the server validates the band when a network starts.
 
-| Adapter | Chipset | Bands | Standard |
-| --- | --- | --- | --- |
-| ALFA AWUS036AXM (also Panda AXE3000) | MT7921AU | 2.4 / 5 / 6 GHz | Wi-Fi 6E (a/b/g/n/ac/ax) |
-| ALFA AWUS036ACH | RTL8812AU | 2.4 / 5 GHz | Wi-Fi 5 (a/b/g/n/ac) |
-| ALFA AWUS036ACM (also Panda PAU0D) | MT7612U | 2.4 / 5 GHz | Wi-Fi 5 (a/b/g/n/ac) |
-| ALFA AWUS051NH | RT3572 | 2.4 / 5 GHz | Wi-Fi 4 (a/b/g/n) |
-| Panda PAU09 | RT5572 | 2.4 / 5 GHz | Wi-Fi 4 (a/b/g/n) |
-| ALFA AWUS036NH | RT3070 | 2.4 GHz | Wi-Fi 4 (b/g/n) |
+| Adapter                              | Chipset   | Bands           | Standard                 |
+| ------------------------------------ | --------- | --------------- | ------------------------ |
+| ALFA AWUS036AXM (also Panda AXE3000) | MT7921AU  | 2.4 / 5 / 6 GHz | Wi-Fi 6E (a/b/g/n/ac/ax) |
+| ALFA AWUS036ACH                      | RTL8812AU | 2.4 / 5 GHz     | Wi-Fi 5 (a/b/g/n/ac)     |
+| ALFA AWUS036ACM (also Panda PAU0D)   | MT7612U   | 2.4 / 5 GHz     | Wi-Fi 5 (a/b/g/n/ac)     |
+| ALFA AWUS051NH                       | RT3572    | 2.4 / 5 GHz     | Wi-Fi 4 (a/b/g/n)        |
+| Panda PAU09                          | RT5572    | 2.4 / 5 GHz     | Wi-Fi 4 (a/b/g/n)        |
+| ALFA AWUS036NH                       | RT3070    | 2.4 GHz         | Wi-Fi 4 (b/g/n)          |
 
 The interface picker only offers the bands an adapter can actually host as an AP (for example, a tri-band card that cannot beacon a 6 GHz AP will not list 6 GHz), and falls back to a hostable band if you pick one the radio cannot broadcast.
 
@@ -212,13 +216,13 @@ The interface picker only offers the bands an adapter can actually host as an AP
 
 Install Tala WTE on a clean Linux host. The installer detects the distribution and installs every dependency (hostapd, dnsmasq, FreeRADIUS, OpenLDAP, tshark, and the rest) automatically, so no manual setup is required. A lightweight Debian or Ubuntu server gives the best performance. Kali Linux works if you really want it, but it is not recommended; a clean Debian or Ubuntu is the better choice.
 
-| Distribution | Version | Status |
-| --- | --- | --- |
-| Debian | 13 (Trixie) | Tested, recommended |
-| Ubuntu | 24.04 LTS | Tested, recommended |
-| Ubuntu | 26.04 LTS | Tested |
-| Ubuntu | 22.04 LTS | Tested |
-| Kali Linux | 2026.1 | Tested, not recommended |
+| Distribution | Version     | Status                  |
+| ------------ | ----------- | ----------------------- |
+| Debian       | 13 (Trixie) | Tested, recommended     |
+| Ubuntu       | 24.04 LTS   | Tested, recommended     |
+| Ubuntu       | 26.04 LTS   | Tested                  |
+| Ubuntu       | 22.04 LTS   | Tested                  |
+| Kali Linux   | 2026.1      | Tested, not recommended |
 
 Tested on both arm64 and x86_64. Other current apt-based Debian and Ubuntu derivatives are expected to work, since the installer targets the apt family. The installer resolves dependencies per system: it skips packages an OS or version has dropped or renamed, falls back to per-package installs so one bad package never aborts the rest, and verifies every core capability is present before reporting success.
 
