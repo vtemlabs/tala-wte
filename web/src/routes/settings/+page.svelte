@@ -328,64 +328,6 @@
     </section>
 
     <section class="panel">
-      <div class="panel-head">
-        <h2 class="panel-title">Software Updates</h2>
-        {#if versionInfo?.update_available}<span class="badge badge-success">Update available</span
-          >{/if}
-      </div>
-      <div class="panel-body">
-        <div class="meta-grid">
-          <div class="meta-row">
-            <div class="meta-key">Installed</div>
-            <div class="meta-val">v{displayVersion}</div>
-          </div>
-          {#if versionInfo?.latest}
-            <div class="meta-row">
-              <div class="meta-key">Latest release</div>
-              <div class="meta-val">v{versionInfo.latest}</div>
-            </div>
-          {/if}
-        </div>
-
-        {#if versionInfo?.is_dev}
-          <p class="update-note dim">
-            This is a local development build. In-place updates are disabled; install a released
-            binary to enable them.
-          </p>
-        {:else if updating}
-          <p class="update-note">
-            Installing v{versionInfo?.latest}. The service is restarting and the console will
-            reconnect automatically.
-          </p>
-        {:else if versionInfo?.update_available}
-          <p class="update-note">
-            Version v{versionInfo.latest} is available. Updating downloads the verified binary, replaces
-            the running service, and restarts it.
-          </p>
-          <div class="update-actions">
-            <button class="btn btn-primary btn-sm" onclick={applyUpdate} disabled={updating}
-              >Update to v{versionInfo.latest}</button
-            >
-            {#if versionInfo.release_url}
-              <a
-                class="btn btn-sm"
-                href={versionInfo.release_url}
-                target="_blank"
-                rel="noopener noreferrer">Release notes</a
-              >
-            {/if}
-          </div>
-        {:else if versionInfo?.error}
-          <p class="update-note dim">Could not check for updates ({versionInfo.error}).</p>
-        {:else if versionInfo}
-          <p class="update-note dim">You are running the latest version.</p>
-        {:else}
-          <p class="update-note dim">Checking for updates...</p>
-        {/if}
-      </div>
-    </section>
-
-    <section class="panel">
       <div class="panel-head"><h2 class="panel-title">About &amp; License</h2></div>
       <div class="panel-body">
         <p class="about-line">
@@ -449,6 +391,64 @@
             <div class="meta-val">:8080 (per-network)</div>
           </div>
         </div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Software Updates</h2>
+        {#if versionInfo?.update_available}<span class="badge badge-success">Update available</span
+          >{/if}
+      </div>
+      <div class="panel-body">
+        <div class="meta-grid">
+          <div class="meta-row">
+            <div class="meta-key">Installed</div>
+            <div class="meta-val">v{displayVersion}</div>
+          </div>
+          {#if versionInfo?.latest}
+            <div class="meta-row">
+              <div class="meta-key">Latest release</div>
+              <div class="meta-val">v{versionInfo.latest}</div>
+            </div>
+          {/if}
+        </div>
+
+        {#if versionInfo?.is_dev}
+          <p class="update-note dim">
+            This is a local development build. In-place updates are disabled; install a released
+            binary to enable them.
+          </p>
+        {:else if updating}
+          <p class="update-note">
+            Installing v{versionInfo?.latest}. The service is restarting and the console will
+            reconnect automatically.
+          </p>
+        {:else if versionInfo?.update_available}
+          <p class="update-note">
+            Version v{versionInfo.latest} is available. Updating downloads the verified binary, replaces
+            the running service, and restarts it.
+          </p>
+          <div class="update-actions">
+            <button class="btn btn-primary btn-sm" onclick={applyUpdate} disabled={updating}
+              >Update to v{versionInfo.latest}</button
+            >
+            {#if versionInfo.release_url}
+              <a
+                class="btn btn-sm"
+                href={versionInfo.release_url}
+                target="_blank"
+                rel="noopener noreferrer">Release notes</a
+              >
+            {/if}
+          </div>
+        {:else if versionInfo?.error}
+          <p class="update-note dim">Could not check for updates ({versionInfo.error}).</p>
+        {:else if versionInfo}
+          <p class="update-note dim">You are running the latest version.</p>
+        {:else}
+          <p class="update-note dim">Checking for updates...</p>
+        {/if}
       </div>
     </section>
   </div>
