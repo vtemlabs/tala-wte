@@ -843,8 +843,6 @@ A client can be driven remotely by a **den leader** so you do not have to config
 
 The **Traffic Console** is where a client joins a network and generates realistic traffic against it. It keeps a library of saved networks, runs a set of traffic generators you choose, replays operator-supplied targets and credentials, and can cycle the connection to produce fresh WPA handshakes. Everything it does is real traffic on the wire, so a packet capture on the access point records exactly what a live device would send.
 
-![Traffic console](/guide/traffic.png)
-
 ## Saved networks
 
 ![Saved networks](/guide/traffic-saved.png)

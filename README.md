@@ -48,9 +48,9 @@ TALA and its government variant are delivered through the VTEM Labs ARROW progra
 | --- | --- |
 | ![LDAP](images/ldap.png) | ![RADIUS](images/radius.png) |
 
-| Client traffic console | The den |
+| Traffic generators | The den |
 | --- | --- |
-| ![Traffic console](images/traffic-console.png) | ![The den](images/den.png) |
+| ![Traffic generators](images/traffic-generators.png) | ![The den](images/den.png) |
 
 ## Features
 
@@ -89,9 +89,13 @@ The same binary runs as a client as well as an access point. A one-button switch
 
 ![Client dashboard](images/client-dashboard.png)
 
-The client dashboard shows the live connection, the wireless adapters present, and running traffic statistics. The Traffic Console drives the rest:
+The client dashboard shows the live connection, the wireless adapters present, and running traffic statistics. The Traffic Console drives the rest - saved networks, the generators, and handshake-capture cycling:
 
-![Traffic console](images/traffic-console.png)
+![Saved networks](images/traffic-saved.png)
+
+![Traffic generators](images/traffic-generators.png)
+
+![Handshake capture](images/traffic-handshake.png)
 
 - Six traffic generators: web browsing (HTTP/HTTPS GETs), DNS lookups, ping and intra-LAN chatter, periodic downloads for bandwidth, credential logins replayed in cleartext (HTTP Basic and form POST) so they are capturable, and domain chatter (LLMNR, NBT-NS, and mDNS responder bait).
 - Local and Internet target scope, with operator-supplied URL, domain, IP, and credential lists that augment the built-in mix rather than replacing it.
