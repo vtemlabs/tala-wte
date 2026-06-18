@@ -61,6 +61,16 @@
     } catch {
       /* ignore */
     }
+    // Detect AP vs client mode first (public endpoint) so the chrome and landing
+    // match the role even right after login, when the layout does not remount.
+    // The role redirect is handled reactively below.
+    try {
+      const s = await fetch('/api/wte/system/status').then((r) => r.json());
+      if (s?.mode) mode = s.mode;
+    } catch {
+      /* default to AP nav */
+    }
+
     const currentPath = window.location.pathname;
     if (currentPath === '/login') {
       authChecked = true;
@@ -74,15 +84,6 @@
     }
     authChecked = true;
 
-    // Detect AP vs client mode so the nav and landing page match the role.
-    try {
-      const s = await fetch('/api/wte/system/status').then((r) => r.json());
-      if (s?.mode) mode = s.mode;
-      if (mode === 'client' && window.location.pathname === '/') goto('/client');
-    } catch {
-      /* default to AP nav */
-    }
-
     // Resolve the running version and surface an update dot if a newer release
     // exists. The GitHub check can be slow, so it runs without blocking render.
     system
@@ -94,6 +95,17 @@
       .catch(() => {
         /* offline or check failed; keep the default version */
       });
+  });
+
+  // Client mode hides the AP feature pages but keeps Dashboard, Traffic, Settings,
+  // and Terminal. Bounce the AP-only routes (and "/") to the client dashboard.
+  const CLIENT_ALLOWED = new Set(['/login', '/client', '/settings']);
+  $effect(() => {
+    if (!authChecked || mode !== 'client') return;
+    const p = page.url.pathname;
+    if (!CLIENT_ALLOWED.has(p) && !p.startsWith('/client/')) {
+      goto('/client');
+    }
   });
 
   function isActive(path: string): boolean {
@@ -162,9 +174,16 @@
           <a
             href="/client"
             class="nav-item"
-            class:active={isActive('/client')}
+            class:active={page.url.pathname === '/client'}
             onclick={navClick}
-            title="Client">{@render ic('dashboard')}<span>Client</span></a
+            title="Dashboard">{@render ic('dashboard')}<span>Dashboard</span></a
+          >
+          <a
+            href="/client/traffic"
+            class="nav-item"
+            class:active={isActive('/client/traffic')}
+            onclick={navClick}
+            title="Traffic">{@render ic('captures')}<span>Traffic</span></a
           >
         {:else}
           <a
