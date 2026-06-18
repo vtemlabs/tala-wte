@@ -127,6 +127,7 @@ func clientConnectHandler() func(http.ResponseWriter, *http.Request) {
 			api.WriteErr(w, http.StatusBadRequest, "config has no SSID")
 			return
 		}
+		client.Get().SetReconnect(false, 0, 0) // a new connection clears any prior cycle
 		go func() { _ = client.Get().Connect(cfg) }()
 		api.WriteJSON(w, map[string]any{"status": "connecting", "ssid": cfg.SSID})
 	}
@@ -159,6 +160,7 @@ func clientStopHandler() func(http.ResponseWriter, *http.Request) {
 // clientDisconnectHandler stops traffic and tears down the Wi-Fi connection.
 func clientDisconnectHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		client.Get().SetReconnect(false, 0, 0)
 		client.Get().Stop()
 		api.WriteJSON(w, client.Get().Status())
 	}
@@ -167,6 +169,23 @@ func clientDisconnectHandler() func(http.ResponseWriter, *http.Request) {
 // clientStatusHandler returns the live client status for the console.
 func clientStatusHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		api.WriteJSON(w, client.Get().Status())
+	}
+}
+
+// clientReconnectHandler toggles reconnect cycling (handshake capture): the client
+// periodically deauths and reassociates so students can capture WPA handshakes.
+func clientReconnectHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Enabled          bool    `json:"enabled"`
+			FrequencySeconds float64 `json:"frequency_seconds"`
+			JitterSeconds    float64 `json:"jitter_seconds"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		freq := time.Duration(body.FrequencySeconds * float64(time.Second))
+		jitter := time.Duration(body.JitterSeconds * float64(time.Second))
+		client.Get().SetReconnect(body.Enabled, freq, jitter)
 		api.WriteJSON(w, client.Get().Status())
 	}
 }

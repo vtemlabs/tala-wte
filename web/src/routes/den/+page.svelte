@@ -157,7 +157,7 @@
                 <span class="member-name">{m.name}</span>
                 <span class="mono dim">{m.address}</span>
               </div>
-              <button class="btn btn-sm icon-btn" onclick={() => remove(m)} aria-label="Remove member">&times;</button>
+              <button class="action-btn del-btn" onclick={() => remove(m)} aria-label="Remove member">Del</button>
             </div>
             <div class="member-stat">
               {#if !st}
@@ -175,8 +175,8 @@
                 <option value="">Select network...</option>
                 {#each networkList as n}<option value={n.id}>{n.ssid}</option>{/each}
               </select>
-              <button class="btn btn-primary btn-sm" onclick={() => deploy(m)} disabled={busy === m.id}>Deploy</button>
-              <button class="btn btn-secondary btn-sm" onclick={() => stop(m)} disabled={busy === m.id}>Stop</button>
+              <button class="action-btn btn-success" onclick={() => deploy(m)} disabled={busy === m.id}>Deploy</button>
+              <button class="action-btn btn-danger" onclick={() => stop(m)} disabled={busy === m.id}>Stop</button>
             </div>
           </div>
         {/each}
@@ -254,8 +254,5 @@
   }
   .member-actions .input {
     flex: 1;
-  }
-  .icon-btn {
-    padding: 4px 11px;
   }
 </style>

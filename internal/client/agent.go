@@ -23,13 +23,16 @@ import (
 // Agent owns the single client-mode session: the Wi-Fi connection, portal
 // handling, and the traffic generators. One per process.
 type Agent struct {
-	mu      sync.Mutex
-	cfg     Config
-	opts    TrafficOptions
-	status  Status
-	cancel  context.CancelFunc // stops the traffic generators
-	wpaProc *exec.Cmd
-	iface   string
+	mu          sync.Mutex
+	cfg         Config
+	opts        TrafficOptions
+	status      Status
+	cancel      context.CancelFunc // stops the traffic generators
+	cycleCancel context.CancelFunc // stops the reconnect cycle
+	cycling     bool               // reconnect cycling active (survives Connect's status reset)
+	cycles      int                // completed reconnect cycles
+	wpaProc     *exec.Cmd
+	iface       string
 }
 
 var agent = &Agent{status: Status{Mode: "client", PortalState: "none"}}
@@ -40,7 +43,70 @@ func Get() *Agent { return agent }
 func (a *Agent) snapshot() Status {
 	a.mu.Lock()
 	defer a.mu.Unlock()
-	return a.status
+	s := a.status
+	// Cycle state lives outside status so Connect's status reset does not clear it.
+	s.Cycling = a.cycling
+	s.Cycles = a.cycles
+	return s
+}
+
+// SetReconnect enables or disables reconnect cycling: while enabled, the agent
+// periodically deauths and reassociates so students can capture a fresh WPA
+// handshake each cycle. freq is the base interval; jitter adds a random 0..jitter
+// on top of each wait. Disabling stops the cycle but keeps the connection up.
+func (a *Agent) SetReconnect(enabled bool, freq, jitter time.Duration) {
+	a.mu.Lock()
+	if a.cycleCancel != nil {
+		a.cycleCancel()
+		a.cycleCancel = nil
+	}
+	cfg := a.cfg
+	if !enabled {
+		a.cycling = false
+		a.cycles = 0
+		a.mu.Unlock()
+		a.setEvent("reconnect cycling stopped")
+		return
+	}
+	if cfg.SSID == "" {
+		a.cycling = false
+		a.mu.Unlock()
+		a.setEvent("connect to a network before enabling reconnect cycling")
+		return
+	}
+	if freq < 5*time.Second {
+		freq = 5 * time.Second
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	a.cycleCancel = cancel
+	a.cycling = true
+	a.cycles = 0
+	a.mu.Unlock()
+	go a.reconnectLoop(ctx, cfg, freq, jitter)
+}
+
+// reconnectLoop waits freq (+ up to jitter), then reassociates, repeating until
+// the cycle is cancelled. Connect re-runs the association, producing a handshake.
+func (a *Agent) reconnectLoop(ctx context.Context, cfg Config, freq, jitter time.Duration) {
+	for {
+		wait := freq
+		if jitter > 0 {
+			wait += time.Duration(rand.Int63n(int64(jitter) + 1))
+		}
+		a.setEvent("reconnect cycling: next deauth in %s", wait.Round(time.Second))
+		select {
+		case <-ctx.Done():
+			return
+		case <-time.After(wait):
+		}
+		a.setEvent("reconnect cycle: deauth + reassociate (fresh handshake)")
+		if err := a.Connect(cfg); err != nil {
+			a.setErr("reconnect failed: %v", err)
+		}
+		a.mu.Lock()
+		a.cycles++
+		a.mu.Unlock()
+	}
 }
 
 // Status returns the live client status.

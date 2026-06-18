@@ -78,6 +78,8 @@ type Status struct {
 	Requests    int64  `json:"requests"`
 	BytesRx     int64  `json:"bytes_rx"`
 	Errors      int64  `json:"errors"`
+	Cycling     bool   `json:"cycling"` // reconnect cycling (handshake capture) is active
+	Cycles      int    `json:"cycles"`  // completed reconnect cycles
 	LastError   string `json:"last_error,omitempty"`
 	LastEvent   string `json:"last_event,omitempty"`
 }

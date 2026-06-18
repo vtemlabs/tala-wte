@@ -39,6 +39,19 @@
   let local = $state(true);
   let internet = $state(true);
 
+  // Handshake-capture reconnect cycling: frequency + jitter, each value + unit.
+  let freqValue = $state(2);
+  let freqUnit = $state('m');
+  let jitterValue = $state(15);
+  let jitterUnit = $state('s');
+  const unitSec = (u: string): number => (u === 'h' ? 3600 : u === 'm' ? 60 : 1);
+  function preset(fv: number, fu: string, jv: number, ju: string) {
+    freqValue = fv;
+    freqUnit = fu;
+    jitterValue = jv;
+    jitterUnit = ju;
+  }
+
   // Operator-supplied target lists (one entry per line) and login credentials.
   let urlsText = $state('');
   let domainsText = $state('');
@@ -208,6 +221,42 @@
     busy = '';
   }
 
+  async function applyCycle() {
+    busy = 'cycle';
+    try {
+      const r = await fetch('/api/wte/client/reconnect', {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({
+          enabled: true,
+          frequency_seconds: freqValue * unitSec(freqUnit),
+          jitter_seconds: jitterValue * unitSec(jitterUnit)
+        })
+      });
+      if (!r.ok) throw new Error((await r.json())?.error ?? 'failed');
+      toast.success('Reconnect cycling started');
+      refresh();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to start cycling');
+    }
+    busy = '';
+  }
+  async function stopCycle() {
+    busy = 'cycle';
+    try {
+      await fetch('/api/wte/client/reconnect', {
+        method: 'POST',
+        headers: authHeaders({ 'Content-Type': 'application/json' }),
+        body: JSON.stringify({ enabled: false })
+      });
+      toast.success('Reconnect cycling stopped');
+      refresh();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to stop cycling');
+    }
+    busy = '';
+  }
+
   function fmtBytes(n: number): string {
     if (!n) return '0 B';
     const u = ['B', 'KB', 'MB', 'GB'];
@@ -289,7 +338,7 @@
     <div class="saved-head">
       <span class="sub-label" style="margin:0">Saved networks</span>
       {#if status?.connected}
-        <button class="btn btn-secondary btn-sm" onclick={disconnect} disabled={busy === 'disconnect'}>
+        <button class="action-btn btn-danger" onclick={disconnect} disabled={busy === 'disconnect'}>
           Disconnect
         </button>
       {/if}
@@ -307,15 +356,14 @@
             </div>
             <div class="saved-actions">
               <button
-                class="btn btn-primary btn-sm"
+                class="action-btn"
+                class:btn-success={!isConnected}
                 onclick={() => connectTo(rec)}
                 disabled={busy === 'connect:' + rec.id || isConnected}
               >
                 {busy === 'connect:' + rec.id ? 'Connecting...' : isConnected ? 'Connected' : 'Connect'}
               </button>
-              <button class="btn btn-sm icon-btn" onclick={() => deleteSaved(rec)} aria-label="Delete network"
-                >&times;</button
-              >
+              <button class="action-btn del-btn" onclick={() => deleteSaved(rec)} aria-label="Delete network">Del</button>
             </div>
           </div>
         {/each}
@@ -329,14 +377,7 @@
 <div class="panel section">
   <div class="panel-head">
     <span class="panel-title">Traffic Generation</span>
-    <div class="head-actions">
-      <button class="btn btn-primary btn-sm" onclick={startTraffic} disabled={!status?.connected || busy === 'start'}>
-        {busy === 'start' ? 'Starting...' : 'Start traffic'}
-      </button>
-      <button class="btn btn-secondary btn-sm" onclick={stopTraffic} disabled={!status?.generating || busy === 'stop'}>
-        Stop
-      </button>
-    </div>
+    {#if status?.generating}<span class="count-pill" style="color:var(--color-green)">generating</span>{/if}
   </div>
   <div class="panel-body">
     <div class="sub-label">Traffic types</div>
@@ -376,6 +417,65 @@
         <div><div class="toggle-name">Internet targets</div><div class="field-desc">Public sites and hosts</div></div>
         <input type="checkbox" bind:checked={internet} />
       </div>
+    </div>
+    <div class="btn-row" style="margin-top:var(--space-lg)">
+      <button class="btn btn-primary" onclick={startTraffic} disabled={!status?.connected || busy === 'start'}>
+        {busy === 'start' ? 'Starting...' : 'Start traffic'}
+      </button>
+      <button class="btn btn-secondary" onclick={stopTraffic} disabled={!status?.generating || busy === 'stop'}>
+        Stop
+      </button>
+    </div>
+  </div>
+</div>
+
+<div class="panel section">
+  <div class="panel-head">
+    <span class="panel-title">Handshake Capture</span>
+    {#if status?.cycling}<span class="count-pill" style="color:var(--color-green)">cycling · {status?.cycles ?? 0}</span>{/if}
+  </div>
+  <div class="panel-body stack">
+    <span class="field-desc">Periodically deauth and reassociate so students can capture a fresh WPA handshake each cycle.</span>
+    <div class="cycle-grid">
+      <div class="form-group">
+        <label class="field-label" for="freq">Frequency</label>
+        <div class="dur-row">
+          <input class="input dur-num" id="freq" type="number" min="1" bind:value={freqValue} />
+          <select class="input" bind:value={freqUnit}>
+            <option value="s">seconds</option>
+            <option value="m">minutes</option>
+            <option value="h">hours</option>
+          </select>
+        </div>
+      </div>
+      <div class="form-group">
+        <label class="field-label" for="jit">Jitter (random extra)</label>
+        <div class="dur-row">
+          <input class="input dur-num" id="jit" type="number" min="0" bind:value={jitterValue} />
+          <select class="input" bind:value={jitterUnit}>
+            <option value="s">seconds</option>
+            <option value="m">minutes</option>
+            <option value="h">hours</option>
+          </select>
+        </div>
+      </div>
+    </div>
+    <div class="presets">
+      <span class="field-desc" style="margin:0">Presets:</span>
+      <button class="btn btn-sm" onclick={() => preset(30, 's', 10, 's')}>30s</button>
+      <button class="btn btn-sm" onclick={() => preset(1, 'm', 15, 's')}>1m</button>
+      <button class="btn btn-sm" onclick={() => preset(2, 'm', 15, 's')}>2m</button>
+      <button class="btn btn-sm" onclick={() => preset(5, 'm', 30, 's')}>5m</button>
+      <button class="btn btn-sm" onclick={() => preset(15, 'm', 1, 'm')}>15m</button>
+      <button class="btn btn-sm" onclick={() => preset(1, 'h', 5, 'm')}>1h</button>
+    </div>
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick={applyCycle} disabled={!status?.connected || busy === 'cycle'}>
+        {status?.cycling ? 'Update cycling' : 'Start cycling'}
+      </button>
+      {#if status?.cycling}
+        <button class="btn btn-secondary" onclick={stopCycle} disabled={busy === 'cycle'}>Stop cycling</button>
+      {/if}
     </div>
   </div>
 </div>
@@ -488,8 +588,24 @@
     align-items: center;
     gap: var(--space-sm);
   }
-  .icon-btn {
-    padding: 4px 11px;
+  .cycle-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: var(--space-lg);
+  }
+  .dur-row {
+    display: flex;
+    gap: var(--space-sm);
+  }
+  .dur-num {
+    width: 90px;
+    flex-shrink: 0;
+  }
+  .presets {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
   }
   .mono {
     font-family: var(--font-mono);

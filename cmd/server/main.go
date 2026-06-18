@@ -197,6 +197,7 @@ func main() {
 		se.Router.POST("/api/wte/client/stop", wrapAgent(app, clientStopHandler()))
 		se.Router.POST("/api/wte/client/disconnect", wrapAgent(app, clientDisconnectHandler()))
 		se.Router.GET("/api/wte/client/status", wrapAgent(app, clientStatusHandler()))
+		se.Router.POST("/api/wte/client/reconnect", wrapAgent(app, clientReconnectHandler()))
 		se.Router.GET("/api/wte/client/agent-key", wrapAuth(clientAgentKeyHandler(app)))
 		se.Router.POST("/api/wte/client/agent-key/regenerate", wrapAuth(clientAgentKeyRegenHandler(app)))
 

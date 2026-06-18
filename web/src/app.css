@@ -189,15 +189,19 @@ pre {
 .btn {
 	display: inline-flex;
 	align-items: center;
+	justify-content: center;
 	gap: var(--space-sm);
-	padding: var(--space-sm) var(--space-lg);
+	/* Refined hybrid size: tighter than the old full button, used app-wide so the
+	   server and client match. .btn-sm stays for genuinely compact contextual use. */
+	padding: 0.4375rem 0.9rem;
 	font-family: var(--font-sans);
 	font-size: var(--font-size-sm);
 	font-weight: 500;
+	line-height: 1.2;
 	color: var(--text-primary);
 	background: var(--bg-tertiary);
 	border: 1px solid var(--border-primary);
-	border-radius: var(--radius-md);
+	border-radius: 8px;
 	cursor: pointer;
 	white-space: nowrap;
 	text-decoration: none;
