@@ -6,7 +6,7 @@
 
 **The Wireless Training Environment by VTEM Labs**
 
-Build realistic wireless environments in minutes, then learn and practice wireless penetration testing against them. Every Wi-Fi security protocol on real radios, captive portals that show what a rogue splash page captures, a full enterprise 802.1X stack, and in-app packet capture and analysis, all from a single binary and a clean web console.
+Build realistic wireless environments in minutes, then learn and practice wireless penetration testing against them. Every Wi-Fi security protocol on real radios, captive portals that show what a rogue splash page captures, a full enterprise 802.1X stack, traffic-generating clients you can orchestrate as a den, and in-app packet capture and analysis, all from a single binary and a clean web console.
 
 Free for personal and non-profit use, and the open counterpart to [**TALA**](#background), the VTEM Labs wireless penetration testing platform.
 
@@ -19,6 +19,8 @@ Free for personal and non-profit use, and the open counterpart to [**TALA**](#ba
 Tala WTE turns a single Linux host with a Wi-Fi adapter into a complete wireless lab. You stand up the target networks, captive portals, and enterprise authentication, then practice wireless penetration testing against them. It also serves as a development sandbox for TALA (see Background), covering only 802.11, which is a small subset of TALA's full scope.
 
 Everything ships in one Go binary. The web console, database, captive portal engine, and directory services are embedded, with nothing to install or wire together beyond the binary itself.
+
+The platform has two roles in one binary. An access-point (server) role broadcasts the target networks; a client role joins them and generates realistic traffic so a network is never silent during an exercise. A server can also act as a den leader and orchestrate a whole pack of clients, so a single console drives the entire environment.
 
 ![Dashboard](images/dashboard.png)
 
@@ -45,6 +47,10 @@ TALA and its government variant are delivered through the VTEM Labs ARROW progra
 | LDAP directory | RADIUS |
 | --- | --- |
 | ![LDAP](images/ldap.png) | ![RADIUS](images/radius.png) |
+
+| Client traffic console | The den |
+| --- | --- |
+| ![Traffic console](images/traffic-console.png) | ![The den](images/den.png) |
 
 ## Features
 
@@ -75,7 +81,34 @@ Every network also exposes a set of options that tie into the scenario you are b
 | Band and channel | All networks | 2.4 GHz | Selectable across 2.4 GHz, 5 GHz, and 6 GHz, constrained to the bands the chosen adapter can actually host as an access point. |
 | Regulatory domain | Global, set in Settings | US | Sets the country hostapd advertises and applies it live, governing which channels are legal and whether 5 GHz and 6 GHz access points are allowed. |
 
-Each protocol page includes a built-in guide that explains what the protocol provides, what it does not, its known vulnerability classes, and the external tools used to exercise it. Every running network streams a live log and shows its connected clients.
+Each protocol page includes a built-in guide that explains what the protocol provides, what it does not, its known vulnerability classes, and the external tools used to exercise it. Every running network streams a live log and shows its connected clients. Every page guide opens in a floating, resizable window so it can be read alongside the controls it describes.
+
+### Client mode and traffic generation
+
+The same binary runs as a client as well as an access point. A one-button switch in Settings flips an instance between Server and Client mode; the client uses an orange accent so it is never mistaken for a blue server console. A client joins the access points you stand up and generates realistic traffic against them, so a network is never silent during an exercise.
+
+![Client dashboard](images/client-dashboard.png)
+
+The client dashboard shows the live connection, the wireless adapters present, and running traffic statistics. The Traffic Console drives the rest:
+
+![Traffic console](images/traffic-console.png)
+
+- Six traffic generators: web browsing (HTTP/HTTPS GETs), DNS lookups, ping and intra-LAN chatter, periodic downloads for bandwidth, credential logins replayed in cleartext (HTTP Basic and form POST) so they are capturable, and domain chatter (LLMNR, NBT-NS, and mDNS responder bait).
+- Local and Internet target scope, with operator-supplied URL, domain, IP, and credential lists that augment the built-in mix rather than replacing it.
+- Saved networks: upload client configs exported from the access points, then connect, switch between them, and delete them at will.
+- Handshake-capture reconnect cycling: the client deauthenticates and reassociates on a schedule with a configurable frequency and random jitter, from preset values to custom intervals from seconds to hours, so students can capture a fresh WPA handshake each cycle.
+- A Live Log window that streams the raw wpa_supplicant and dhclient terminal output, the same way the server streams hostapd.
+
+### The Den
+
+A server can act as a den leader and drive a pack of client members, so one operator orchestrates a whole fleet from a single console.
+
+![The den](images/den.png)
+
+- Each client exposes an agent key under its Settings; register a member on the leader by its address and key.
+- Deploy a network's configuration plus a traffic profile (Standard, Full, or Handshake-capture) to any member; the member joins the network and begins generating traffic.
+- Live per-member status shows what each member is connected to and how much traffic it has generated.
+- Stopping a member, or stopping or deleting the network it is on, tears the member down automatically so it stops chasing a network that is gone.
 
 ### Captive portals
 
@@ -115,7 +148,11 @@ A full terminal is built into the console as a draggable, resizable, tabbed wind
 
 ![Settings](images/settings.png)
 
-Configure the regulatory domain and uplink interface, review the running services, and read the license, all from one page.
+Configure the regulatory domain, uplink interface, and default network subnet; switch the instance between Server and Client mode; copy or rotate the den agent key; review the running services; apply software updates; and read the license, all from one page.
+
+### Automatic driver and firmware setup
+
+Installation is hands-off. The installer detects the distribution and version and installs the wireless firmware and drivers it needs automatically, with no manual firmware steps. When an adapter is connected that has no driver support, it is called out both during installation and in the app, so you know to install a driver before that radio can be used. Bundled support covers the common USB adapters listed below as well as the integrated wireless on single-board computers such as the Raspberry Pi 4 and 5 and other common boards.
 
 ## Architecture
 
@@ -231,12 +268,16 @@ Once the account exists, the setup screen becomes a normal sign-in.
 3. For an Open network, attach a captive portal and optionally enable credential validation.
 4. Watch the live log as clients connect, and review harvested credentials under Captured Data.
 5. For enterprise networks, manage directory users under LDAP, confirm the EAP configuration under RADIUS, and issue certificates under Certificates.
+6. To generate traffic, switch an instance to Client mode in Settings (or install a second host as a client), save a network config, and connect; the Traffic Console drives the generators and the handshake-capture cycling.
+7. To orchestrate a fleet, register clients as den members on the server, then deploy a network and traffic profile to each from the Den page.
 
 ## License
 
 Tala WTE is free for personal and non-profit use.
 
-It may not be used for commercial or for-profit purposes, including paid training, paid Capture-the-Flag projects, or use by, for, or on behalf of any for-profit school, institution, company, or organization, or any government or government agency, and it may not be rebranded or claimed as another party's work, without prior written authorization and a license from VTEM Labs. Standing up a for-profit wireless penetration testing course or similar offering and using this platform, or any variant or copy of it, as the infrastructure or training material is expressly prohibited without a paid license.
+Non-profit use at an event (for example, a non-profit CTF) requires prior written approval from VTEM Labs, and the event must display the VTEM Labs logo and "Powered by VTEM Labs" and link to [vtemlabs.com](https://vtemlabs.com).
+
+It may not be used for commercial or for-profit purposes, including paid training, paid Capture-the-Flag projects, or use by, for, or on behalf of any for-profit school, institution, company, or organization, or any government or government agency, and it may not be copied, redistributed, rebranded, or claimed as another party's work, without prior written authorization and a license from VTEM Labs. Standing up a for-profit wireless penetration testing course or similar offering and using this platform, or any variant or copy of it, as the infrastructure or training material is expressly prohibited without a paid license.
 
 See [LICENSE](LICENSE) for the full terms.
 
