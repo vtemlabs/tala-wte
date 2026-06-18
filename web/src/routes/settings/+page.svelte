@@ -30,6 +30,8 @@
   // Instance role (AP vs client) and the one-button swap between them.
   let mode = $state<'ap' | 'client'>('ap');
   let swapping = $state(false);
+  // Den agent key (client mode): the control token a den leader uses to drive this client.
+  let agentKey = $state('');
 
   // The loaded value is folded in below so a region not on this list still shows.
   const COUNTRIES: { code: string; name: string }[] = [
@@ -70,6 +72,11 @@
       if (settingsRes.ap_subnet) apSubnet = settingsRes.ap_subnet;
       const st = await fetch('/api/wte/system/status').then((r) => r.json());
       if (st?.mode) mode = st.mode;
+      if (mode === 'client') {
+        agentKey =
+          (await fetch('/api/wte/client/agent-key', { headers: { Authorization: pb.authStore.token } }).then((r) => r.json()))
+            ?.key ?? '';
+      }
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to load settings');
     }
@@ -172,6 +179,28 @@
     }
   }
 
+  async function regenKey() {
+    if (!confirm('Regenerate the agent key? Any den leader using the old key loses access until you re-add this client.')) {
+      return;
+    }
+    try {
+      agentKey =
+        (await (await fetch('/api/wte/client/agent-key/regenerate', { method: 'POST', headers: { Authorization: pb.authStore.token } })).json())
+          ?.key ?? agentKey;
+      toast.success('Agent key regenerated');
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to regenerate key');
+    }
+  }
+  async function copyKey() {
+    try {
+      await navigator.clipboard.writeText(agentKey);
+      toast.success('Agent key copied');
+    } catch {
+      toast.err('Copy failed');
+    }
+  }
+
   // Poll status until the service is back in the target role, then reload.
   function pollForMode(target: string) {
     let elapsed = 0;
@@ -240,6 +269,20 @@
         </span>
       </div>
     </section>
+
+    {#if mode === 'client'}
+      <section class="panel">
+        <div class="panel-head"><h2 class="panel-title">Den Agent Key</h2></div>
+        <div class="panel-body">
+          <span class="field-desc">Add this client to a den leader using its address and this key.</span>
+          <div class="key-val">{agentKey || 'generating...'}</div>
+          <div class="key-actions">
+            <button class="btn btn-sm btn-secondary" onclick={copyKey}>Copy key</button>
+            <button class="btn btn-sm" onclick={regenKey}>Regenerate</button>
+          </div>
+        </div>
+      </section>
+    {/if}
 
     <section class="panel">
       <div class="panel-head"><h2 class="panel-title">Radio &amp; Network</h2></div>
@@ -423,6 +466,21 @@
     font-size: var(--font-size-lg);
     font-weight: 600;
     color: var(--text-primary);
+  }
+  .key-val {
+    font-family: var(--font-mono);
+    font-size: var(--font-size-sm);
+    color: var(--text-primary);
+    background: var(--bg-input);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: var(--space-sm) var(--space-md);
+    word-break: break-all;
+    margin: var(--space-sm) 0;
+  }
+  .key-actions {
+    display: flex;
+    gap: var(--space-sm);
   }
   .field {
     margin-bottom: var(--space-xl);

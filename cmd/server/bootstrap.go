@@ -157,6 +157,19 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.AutodateField{Name: "created", OnCreate: true},
 			},
 		},
+		{
+			// Den members: client instances this server (the den leader) drives. The
+			// leader reaches each by address using its agent_key and tracks which
+			// network it is currently assigned to.
+			name: "den_members",
+			fields: []core.Field{
+				&core.TextField{Name: "name", Required: true},
+				&core.TextField{Name: "address", Required: true},
+				&core.TextField{Name: "agent_key", Required: true},
+				&core.TextField{Name: "network_id"},
+				&core.AutodateField{Name: "created", OnCreate: true},
+			},
+		},
 	}
 
 	for _, c := range collections {

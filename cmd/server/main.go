@@ -189,12 +189,21 @@ func main() {
 		se.Router.GET("/api/wte/networks/{id}/logs", wrapAuth(sim.LogsHandler(app)))
 		se.Router.GET("/api/wte/networks/{id}/client-config", wrapAuth(clientConfigExportHandler(app)))
 
-		// Client mode: connect to another Tala WTE AP and generate traffic.
-		se.Router.POST("/api/wte/client/connect", wrapAuth(clientConnectHandler()))
-		se.Router.POST("/api/wte/client/start", wrapAuth(clientStartHandler()))
-		se.Router.POST("/api/wte/client/stop", wrapAuth(clientStopHandler()))
-		se.Router.POST("/api/wte/client/disconnect", wrapAuth(clientDisconnectHandler()))
-		se.Router.GET("/api/wte/client/status", wrapAuth(clientStatusHandler()))
+		// Client mode: connect to another Tala WTE AP and generate traffic. These
+		// accept either the member's local superuser or a den leader's agent key,
+		// so the leader can drive the member remotely.
+		se.Router.POST("/api/wte/client/connect", wrapAgent(app, clientConnectHandler()))
+		se.Router.POST("/api/wte/client/start", wrapAgent(app, clientStartHandler()))
+		se.Router.POST("/api/wte/client/stop", wrapAgent(app, clientStopHandler()))
+		se.Router.POST("/api/wte/client/disconnect", wrapAgent(app, clientDisconnectHandler()))
+		se.Router.GET("/api/wte/client/status", wrapAgent(app, clientStatusHandler()))
+		se.Router.GET("/api/wte/client/agent-key", wrapAuth(clientAgentKeyHandler(app)))
+		se.Router.POST("/api/wte/client/agent-key/regenerate", wrapAuth(clientAgentKeyRegenHandler(app)))
+
+		// Den leader: drive registered member clients.
+		se.Router.POST("/api/wte/den/{id}/deploy", wrapAuth(denDeployHandler(app)))
+		se.Router.POST("/api/wte/den/{id}/stop", wrapAuth(denStopHandler(app)))
+		se.Router.GET("/api/wte/den/{id}/status", wrapAuth(denStatusHandler(app)))
 
 		se.Router.GET("/api/wte/enterprise/preflight", wrapAuth(sim.PreflightHandler()))
 		se.Router.POST("/api/wte/enterprise/provision", wrapAuth(sim.ProvisionHandler()))
@@ -243,6 +252,19 @@ func main() {
 		se.Router.POST("/api/wte/radius/config", wrapAuth(radiusConfigHandler(app)))
 
 		return se.Next()
+	})
+
+	// Den teardown propagation: when a network stops or is deleted, disconnect any
+	// den members assigned to it so they stop chasing a network that is gone.
+	app.OnRecordAfterUpdateSuccess("networks").BindFunc(func(e *core.RecordEvent) error {
+		if e.Record.GetString("status") == "stopped" {
+			teardownDenForNetwork(app, e.Record.Id)
+		}
+		return e.Next()
+	})
+	app.OnRecordAfterDeleteSuccess("networks").BindFunc(func(e *core.RecordEvent) error {
+		teardownDenForNetwork(app, e.Record.Id)
+		return e.Next()
 	})
 
 	app.OnBootstrap().BindFunc(func(e *core.BootstrapEvent) error {

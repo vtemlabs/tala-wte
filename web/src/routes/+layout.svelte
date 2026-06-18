@@ -47,6 +47,7 @@
     radius:
       '<circle cx="8" cy="14" r="4"/><path d="M10.8 11.2 20 2"/><path d="m16 6 2.5 2.5"/><path d="m14 8 2.5 2.5"/>',
     cert: '<circle cx="12" cy="9" r="5.2"/><path d="m9 13.4-1 7.6 4-2 4 2-1-7.6"/>',
+    den: '<circle cx="12" cy="5" r="2.6"/><circle cx="5" cy="18" r="2.6"/><circle cx="19" cy="18" r="2.6"/><path d="M11 7.3 6.5 15.6M13 7.3l4.5 8.3"/>',
     settings:
       '<circle cx="12" cy="12" r="3.2"/><path d="M19.4 13.5a1.7 1.7 0 0 0 .3 1.9l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-2.9 1.2V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-2.9-1.2l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0-1.2-2.9H3a2 2 0 1 1 0-4h.1A1.7 1.7 0 0 0 4.3 7l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.9.3 1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.9-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.9 1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/>',
     terminal:
@@ -207,6 +208,13 @@
           class:active={isActive('/portals') && !page.url.pathname.startsWith('/portals/captured')}
           onclick={navClick}
           title="Captive Portals">{@render ic('portal')}<span>Captive Portals</span></a
+        >
+        <a
+          href="/den"
+          class="nav-item"
+          class:active={isActive('/den')}
+          onclick={navClick}
+          title="Den">{@render ic('den')}<span>Den</span></a
         >
         <div class="nav-group-label">Monitoring</div>
         <a
