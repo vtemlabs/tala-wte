@@ -1,8 +1,9 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   interface Props {
@@ -115,8 +116,7 @@
       vulns: [
         {
           title: 'Beck-Tews / Ohigashi-Morii (TKIP)',
-          desc: 'Partial plaintext recovery of short TKIP packets; limited injection possible.',
-          cve: 'CVE-2008-2476'
+          desc: 'Partial plaintext recovery of short TKIP packets; limited injection possible against QoS channels.'
         },
         {
           title: 'KRACK - Key Reinstallation',
@@ -191,8 +191,7 @@
       vulns: [
         {
           title: 'Pixie Dust Attack',
-          desc: 'Many chipsets (Ralink, Broadcom pre-2014) used weak RNG for WPS nonces. Offline crack in seconds with pixiewps.',
-          cve: 'CVE-2014-9483'
+          desc: 'Many chipsets (Ralink, Broadcom, Realtek pre-2014) used weak RNG for the WPS E-S1/E-S2 nonces, so the PIN is recoverable offline in seconds with pixiewps.'
         },
         {
           title: 'Online PIN Brute Force',
@@ -309,12 +308,12 @@
           desc: 'Revoked client certs may still authenticate if CRL checking is not enforced.'
         },
         {
-          title: 'Android PEAP Heap Overflow',
-          cve: 'CVE-2021-0326',
-          desc: 'WPA2 EAP PEAP client heap overflow in Android.'
+          title: 'Blast-RADIUS',
+          desc: 'RADIUS over UDP without Message-Authenticator is forgeable via an MD5 chosen-prefix collision, letting an on-path attacker turn an Access-Reject into an Access-Accept.',
+          cve: 'CVE-2024-3596'
         }
       ],
-      tools: ['eaphammer', 'hostapd-wpe', 'asleap', 'hashcat -m 5600 (NetNTLMv2)', 'eapol_test'],
+      tools: ['eaphammer', 'hostapd-wpe', 'asleap', 'hashcat -m 5500 (MSCHAPv2)', 'eapol_test'],
       useCases: [
         'Corporate network simulation',
         'PEAP credential harvest demonstration',

@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 package client
 
@@ -111,8 +112,35 @@ func (a *Agent) reconnectLoop(ctx context.Context, cfg Config, freq, jitter time
 	}
 }
 
-// Status returns the live client status.
-func (a *Agent) Status() Status { return a.snapshot() }
+// Status returns the live client status. If we believe we are connected but the
+// radio link is actually down (the AP stopped, moved, or deauthed us), mark it
+// disconnected so the reported state matches reality. Skipped during a reconnect
+// cycle, which manages the link itself.
+func (a *Agent) Status() Status {
+	a.mu.Lock()
+	connected := a.status.Connected
+	cycling := a.cycling
+	iface := a.status.Interface
+	a.mu.Unlock()
+	if connected && !cycling && iface != "" && !linkUp(iface) {
+		a.mu.Lock()
+		dropped := a.status.Connected
+		a.status.Connected = false
+		a.status.IP = ""
+		a.status.PortalState = "none"
+		a.mu.Unlock()
+		if dropped {
+			a.setEvent("lost connection: access point no longer reachable")
+		}
+	}
+	return a.snapshot()
+}
+
+// linkUp reports whether the wireless interface currently has an associated link.
+func linkUp(iface string) bool {
+	b, err := os.ReadFile("/sys/class/net/" + iface + "/carrier")
+	return err == nil && strings.TrimSpace(string(b)) == "1"
+}
 
 func (a *Agent) setEvent(format string, args ...any) {
 	msg := fmt.Sprintf(format, args...)
