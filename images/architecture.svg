@@ -1,52 +1,29 @@
 <svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" font-family="'Inter', system-ui, sans-serif">
   <defs>
-    <radialGradient id="bgGlow" cx="39%" cy="45%" r="52%">
-      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.22"/>
-      <stop offset="45%" stop-color="#1f6feb" stop-opacity="0.06"/>
+    <radialGradient id="bgGlow" cx="26%" cy="48%" r="42%">
+      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.16"/>
+      <stop offset="60%" stop-color="#1f6feb" stop-opacity="0.04"/>
       <stop offset="100%" stop-color="#08090c" stop-opacity="0"/>
     </radialGradient>
-    <radialGradient id="wolfHalo" cx="50%" cy="50%" r="50%">
-      <stop offset="0%" stop-color="#58a0ff" stop-opacity="0.30"/>
-      <stop offset="55%" stop-color="#2f81f7" stop-opacity="0.10"/>
-      <stop offset="100%" stop-color="#2f81f7" stop-opacity="0"/>
-    </radialGradient>
-    <radialGradient id="vignette" cx="50%" cy="50%" r="74%">
-      <stop offset="62%" stop-color="#08090c" stop-opacity="0"/>
-      <stop offset="100%" stop-color="#000000" stop-opacity="0.6"/>
-    </radialGradient>
-    <linearGradient id="cliGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#fbbf6b"/><stop offset="100%" stop-color="#f97316"/>
+    <linearGradient id="line" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.35"/>
+      <stop offset="100%" stop-color="#58a0ff" stop-opacity="0.95"/>
     </linearGradient>
-    <linearGradient id="atkGrad" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0%" stop-color="#fb7185"/><stop offset="100%" stop-color="#e11d48"/>
-    </linearGradient>
-    <linearGradient id="flowBlue" x1="0" y1="0" x2="1" y2="0">
-      <stop offset="0%" stop-color="#1f6feb" stop-opacity="0.15"/>
-      <stop offset="55%" stop-color="#58a0ff" stop-opacity="0.95"/>
-      <stop offset="100%" stop-color="#22d3ee" stop-opacity="0.85"/>
-    </linearGradient>
-    <linearGradient id="flowAuth" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.9"/>
-      <stop offset="100%" stop-color="#22c55e" stop-opacity="0.85"/>
-    </linearGradient>
-    <linearGradient id="arcGrad" x1="0" y1="0" x2="1" y2="0">
+    <linearGradient id="arc" x1="0" y1="0" x2="1" y2="0">
       <stop offset="0%" stop-color="#58a0ff"/><stop offset="100%" stop-color="#22d3ee"/>
     </linearGradient>
-    <filter id="glow" x="-70%" y="-70%" width="240%" height="240%">
-      <feGaussianBlur stdDeviation="5" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
+    <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
+    <filter id="wolfGlow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
-    <filter id="wolfGlow" x="-40%" y="-40%" width="180%" height="180%">
-      <feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
-    </filter>
-    <filter id="bigGlow" x="-120%" y="-120%" width="340%" height="340%"><feGaussianBlur stdDeviation="20"/></filter>
-    <pattern id="grid" width="44" height="44" patternUnits="userSpaceOnUse">
-      <path d="M44 0 H0 V44" fill="none" stroke="#20242e" stroke-width="1" stroke-opacity="0.4"/>
+    <pattern id="grid" width="46" height="46" patternUnits="userSpaceOnUse">
+      <path d="M46 0 H0 V46" fill="none" stroke="#20242e" stroke-width="1" stroke-opacity="0.35"/>
     </pattern>
-    <marker id="arrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="#22d3ee"/>
+    <marker id="ar" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 1 L9 5 L0 9" fill="none" stroke="#58a0ff" stroke-width="1.6"/>
     </marker>
-    <marker id="rarrow" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
-      <path d="M0 0 L10 5 L0 10 z" fill="#fb7185"/>
+    <marker id="arR" viewBox="0 0 10 10" refX="7" refY="5" markerWidth="6.5" markerHeight="6.5" orient="auto-start-reverse">
+      <path d="M0 1 L9 5 L0 9" fill="none" stroke="#fb7185" stroke-width="1.6"/>
     </marker>
   </defs>
 
@@ -55,104 +32,110 @@
   <rect width="1600" height="900" fill="url(#bgGlow)"/>
 
   <!-- title -->
-  <text x="66" y="86" font-size="40" font-weight="800" letter-spacing="-1" fill="#e8ebf2">TALA WTE</text>
-  <text x="68" y="115" font-size="12.5" letter-spacing="5" fill="#6b7384" font-family="'JetBrains Mono', monospace">WIRELESS  TRAINING  ENVIRONMENT</text>
+  <text x="64" y="74" font-size="38" font-weight="800" letter-spacing="-1" fill="#e8ebf2">TALA WTE</text>
+  <text x="66" y="101" font-size="12.5" letter-spacing="4.5" fill="#6b7384" font-family="'JetBrains Mono', monospace">WIRELESS  TRAINING  ENVIRONMENT</text>
 
-  <!-- radar rings + halo behind wolf -->
-  <circle cx="620" cy="402" r="300" fill="url(#wolfHalo)"/>
-  <g fill="none" stroke="#2f81f7" stroke-opacity="0.18">
-    <circle cx="620" cy="402" r="210"/><circle cx="620" cy="402" r="264"/><circle cx="620" cy="402" r="318"/>
-  </g>
-  <path d="M620 402 L620 84 A318 318 0 0 1 845 178 Z" fill="url(#arcGrad)" opacity="0.06"/>
+  <!-- ============ connectors (behind cards) ============ -->
+  <!-- AP -> networks -->
+  <path d="M520 360 C 580 250, 600 212, 624 212" fill="none" stroke="url(#line)" stroke-width="1.8"/>
+  <path d="M536 412 C 590 360, 600 360, 624 360" fill="none" stroke="url(#line)" stroke-width="1.8"/>
+  <path d="M520 464 C 580 510, 600 508, 624 508" fill="none" stroke="url(#line)" stroke-width="1.8"/>
+  <!-- networks -> den -->
+  <path d="M1006 212 L 1118 212" fill="none" stroke="url(#line)" stroke-width="1.8" marker-end="url(#ar)"/>
+  <path d="M1006 360 L 1118 360" fill="none" stroke="url(#line)" stroke-width="1.8" marker-end="url(#ar)"/>
+  <path d="M1006 508 L 1118 508" fill="none" stroke="url(#line)" stroke-width="1.8" marker-end="url(#ar)"/>
+  <!-- AP -> auth -->
+  <path d="M348 556 C 320 640, 300 670, 300 716" fill="none" stroke="#2f81f7" stroke-width="1.8" stroke-opacity="0.65"/>
+  <!-- attacker capture beam (taps the air, points at the den) -->
+  <path d="M716 168 C 820 230, 980 250, 1108 232" fill="none" stroke="#fb7185" stroke-width="1.8" stroke-dasharray="8 7" opacity="0.85" marker-end="url(#arR)"/>
 
-  <!-- ===== connectors (under nodes) ===== -->
-  <!-- attacker captures the den's over-the-air traffic -->
-  <path d="M205 352 C 440 90, 1060 78, 1308 230" fill="none" stroke="url(#atkGrad)" stroke-width="2.5" stroke-dasharray="10 8" opacity="0.8" filter="url(#glow)" marker-end="url(#rarrow)"/>
-  <text x="745" y="58" font-size="12.5" letter-spacing="1.5" fill="#fb7185" font-family="'JetBrains Mono', monospace" text-anchor="middle">OVER-THE-AIR CAPTURE &#183; handshakes + cleartext</text>
-  <!-- wolf -> networks -->
-  <path d="M792 300 C 840 250, 858 240, 872 233" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)"/>
-  <path d="M806 402 C 845 402, 858 402, 872 402" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)"/>
-  <path d="M792 504 C 840 554, 858 564, 872 571" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)"/>
-  <!-- networks -> clients -->
-  <path d="M1138 233 C 1230 233, 1250 233, 1300 233" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)" marker-end="url(#arrow)"/>
-  <path d="M1138 402 C 1230 402, 1250 402, 1300 402" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)" marker-end="url(#arrow)"/>
-  <path d="M1138 571 C 1230 571, 1250 571, 1300 571" fill="none" stroke="url(#flowBlue)" stroke-width="3.4" filter="url(#glow)" marker-end="url(#arrow)"/>
-  <!-- den activity: auth attempts, logins, traffic -->
-  <g font-family="'JetBrains Mono', monospace" font-size="10.5" text-anchor="middle" letter-spacing="0.5">
-    <text x="1219" y="215" fill="#7fe3f4">802.1X AUTH</text>
-    <text x="1219" y="384" fill="#fbbf6b">PORTAL LOGIN</text>
-    <text x="1219" y="553" fill="#9fe7b8">SENDING TRAFFIC</text>
-  </g>
-  <!-- AP -> auth backbone: 802.1X auth attempts validated against RADIUS/LDAP -->
-  <path d="M548 556 C 545 650, 552 745, 558 800" fill="none" stroke="url(#flowAuth)" stroke-width="2.6" opacity="0.85" filter="url(#glow)"/>
-  <text x="498" y="706" font-size="11" letter-spacing="0.5" fill="#4ade80" font-family="'JetBrains Mono', monospace" text-anchor="end">auth attempts</text>
-
-  <!-- wireless arcs from wolf -->
-  <g fill="none" stroke="url(#arcGrad)" stroke-linecap="round" filter="url(#glow)">
-    <path d="M793 318 A 230 230 0 0 1 793 486" stroke-width="3" opacity="0.55"/>
-    <path d="M832 282 A 290 290 0 0 1 832 522" stroke-width="2.3" opacity="0.34"/>
-    <path d="M872 246 A 352 352 0 0 1 872 558" stroke-width="1.8" opacity="0.2"/>
+  <!-- wireless arcs from AP -->
+  <g fill="none" stroke="url(#arc)" stroke-linecap="round">
+    <path d="M515 318 A 178 178 0 0 1 515 486" stroke-width="2.4" opacity="0.5"/>
+    <path d="M548 286 A 224 224 0 0 1 548 518" stroke-width="1.9" opacity="0.3"/>
+    <path d="M582 252 A 272 272 0 0 1 582 552" stroke-width="1.5" opacity="0.18"/>
   </g>
 
-  <!-- ===== attacker ===== -->
-  <circle cx="160" cy="398" r="80" fill="#e11d48" opacity="0.15" filter="url(#bigGlow)"/>
-  <circle cx="160" cy="398" r="48" fill="#101218" stroke="url(#atkGrad)" stroke-width="2.4" filter="url(#glow)"/>
-  <g stroke="#fb7185" stroke-width="2.1" opacity="0.95">
-    <circle cx="160" cy="398" r="21" fill="none"/>
-    <line x1="160" y1="364" x2="160" y2="384"/><line x1="160" y1="412" x2="160" y2="432"/>
-    <line x1="126" y1="398" x2="146" y2="398"/><line x1="174" y1="398" x2="194" y2="398"/>
-  </g>
-  <circle cx="160" cy="398" r="3.3" fill="#fb7185"/>
-  <text x="160" y="488" font-size="14.5" font-weight="700" letter-spacing="2" fill="#fb7185" text-anchor="middle" font-family="'JetBrains Mono', monospace">ATTACKER</text>
-  <text x="160" y="509" font-size="11.5" fill="#6b7384" text-anchor="middle">capture &#183; crack &#183; evil-twin</text>
+  <!-- ============ wolf: access point / den leader ============ -->
+  <circle cx="372" cy="402" r="196" fill="#2f81f7" opacity="0.12" filter="url(#soft)"/>
+  <image href="tala-wolf-radar.png" x="222" y="252" width="300" height="300" opacity="0.97" filter="url(#wolfGlow)"/>
+  <text x="372" y="600" font-size="14" font-weight="700" letter-spacing="1.4" fill="#93c5fd" text-anchor="middle" font-family="'JetBrains Mono', monospace">ACCESS POINT &#183; DEN LEADER</text>
+  <text x="372" y="621" font-size="11" fill="#6b7384" text-anchor="middle" font-family="'JetBrains Mono', monospace">hostapd &#183; WEP &#8594; WPA3-Enterprise</text>
 
-  <!-- ===== wolf: AP / den leader ===== -->
-  <image href="tala-wolf-radar.png" x="437" y="219" width="366" height="366" opacity="0.96" filter="url(#wolfGlow)"/>
-  <text x="620" y="634" font-size="15" font-weight="700" letter-spacing="1.6" fill="#93c5fd" text-anchor="middle" font-family="'JetBrains Mono', monospace">ACCESS POINT &#183; DEN LEADER</text>
-  <text x="620" y="656" font-size="11.5" fill="#6b7384" text-anchor="middle" font-family="'JetBrains Mono', monospace">WEP &#8594; WPA3-Enterprise &#183; NAT &#183; per-network isolation</text>
-
-  <!-- ===== network capsules (SSIDs + features) ===== -->
+  <!-- ============ networks (app-style rows) ============ -->
+  <text x="624" y="150" font-size="12.5" font-weight="700" letter-spacing="2" fill="#6b7384" font-family="'JetBrains Mono', monospace">NETWORKS</text>
   <g font-family="'JetBrains Mono', monospace">
     <!-- enterprise -->
-    <g transform="translate(875 233)">
-      <rect x="0" y="-33" width="263" height="66" rx="11" fill="#101218" stroke="#2b303c" stroke-width="1.5" filter="url(#glow)"/>
-      <text x="18" y="-6" font-size="16" font-weight="600" fill="#e8ebf2" font-family="'Inter', sans-serif">Acme-Corp</text>
-      <rect x="18" y="6" width="160" height="20" rx="5" fill="#a855f7" fill-opacity="0.16" stroke="#a855f7" stroke-width="1"/>
-      <text x="28" y="20" font-size="11" fill="#c4b5fd">WPA2-ENTERPRISE</text>
+    <g transform="translate(624 212)">
+      <rect x="0" y="-38" width="382" height="76" rx="11" fill="#101218" stroke="#20242e" stroke-width="1.2"/>
+      <circle cx="26" cy="0" r="4.5" fill="#22c55e"/>
+      <text x="46" y="-6" font-size="17" font-weight="600" fill="#e8ebf2" font-family="'Inter', sans-serif">Acme-Corp</text>
+      <rect x="46" y="8" width="152" height="20" rx="5" fill="#a855f7" fill-opacity="0.15" stroke="#a855f7" stroke-opacity="0.7" stroke-width="1"/>
+      <text x="58" y="22" font-size="10.5" fill="#c4b5fd">WPA2-ENTERPRISE</text>
     </g>
-    <!-- captive portal -->
-    <g transform="translate(875 402)">
-      <rect x="0" y="-33" width="263" height="66" rx="11" fill="#101218" stroke="#2b303c" stroke-width="1.5" filter="url(#glow)"/>
-      <text x="18" y="-6" font-size="16" font-weight="600" fill="#e8ebf2" font-family="'Inter', sans-serif">Acme-Guest</text>
-      <rect x="18" y="6" width="186" height="20" rx="5" fill="#f97316" fill-opacity="0.16" stroke="#f97316" stroke-width="1"/>
-      <text x="28" y="20" font-size="11" fill="#fbbf6b">OPEN &#183; CAPTIVE PORTAL</text>
+    <!-- open + captive portal -->
+    <g transform="translate(624 360)">
+      <rect x="0" y="-38" width="382" height="76" rx="11" fill="#101218" stroke="#20242e" stroke-width="1.2"/>
+      <circle cx="26" cy="0" r="4.5" fill="#22c55e"/>
+      <text x="46" y="-6" font-size="17" font-weight="600" fill="#e8ebf2" font-family="'Inter', sans-serif">Acme-Guest</text>
+      <rect x="46" y="8" width="54" height="20" rx="5" fill="#f97316" fill-opacity="0.15" stroke="#f97316" stroke-opacity="0.7" stroke-width="1"/>
+      <text x="73" y="22" font-size="10.5" fill="#fbbf6b" text-anchor="middle">OPEN</text>
+      <rect x="108" y="8" width="124" height="20" rx="5" fill="#f97316" fill-opacity="0.15" stroke="#f97316" stroke-opacity="0.7" stroke-width="1"/>
+      <text x="170" y="22" font-size="10.5" fill="#fbbf6b" text-anchor="middle">CAPTIVE PORTAL</text>
     </g>
     <!-- hidden + isolated -->
-    <g transform="translate(875 571)">
-      <rect x="0" y="-33" width="263" height="66" rx="11" fill="#0c0e13" stroke="#2b303c" stroke-width="1.5" stroke-dasharray="6 5" filter="url(#glow)"/>
-      <text x="18" y="-6" font-size="16" font-weight="600" fill="#9aa3b4" font-family="'Inter', sans-serif">Conference-5G</text>
-      <rect x="18" y="6" width="214" height="20" rx="5" fill="#22d3ee" fill-opacity="0.14" stroke="#22d3ee" stroke-width="1"/>
-      <text x="28" y="20" font-size="11" fill="#7fe3f4">WPA3 &#183; HIDDEN &#183; ISOLATED</text>
+    <g transform="translate(624 508)">
+      <rect x="0" y="-38" width="382" height="76" rx="11" fill="#0c0e13" stroke="#20242e" stroke-width="1.2" stroke-dasharray="5 4"/>
+      <circle cx="26" cy="0" r="4.5" fill="#6b7384"/>
+      <text x="46" y="-6" font-size="17" font-weight="600" fill="#9aa3b4" font-family="'Inter', sans-serif">Conference-5G</text>
+      <rect x="46" y="8" width="54" height="20" rx="5" fill="#22d3ee" fill-opacity="0.13" stroke="#22d3ee" stroke-opacity="0.6" stroke-width="1"/>
+      <text x="73" y="22" font-size="10.5" fill="#7fe3f4" text-anchor="middle">WPA3</text>
+      <rect x="108" y="8" width="72" height="20" rx="5" fill="#22d3ee" fill-opacity="0.13" stroke="#22d3ee" stroke-opacity="0.6" stroke-width="1"/>
+      <text x="144" y="22" font-size="10.5" fill="#7fe3f4" text-anchor="middle">HIDDEN</text>
+      <rect x="188" y="8" width="78" height="20" rx="5" fill="#22d3ee" fill-opacity="0.13" stroke="#22d3ee" stroke-opacity="0.6" stroke-width="1"/>
+      <text x="227" y="22" font-size="10.5" fill="#7fe3f4" text-anchor="middle">ISOLATED</text>
     </g>
   </g>
 
-  <!-- ===== client pack / den ===== -->
-  <text x="1345" y="120" font-size="14.5" font-weight="700" letter-spacing="2" fill="#fbbf6b" text-anchor="middle" font-family="'JetBrains Mono', monospace">THE DEN</text>
-  <text x="1345" y="141" font-size="11" fill="#6b7384" text-anchor="middle">auth &#183; logins &#183; traffic &#183; handshakes</text>
-  <g>
-    <g transform="translate(1345 233)"><circle r="58" fill="#f97316" opacity="0.13" filter="url(#bigGlow)"/><circle r="40" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.4" filter="url(#glow)"/><rect x="-18" y="-15" width="36" height="26" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.2"/><line x1="-8" y1="16" x2="8" y2="16" stroke="#fbbf6b" stroke-width="2.2"/><circle cx="0" cy="-2" r="2.6" fill="#fbbf6b"/></g>
-    <g transform="translate(1345 402)"><circle r="58" fill="#f97316" opacity="0.13" filter="url(#bigGlow)"/><circle r="40" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.4" filter="url(#glow)"/><rect x="-18" y="-15" width="36" height="26" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.2"/><line x1="-8" y1="16" x2="8" y2="16" stroke="#fbbf6b" stroke-width="2.2"/><circle cx="0" cy="-2" r="2.6" fill="#fbbf6b"/></g>
-    <g transform="translate(1345 571)"><circle r="58" fill="#f97316" opacity="0.13" filter="url(#bigGlow)"/><circle r="40" fill="#0d0f14" stroke="url(#cliGrad)" stroke-width="2.4" filter="url(#glow)"/><rect x="-18" y="-15" width="36" height="26" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2.2"/><line x1="-8" y1="16" x2="8" y2="16" stroke="#fbbf6b" stroke-width="2.2"/><circle cx="0" cy="-2" r="2.6" fill="#fbbf6b"/></g>
+  <!-- ============ the den (clients + activity) ============ -->
+  <text x="1118" y="150" font-size="12.5" font-weight="700" letter-spacing="2" fill="#6b7384" font-family="'JetBrains Mono', monospace">THE DEN &#183; CLIENT PACK</text>
+  <g font-family="'JetBrains Mono', monospace">
+    <g transform="translate(1118 212)">
+      <rect x="0" y="-38" width="382" height="76" rx="11" fill="#101218" stroke="#20242e" stroke-width="1.2"/>
+      <rect x="22" y="-16" width="42" height="32" rx="5" fill="none" stroke="#f97316" stroke-width="2"/><line x1="34" y1="22" x2="52" y2="22" stroke="#f97316" stroke-width="2"/><circle cx="43" cy="0" r="3" fill="#f97316"/>
+      <text x="84" y="-4" font-size="14" fill="#e8ebf2" font-family="'Inter', sans-serif">Client</text>
+      <rect x="84" y="8" width="128" height="20" rx="5" fill="#22d3ee" fill-opacity="0.13" stroke="#22d3ee" stroke-opacity="0.6" stroke-width="1"/>
+      <text x="148" y="22" font-size="10.5" fill="#7fe3f4" text-anchor="middle">802.1X AUTH</text>
+    </g>
+    <g transform="translate(1118 360)">
+      <rect x="0" y="-38" width="382" height="76" rx="11" fill="#101218" stroke="#20242e" stroke-width="1.2"/>
+      <rect x="22" y="-16" width="42" height="32" rx="5" fill="none" stroke="#f97316" stroke-width="2"/><line x1="34" y1="22" x2="52" y2="22" stroke="#f97316" stroke-width="2"/><circle cx="43" cy="0" r="3" fill="#f97316"/>
+      <text x="84" y="-4" font-size="14" fill="#e8ebf2" font-family="'Inter', sans-serif">Client</text>
+      <rect x="84" y="8" width="132" height="20" rx="5" fill="#f97316" fill-opacity="0.15" stroke="#f97316" stroke-opacity="0.7" stroke-width="1"/>
+      <text x="150" y="22" font-size="10.5" fill="#fbbf6b" text-anchor="middle">PORTAL LOGIN</text>
+    </g>
+    <g transform="translate(1118 508)">
+      <rect x="0" y="-38" width="382" height="76" rx="11" fill="#101218" stroke="#20242e" stroke-width="1.2"/>
+      <rect x="22" y="-16" width="42" height="32" rx="5" fill="none" stroke="#f97316" stroke-width="2"/><line x1="34" y1="22" x2="52" y2="22" stroke="#f97316" stroke-width="2"/><circle cx="43" cy="0" r="3" fill="#f97316"/>
+      <text x="84" y="-4" font-size="14" fill="#e8ebf2" font-family="'Inter', sans-serif">Client</text>
+      <rect x="84" y="8" width="174" height="20" rx="5" fill="#22c55e" fill-opacity="0.14" stroke="#22c55e" stroke-opacity="0.65" stroke-width="1"/>
+      <text x="171" y="22" font-size="10.5" fill="#4ade80" text-anchor="middle">SENDING TRAFFIC</text>
+    </g>
   </g>
 
-  <!-- ===== enterprise auth backbone ===== -->
-  <text x="372" y="828" font-size="13" font-weight="700" letter-spacing="1.5" fill="#4ade80" text-anchor="end" font-family="'JetBrains Mono', monospace">802.1X / EAP</text>
-  <g font-family="'JetBrains Mono', monospace" font-size="14" text-anchor="middle">
-    <line x1="500" y1="822" x2="940" y2="822" stroke="#22c55e" stroke-width="1.3" stroke-dasharray="2 10" opacity="0.6"/>
-    <g transform="translate(560 822)"><rect x="-66" y="-22" width="132" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.7" filter="url(#glow)"/><text y="5" fill="#93c5fd">FreeRADIUS</text></g>
-    <g transform="translate(720 822)"><rect x="-62" y="-22" width="124" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.7" filter="url(#glow)"/><text y="5" fill="#93c5fd">OpenLDAP</text></g>
-    <g transform="translate(888 822)"><rect x="-74" y="-22" width="148" height="44" rx="9" fill="#101218" stroke="#2f81f7" stroke-width="1.7" filter="url(#glow)"/><text y="5" fill="#93c5fd">Cert Authority</text></g>
+  <!-- ============ attacker ============ -->
+  <g transform="translate(660 120)">
+    <rect x="-92" y="-34" width="184" height="68" rx="11" fill="#101218" stroke="#f43f5e" stroke-opacity="0.55" stroke-width="1.3"/>
+    <g transform="translate(-58 0)" stroke="#fb7185" stroke-width="1.9"><circle r="15" fill="none"/><line x1="0" y1="-24" x2="0" y2="-9"/><line x1="0" y1="9" x2="0" y2="24"/><line x1="-24" y1="0" x2="-9" y2="0"/><line x1="9" y1="0" x2="24" y2="0"/><circle r="2.4" fill="#fb7185" stroke="none"/></g>
+    <text x="-28" y="-4" font-size="14" font-weight="700" letter-spacing="1" fill="#fb7185" font-family="'JetBrains Mono', monospace">ATTACKER</text>
+    <text x="-28" y="16" font-size="10" fill="#6b7384" font-family="'JetBrains Mono', monospace">handshakes + cleartext</text>
   </g>
 
-  <rect width="1600" height="900" fill="url(#vignette)"/>
+  <!-- ============ enterprise auth backbone ============ -->
+  <text x="110" y="700" font-size="12.5" font-weight="700" letter-spacing="2" fill="#6b7384" font-family="'JetBrains Mono', monospace">ENTERPRISE AUTH &#183; 802.1X / EAP</text>
+  <g font-family="'JetBrains Mono', monospace" font-size="13.5" text-anchor="middle">
+    <g transform="translate(110 742)"><rect width="160" height="50" rx="10" fill="#101218" stroke="#20242e" stroke-width="1.2"/><text x="80" y="30" fill="#93c5fd">FreeRADIUS</text></g>
+    <g transform="translate(290 742)"><rect width="160" height="50" rx="10" fill="#101218" stroke="#20242e" stroke-width="1.2"/><text x="80" y="30" fill="#93c5fd">OpenLDAP</text></g>
+    <g transform="translate(470 742)"><rect width="180" height="50" rx="10" fill="#101218" stroke="#20242e" stroke-width="1.2"/><text x="90" y="30" fill="#93c5fd">Cert Authority</text></g>
+  </g>
 </svg>
