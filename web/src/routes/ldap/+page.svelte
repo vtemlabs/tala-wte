@@ -1,15 +1,19 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { ldap } from '$lib/api';
   import { toast } from '$lib/stores/toast';
   import type { LDAPUser, LDAPGroup, LDAPStatus, TestAuthResult } from '$lib/types';
+  import GuideModal from '$lib/components/GuideModal.svelte';
+  import { GUIDES } from '$lib/guides';
 
+  let guideOpen = $state(false);
   let tab = $state<'users' | 'groups' | 'test'>('users');
   let users = $state<LDAPUser[]>([]);
   let groups = $state<LDAPGroup[]>([]);
@@ -223,7 +227,7 @@
     <p class="page-subtitle">Embedded OpenLDAP - enterprise wireless authentication users</p>
   </div>
   <div class="header-actions">
-    <a href="/ldap/guide" class="btn">Guide</a>
+    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
     {#if ldapStatus}
       <span class="badge {ldapStatus.running ? 'badge-success' : 'badge-error'}">
         slapd {ldapStatus.running ? 'running' : 'stopped'}
@@ -575,6 +579,8 @@
     {/if}
   </div>
 </div>
+
+<GuideModal bind:open={guideOpen} title={GUIDES.ldap.title} doc={GUIDES.ldap.doc} />
 
 <style>
   /* Long DN values truncate instead of overflowing. */

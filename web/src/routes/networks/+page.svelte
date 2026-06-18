@@ -1,8 +1,9 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { onDestroy, onMount } from 'svelte';
@@ -11,10 +12,13 @@
   import { toast } from '$lib/stores/toast';
   import EnterprisePreflight from '$lib/EnterprisePreflight.svelte';
   import { protocolBadge } from '$lib/protocol';
+  import GuideModal from '$lib/components/GuideModal.svelte';
+  import { GUIDES } from '$lib/guides';
 
   let list = $state<Record<string, any>[]>([]);
   let filter = $state('');
   let loading = $state(true);
+  let guideOpen = $state(false);
   let unsubscribe: (() => void) | null = null;
 
   let preflightOpen = $state(false);
@@ -116,10 +120,12 @@
     <p class="page-subtitle">Manage wireless access point configurations</p>
   </div>
   <div class="header-actions">
-    <a href="/networks/guide" class="btn">Guide</a>
+    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
     <a href="/networks/new" class="btn btn-primary">+ New Network</a>
   </div>
 </div>
+
+<GuideModal bind:open={guideOpen} title={GUIDES.networks.title} doc={GUIDES.networks.doc} />
 
 <div class="panel">
   <div class="panel-head net-head">

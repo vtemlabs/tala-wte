@@ -1,14 +1,18 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { system, radius } from '$lib/api';
   import { toast } from '$lib/stores/toast';
+  import GuideModal from '$lib/components/GuideModal.svelte';
+  import { GUIDES } from '$lib/guides';
 
+  let guideOpen = $state(false);
   let status = $state<'running' | 'stopped' | 'unknown'>('unknown');
   let eapType = $state('peap');
   let innerAuth = $state('mschapv2');
@@ -49,7 +53,7 @@
     <p class="page-subtitle">FreeRADIUS 3.x - 802.1X enterprise authentication</p>
   </div>
   <div class="header-actions">
-    <a href="/radius/guide" class="btn">Guide</a>
+    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
     <span
       class="badge {status === 'running'
         ? 'badge-success'
@@ -151,6 +155,8 @@
     </div>
   </div>
 </div>
+
+<GuideModal bind:open={guideOpen} title={GUIDES.radius.title} doc={GUIDES.radius.doc} />
 
 <style>
   .cell-sub {

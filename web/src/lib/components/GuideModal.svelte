@@ -230,6 +230,14 @@
     height: 14px;
     cursor: nwse-resize;
   }
+  :global(.gw .guide-prose img) {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    margin: var(--space-lg) 0;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+  }
   :global(.gw .guide-prose h2) {
     font-size: var(--font-size-lg);
     color: var(--text-primary);

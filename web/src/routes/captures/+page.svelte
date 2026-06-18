@@ -1,15 +1,19 @@
 <!--
   Tala WTE - Wireless Training Environment
   Copyright (c) 2026 VTEM Labs. All rights reserved.
-  Free for personal and non-profit use. Commercial, paid training, paid CTF,
-  or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+  Free for personal and non-profit use. Commercial, for-profit, and government
+  use require a license from VTEM Labs. The Software may not be copied or
+  redistributed. See the LICENSE file.
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
   import { captures, networks, system } from '$lib/api';
   import { toast } from '$lib/stores/toast';
   import type { WirelessInterface } from '$lib/types';
+  import GuideModal from '$lib/components/GuideModal.svelte';
+  import { GUIDES } from '$lib/guides';
 
+  let guideOpen = $state(false);
   let captureList = $state<Record<string, any>[]>([]);
   let networkList = $state<Record<string, any>[]>([]);
   let interfaces = $state<WirelessInterface[]>([]);
@@ -92,9 +96,11 @@
     <p class="page-subtitle">Passive wireless and network-layer capture</p>
   </div>
   <div class="header-actions">
-    <a href="/captures/guide" class="btn">Guide</a>
+    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
   </div>
 </div>
+
+<GuideModal bind:open={guideOpen} title={GUIDES.captures.title} doc={GUIDES.captures.doc} />
 
 {#if error}
   <div class="error-toast"><span>{error}</span><button onclick={() => (error = '')}>×</button></div>
