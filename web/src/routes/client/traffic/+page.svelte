@@ -77,9 +77,8 @@
   });
   onDestroy(() => poll && clearInterval(poll));
 
-  async function onFile(e: Event) {
-    const input = e.target as HTMLInputElement;
-    const file = input.files?.[0];
+  let dragging = $state(false);
+  async function loadFile(file: File | null | undefined) {
     if (!file) return;
     try {
       config = JSON.parse(await file.text());
@@ -88,6 +87,14 @@
     } catch {
       toast.err('That file is not a valid Tala WTE client config');
     }
+  }
+  function onFile(e: Event) {
+    loadFile((e.target as HTMLInputElement).files?.[0]);
+  }
+  function onDrop(e: DragEvent) {
+    e.preventDefault();
+    dragging = false;
+    loadFile(e.dataTransfer?.files?.[0]);
   }
 
   async function connect() {
@@ -221,28 +228,38 @@
 
 <div class="panel section">
   <div class="panel-head"><span class="panel-title">Network</span></div>
-  <div class="panel-body">
-    <div class="net-row">
-      <div class="net-import">
-        <label class="field-label" for="cfg">Import client config</label>
-        <input class="input" id="cfg" type="file" accept=".json,application/json" onchange={onFile} />
-        <span class="field-desc">Export a config from an access point (network detail page), then import it here.</span>
+  <div class="panel-body stack">
+    <label
+      class="dropzone"
+      class:dragging
+      for="cfg"
+      ondragover={(e) => {
+        e.preventDefault();
+        dragging = true;
+      }}
+      ondragleave={() => (dragging = false)}
+      ondrop={onDrop}
+    >
+      <input class="file-hidden" id="cfg" type="file" accept=".json,application/json" onchange={onFile} />
+      <span class="dz-title">{configName || 'Drop a client config here, or click to browse'}</span>
+      <span class="dz-sub">Export a config from an access point (network detail page), then upload it to connect.</span>
+    </label>
+
+    {#if config}
+      <div class="cfg-summary">
+        <div><span class="dim">SSID</span> <span class="mono">{config.ssid}</span></div>
+        <div><span class="dim">Security</span> <span class="mono">{config.protocol}</span></div>
+        <div><span class="dim">Captive portal</span> {config.portal?.enabled ? 'yes (auto-bypass)' : 'no'}</div>
       </div>
-      {#if config}
-        <div class="cfg-summary">
-          <div><span class="dim">SSID</span> <span class="mono">{config.ssid}</span></div>
-          <div><span class="dim">Security</span> <span class="mono">{config.protocol}</span></div>
-          <div><span class="dim">Captive portal</span> {config.portal?.enabled ? 'yes (auto-bypass)' : 'no'}</div>
-        </div>
-      {/if}
-      <div class="net-actions">
-        <button class="btn btn-primary" onclick={connect} disabled={!config || busy === 'connect'}>
-          {busy === 'connect' ? 'Connecting...' : 'Connect'}
-        </button>
-        <button class="btn btn-secondary" onclick={disconnect} disabled={!status?.connected || busy === 'disconnect'}>
-          Disconnect
-        </button>
-      </div>
+    {/if}
+
+    <div class="btn-row">
+      <button class="btn btn-primary" onclick={connect} disabled={!config || busy === 'connect'}>
+        {busy === 'connect' ? 'Connecting...' : 'Connect'}
+      </button>
+      <button class="btn btn-secondary" onclick={disconnect} disabled={!status?.connected || busy === 'disconnect'}>
+        Disconnect
+      </button>
     </div>
   </div>
 </div>
@@ -413,22 +430,40 @@
     gap: var(--space-sm);
     margin-bottom: var(--space-sm);
   }
-  .net-row {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: flex-end;
-    gap: var(--space-xl);
-  }
-  .net-import {
-    flex: 1;
-    min-width: 280px;
+  .dropzone {
     display: flex;
     flex-direction: column;
-    gap: 6px;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    text-align: center;
+    padding: var(--space-xl);
+    border: 1px dashed var(--border-primary);
+    border-radius: var(--radius-md);
+    background: var(--bg-input);
+    cursor: pointer;
+    transition:
+      border-color var(--transition-base),
+      background var(--transition-base);
   }
-  .net-actions {
-    display: flex;
-    gap: var(--space-md);
+  .dropzone:hover {
+    border-color: var(--accent);
+  }
+  .dropzone.dragging {
+    border-color: var(--accent);
+    background: var(--accent-soft);
+  }
+  .file-hidden {
+    display: none;
+  }
+  .dz-title {
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .dz-sub {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
   }
   .head-actions {
     display: flex;
