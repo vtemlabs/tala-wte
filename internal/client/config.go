@@ -81,6 +81,7 @@ type Status struct {
 	Errors      int64  `json:"errors"`
 	Cycling     bool   `json:"cycling"` // reconnect cycling (handshake capture) is active
 	Cycles      int    `json:"cycles"`  // completed reconnect cycles
+	Arch        string `json:"arch"`    // host CPU arch (amd64/arm64) for leader-pushed updates
 	LastError   string `json:"last_error,omitempty"`
 	LastEvent   string `json:"last_event,omitempty"`
 }

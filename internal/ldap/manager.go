@@ -138,7 +138,8 @@ func Start() error {
 
 	ctx, cancel := context.WithCancel(context.Background())
 	// TCP only: an unescaped ldapi:// socket path made slapd fail to bind any listener.
-	cmd := exec.CommandContext(ctx, "slapd",
+	cmd := exec.CommandContext(
+		ctx, "slapd",
 		"-f", ldapConfFile,
 		"-h", ldapHost+"/",
 		"-d", "256",

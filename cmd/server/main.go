@@ -251,6 +251,7 @@ func main() {
 		se.Router.GET("/api/wte/system/version", wrapAuth(versionHandler()))
 		// wrapAgent so a den leader can trigger a member's self-update with its agent key.
 		se.Router.POST("/api/wte/system/update", wrapAgent(app, updateHandler()))
+		se.Router.POST("/api/wte/system/apply", wrapAgent(app, applyHandler()))
 		se.Router.GET("/api/wte/system/settings", wrapAuth(settingsGetHandler(app)))
 		se.Router.POST("/api/wte/system/settings", wrapAuth(settingsSaveHandler(app)))
 

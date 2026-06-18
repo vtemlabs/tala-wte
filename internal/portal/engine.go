@@ -173,7 +173,8 @@ log-dhcp
 	if e.NetnsName != "" {
 		args = append(args, "netns", "exec", e.NetnsName)
 	}
-	args = append(args, "dnsmasq",
+	args = append(
+		args, "dnsmasq",
 		"--no-daemon",
 		"--conf-file="+confPath,
 		"--pid-file="+os.TempDir()+"/dnsmasq-"+e.NetworkID+".pid",

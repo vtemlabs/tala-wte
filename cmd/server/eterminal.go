@@ -77,7 +77,8 @@ func bootstrapETerminal(operator string) {
 	cmd := exec.CommandContext(ctx, "bash", filepath.Join(root, "install.sh"))
 	cmd.Dir = home
 	// Run as root with the operator's HOME/USER. SKIP_SHELL_CHANGE (login shell managed by the deploy); SKIP_FONT/SKIP_GHOSTTY (headless web terminal).
-	cmd.Env = append(os.Environ(),
+	cmd.Env = append(
+		os.Environ(),
 		"HOME="+home,
 		"USER="+operator,
 		"LOGNAME="+operator,

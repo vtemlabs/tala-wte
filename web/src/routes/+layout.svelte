@@ -13,6 +13,7 @@
   import { pb, system } from '$lib/api';
   import ToastContainer from '$lib/components/ToastContainer.svelte';
   import Terminal from '$lib/components/Terminal.svelte';
+  import Footer from '$lib/components/Footer.svelte';
 
   let { children } = $props();
   let authChecked = $state(false);
@@ -312,6 +313,7 @@
 
     <main class="content">
       {@render children()}
+      <Footer />
     </main>
     <ToastContainer />
     <Terminal bind:open={terminalOpen} />

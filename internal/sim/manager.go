@@ -419,7 +419,8 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 					log.Printf("[sim][start] band %s not AP-capable on %s (%s): supported %v", want, ifName, a.DeviceModel, apBands)
 					api.WriteErr(w, http.StatusBadRequest, fmt.Sprintf(
 						"%s %s cannot host an AP on %s (supported: %s)",
-						a.Manufacturer, a.DeviceModel, want, strings.Join(apBands, ", ")))
+						a.Manufacturer, a.DeviceModel, want, strings.Join(apBands, ", "),
+					))
 					return
 				}
 			}

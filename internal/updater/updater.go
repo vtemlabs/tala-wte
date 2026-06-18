@@ -232,13 +232,114 @@ func Apply(ctx context.Context) (string, error) {
 	return latest, nil
 }
 
+// DownloadAsset fetches the latest release binary for arch into a temp file,
+// verifies it against the release checksums, and returns the temp path, version,
+// and sha256. The caller must remove the temp file. A den leader uses this to
+// download a build once and push it to members that have no internet of their own.
+func DownloadAsset(ctx context.Context, arch string) (path, ver, sha string, err error) {
+	rel, err := latestRelease(ctx)
+	if err != nil {
+		return "", "", "", err
+	}
+	ver = strings.TrimPrefix(rel.TagName, "v")
+	asset := "tala-wte-linux-" + arch
+	var binURL, sumURL string
+	for _, a := range rel.Assets {
+		switch a.Name {
+		case asset:
+			binURL = a.BrowserDownloadURL
+		case "checksums.txt":
+			sumURL = a.BrowserDownloadURL
+		}
+	}
+	if binURL == "" {
+		return "", "", "", fmt.Errorf("release %s has no %s asset", ver, asset)
+	}
+	if sumURL == "" {
+		return "", "", "", fmt.Errorf("release %s has no checksums.txt; refusing to push an unverified binary", ver)
+	}
+	f, err := os.CreateTemp("", "tala-push-")
+	if err != nil {
+		return "", "", "", err
+	}
+	tmp := f.Name()
+	_ = f.Close()
+	if err := download(ctx, binURL, tmp); err != nil {
+		_ = os.Remove(tmp)
+		return "", "", "", fmt.Errorf("downloading %s: %w", asset, err)
+	}
+	want, err := fetchChecksum(ctx, sumURL, asset)
+	if err != nil {
+		_ = os.Remove(tmp)
+		return "", "", "", err
+	}
+	got, err := sha256File(tmp)
+	if err != nil {
+		_ = os.Remove(tmp)
+		return "", "", "", err
+	}
+	if !strings.EqualFold(got, want) {
+		_ = os.Remove(tmp)
+		return "", "", "", fmt.Errorf("checksum mismatch for %s (expected %s, got %s)", asset, want, got)
+	}
+	return tmp, ver, got, nil
+}
+
+// ApplyStream replaces the running binary with bytes read from src, verifying
+// their sha256 matches expectedSHA, then schedules a restart. It is the member
+// side of a leader-pushed update: the bytes arrive over the den agent channel
+// rather than from GitHub, so a member with no internet can still be updated.
+func ApplyStream(src io.Reader, expectedSHA string) (string, error) {
+	self, err := os.Executable()
+	if err != nil {
+		return "", fmt.Errorf("locating running binary: %w", err)
+	}
+	self, err = filepath.EvalSymlinks(self)
+	if err != nil {
+		return "", fmt.Errorf("resolving running binary path: %w", err)
+	}
+	tmp := self + ".update"
+	out, err := os.OpenFile(tmp, os.O_CREATE|os.O_WRONLY|os.O_TRUNC, 0o755)
+	if err != nil {
+		return "", err
+	}
+	h := sha256.New()
+	if _, err := io.Copy(out, io.TeeReader(src, h)); err != nil {
+		_ = out.Close()
+		_ = os.Remove(tmp)
+		return "", err
+	}
+	if err := out.Close(); err != nil {
+		_ = os.Remove(tmp)
+		return "", err
+	}
+	got := hex.EncodeToString(h.Sum(nil))
+	if !strings.EqualFold(got, expectedSHA) {
+		_ = os.Remove(tmp)
+		return "", fmt.Errorf("checksum mismatch (expected %s, got %s)", expectedSHA, got)
+	}
+	if err := os.Chmod(tmp, 0o755); err != nil {
+		_ = os.Remove(tmp)
+		return "", err
+	}
+	if err := os.Rename(tmp, self); err != nil {
+		_ = os.Remove(tmp)
+		return "", fmt.Errorf("replacing binary: %w", err)
+	}
+	if err := scheduleRestart(); err != nil {
+		return got, fmt.Errorf("update staged but auto-restart could not be scheduled (%w); restart tala-wte manually", err)
+	}
+	return got, nil
+}
+
 // scheduleRestart fires `systemctl restart tala-wte.service` from a transient
 // systemd timer a couple of seconds out. Running it via systemd-run (not a child
 // of this process) means it survives our own shutdown, so the restart completes
 // even though stopping the unit kills our cgroup. The short delay lets the HTTP
 // response flush to the browser first.
 func scheduleRestart() error {
-	cmd := exec.Command("systemd-run",
+	cmd := exec.Command(
+		"systemd-run",
 		"--on-active=2s",
 		"--timer-property=AccuracySec=100ms",
 		"--unit=tala-wte-self-update",

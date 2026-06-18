@@ -13,6 +13,7 @@ package main
 
 import (
 	"bytes"
+	"context"
 	"crypto/rand"
 	"crypto/sha256"
 	"crypto/subtle"
@@ -23,6 +24,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"os"
 	"strings"
 	"time"
 
@@ -31,6 +33,7 @@ import (
 
 	"github.com/vtemlabs/tala-wte/internal/api"
 	"github.com/vtemlabs/tala-wte/internal/client"
+	"github.com/vtemlabs/tala-wte/internal/updater"
 )
 
 // ---- member side: agent key + auth ----
@@ -102,9 +105,9 @@ func wrapAgent(app *pocketbase.PocketBase, h func(http.ResponseWriter, *http.Req
 // chain. An empty fp means trust-on-first-use: the connection is allowed and the
 // caller records the fingerprint it observed, so a later MITM that swaps the
 // certificate is rejected.
-func memberHTTPClient(fp string) *http.Client {
+func memberHTTPClient(fp string, timeout time.Duration) *http.Client {
 	return &http.Client{
-		Timeout: 15 * time.Second,
+		Timeout: timeout,
 		Transport: &http.Transport{
 			// Self-signed members have no CA chain, so default verification is
 			// off and we pin the leaf fingerprint in VerifyConnection instead.
@@ -155,7 +158,7 @@ func memberRequest(method, base, path, key, fp string, body any) (*http.Response
 		req.Header.Set("Content-Type", "application/json")
 	}
 	req.Header.Set("X-Agent-Key", key)
-	return memberHTTPClient(fp).Do(req)
+	return memberHTTPClient(fp, 15*time.Second).Do(req)
 }
 
 // memberCall sends a request to a den member over its pinned channel using the
@@ -314,9 +317,12 @@ func denStatusHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 	}
 }
 
-// denUpdateHandler tells every reachable member to pull and apply the latest
-// release so the leader and its pack stay on matching versions. Each member runs
-// its own in-app update and restarts; results report per member.
+// denUpdateHandler updates the whole pack from the leader. Members may be a mix
+// of amd64 and arm64, so the leader downloads each needed architecture's build
+// once and pushes the matching, checksum-verified binary to each member over the
+// agent channel; a member never needs its own internet access. A member that does
+// not report its architecture (older build) or that lacks the push endpoint falls
+// back to pulling the release from GitHub itself.
 func denUpdateHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		members, err := app.FindAllRecords("den_members")
@@ -329,33 +335,149 @@ func denUpdateHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 			OK     bool   `json:"ok"`
 			Detail string `json:"detail"`
 		}
+
+		// Download each architecture once and reuse it across members.
+		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
+		defer cancel()
+		type build struct{ path, ver, sha string }
+		builds := map[string]*build{}
+		defer func() {
+			for _, b := range builds {
+				_ = os.Remove(b.path)
+			}
+		}()
+		buildFor := func(arch string) (*build, error) {
+			if b, ok := builds[arch]; ok {
+				return b, nil
+			}
+			p, v, s, e := updater.DownloadAsset(ctx, arch)
+			if e != nil {
+				return nil, e
+			}
+			b := &build{path: p, ver: v, sha: s}
+			builds[arch] = b
+			return b, nil
+		}
+
 		results := make([]updateResult, 0, len(members))
 		for _, m := range members {
 			res := updateResult{Name: m.GetString("name")}
-			resp, e := memberCall(app, m, http.MethodPost, "/api/wte/system/update", nil)
+			arch := memberArch(app, m)
+			if arch == "" {
+				// Architecture unknown (offline or older build): let the member pull.
+				res.OK, res.Detail = pullUpdate(app, m)
+				results = append(results, res)
+				continue
+			}
+			b, e := buildFor(arch)
 			if e != nil {
-				res.Detail = "unreachable: " + e.Error()
+				res.Detail = "could not fetch " + arch + " build: " + e.Error()
+				results = append(results, res)
+				continue
+			}
+			if e := pushToMember(app, m, b.path, b.ver, b.sha, arch); e != nil {
+				res.Detail = e.Error()
 			} else {
-				var body struct {
-					Version string `json:"version"`
-					Error   string `json:"error"`
-				}
-				_ = json.NewDecoder(resp.Body).Decode(&body)
-				resp.Body.Close()
-				if resp.StatusCode >= 300 {
-					res.Detail = body.Error
-					if res.Detail == "" {
-						res.Detail = fmt.Sprintf("HTTP %d", resp.StatusCode)
-					}
-				} else {
-					res.OK = true
-					res.Detail = "updating to " + body.Version
-				}
+				res.OK = true
+				res.Detail = "pushed " + b.ver + " (" + arch + ")"
 			}
 			results = append(results, res)
 		}
 		api.WriteJSON(w, map[string]any{"results": results})
 	}
+}
+
+// memberArch asks a member for its CPU architecture via its status (reachable
+// with the agent key). It returns "" when the member is unreachable or runs an
+// older build that does not report one.
+func memberArch(app *pocketbase.PocketBase, member *core.Record) string {
+	resp, err := memberCall(app, member, http.MethodGet, "/api/wte/client/status", nil)
+	if err != nil {
+		return ""
+	}
+	defer resp.Body.Close()
+	if resp.StatusCode >= 300 {
+		return ""
+	}
+	var st struct {
+		Arch string `json:"arch"`
+	}
+	_ = json.NewDecoder(resp.Body).Decode(&st)
+	return st.Arch
+}
+
+// pullUpdate tells a member to update itself from GitHub (the pre-push path).
+func pullUpdate(app *pocketbase.PocketBase, member *core.Record) (bool, string) {
+	resp, err := memberCall(app, member, http.MethodPost, "/api/wte/system/update", nil)
+	if err != nil {
+		return false, "unreachable: " + err.Error()
+	}
+	defer resp.Body.Close()
+	var body struct {
+		Version string `json:"version"`
+		Error   string `json:"error"`
+	}
+	_ = json.NewDecoder(resp.Body).Decode(&body)
+	if resp.StatusCode >= 300 {
+		if body.Error != "" {
+			return false, body.Error
+		}
+		return false, fmt.Sprintf("HTTP %d", resp.StatusCode)
+	}
+	return true, "updating to " + body.Version + " (pulled)"
+}
+
+// pushToMember streams a downloaded, checksum-verified binary to a member's
+// /system/apply over the pinned agent channel. A member predating push support
+// answers 404, in which case it falls back to a pull update.
+func pushToMember(app *pocketbase.PocketBase, member *core.Record, binPath, ver, sha, arch string) error {
+	f, err := os.Open(binPath)
+	if err != nil {
+		return err
+	}
+	defer f.Close()
+	fp := member.GetString("cert_fingerprint")
+	req, err := http.NewRequest(http.MethodPost, memberBaseURL(member.GetString("address"))+"/api/wte/system/apply", f)
+	if err != nil {
+		return err
+	}
+	if fi, e := f.Stat(); e == nil {
+		req.ContentLength = fi.Size()
+	}
+	req.Header.Set("Content-Type", "application/octet-stream")
+	req.Header.Set("X-Agent-Key", member.GetString("agent_key"))
+	req.Header.Set("X-Update-SHA256", sha)
+	req.Header.Set("X-Update-Version", ver)
+	req.Header.Set("X-Update-Arch", arch)
+	resp, err := memberHTTPClient(fp, 10*time.Minute).Do(req)
+	if err != nil {
+		return fmt.Errorf("unreachable: %w", err)
+	}
+	defer resp.Body.Close()
+	// Trust-on-first-use: record the member's certificate on first contact.
+	if fp == "" && resp.TLS != nil && len(resp.TLS.PeerCertificates) > 0 {
+		sum := sha256.Sum256(resp.TLS.PeerCertificates[0].Raw)
+		member.Set("cert_fingerprint", hex.EncodeToString(sum[:]))
+		_ = app.Save(member)
+	}
+	if resp.StatusCode == http.StatusNotFound {
+		ok, detail := pullUpdate(app, member)
+		if ok {
+			return nil
+		}
+		return fmt.Errorf("push unsupported; pull fallback: %s", detail)
+	}
+	if resp.StatusCode >= 300 {
+		var body struct {
+			Error string `json:"error"`
+		}
+		_ = json.NewDecoder(resp.Body).Decode(&body)
+		if body.Error != "" {
+			return fmt.Errorf("member rejected push: %s", body.Error)
+		}
+		return fmt.Errorf("member rejected push (HTTP %d)", resp.StatusCode)
+	}
+	return nil
 }
 
 // teardownDenForNetwork disconnects every member assigned to a network. The leader

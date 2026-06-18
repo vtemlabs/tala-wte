@@ -16,6 +16,7 @@ import (
 	"net/url"
 	"os"
 	"os/exec"
+	"runtime"
 	"strings"
 	"sync"
 	"time"
@@ -50,6 +51,7 @@ func (a *Agent) snapshot() Status {
 	// Cycle state lives outside status so Connect's status reset does not clear it.
 	s.Cycling = a.cycling
 	s.Cycles = a.cycles
+	s.Arch = runtime.GOARCH
 	return s
 }
 
@@ -229,6 +231,9 @@ func (a *Agent) Connect(cfg Config) error {
 	_ = exec.Command("pkill", "-x", "wpa_supplicant").Run()
 	_ = exec.Command("pkill", "-f", "dhclient").Run()
 	_ = exec.Command("ip", "addr", "flush", "dev", ifc).Run()
+	// Drop any leftover routes (notably a stale default via a prior AP) so they
+	// cannot shadow the host's real uplink after this radio is taken over.
+	_ = exec.Command("ip", "route", "flush", "dev", ifc).Run()
 	_ = exec.Command("ip", "link", "set", ifc, "up").Run()
 	time.Sleep(500 * time.Millisecond)
 
@@ -407,6 +412,9 @@ func (a *Agent) Stop() {
 	if ifc != "" {
 		_ = exec.Command("pkill", "-f", "dhclient.*"+ifc).Run()
 		_ = exec.Command("ip", "addr", "flush", "dev", ifc).Run()
+		// Flush routes too, so disconnecting restores the host's real default
+		// route instead of leaving a dead default via the AP we just dropped.
+		_ = exec.Command("ip", "route", "flush", "dev", ifc).Run()
 	}
 	a.mu.Lock()
 	a.status.Connected = false

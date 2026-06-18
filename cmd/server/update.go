@@ -15,6 +15,7 @@ import (
 	"context"
 	"log"
 	"net/http"
+	"runtime"
 	"time"
 
 	"github.com/vtemlabs/tala-wte/internal/api"
@@ -62,5 +63,32 @@ func updateHandler() func(http.ResponseWriter, *http.Request) {
 			"restarting": true,
 			"message":    "Update " + installed + " installed. The service is restarting; the page will reconnect shortly.",
 		})
+	}
+}
+
+// applyHandler receives a binary pushed by a den leader over the agent channel,
+// verifies its checksum, replaces this member's binary, and schedules a restart.
+// It lets a leader update members that cannot reach GitHub themselves: the leader
+// downloads the release once and streams it here. Registered with wrapAgent.
+func applyHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		if arch := r.Header.Get("X-Update-Arch"); arch != "" && arch != runtime.GOARCH {
+			api.WriteErr(w, http.StatusBadRequest, "architecture mismatch: leader sent "+arch+", this member is "+runtime.GOARCH)
+			return
+		}
+		want := r.Header.Get("X-Update-SHA256")
+		if want == "" {
+			api.WriteErr(w, http.StatusBadRequest, "missing X-Update-SHA256 header")
+			return
+		}
+		defer r.Body.Close()
+		if _, err := updater.ApplyStream(r.Body, want); err != nil {
+			log.Printf("[update] pushed apply failed: %v", err)
+			api.WriteErr(w, http.StatusInternalServerError, err.Error())
+			return
+		}
+		ver := r.Header.Get("X-Update-Version")
+		log.Printf("[update] applied pushed version %s; service restart scheduled", ver)
+		api.WriteJSON(w, map[string]any{"status": "updating", "version": ver, "restarting": true})
 	}
 }
