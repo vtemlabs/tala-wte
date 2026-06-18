@@ -6,7 +6,7 @@
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
-  import { system, type VersionStatus } from '$lib/api';
+  import { pb, system, type VersionStatus } from '$lib/api';
   import { toast } from '$lib/stores/toast';
   import HardwareCard from '$lib/HardwareCard.svelte';
   import LicenseModal from '$lib/components/LicenseModal.svelte';
@@ -26,6 +26,10 @@
   let apSubnet = $state('10.0.0.0/24');
   let saving = $state(false);
   let saved = $state(false);
+
+  // Instance role (AP vs client) and the one-button swap between them.
+  let mode = $state<'ap' | 'client'>('ap');
+  let swapping = $state(false);
 
   // The loaded value is folded in below so a region not on this list still shows.
   const COUNTRIES: { code: string; name: string }[] = [
@@ -64,6 +68,8 @@
       if (settingsRes.uplink_iface) uplinkIface = settingsRes.uplink_iface;
       if (settingsRes.country_code) countryCode = settingsRes.country_code;
       if (settingsRes.ap_subnet) apSubnet = settingsRes.ap_subnet;
+      const st = await fetch('/api/wte/system/status').then((r) => r.json());
+      if (st?.mode) mode = st.mode;
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to load settings');
     }
@@ -139,6 +145,56 @@
     }
     saving = false;
   }
+
+  async function swapMode() {
+    const target = mode === 'client' ? 'ap' : 'client';
+    const label = target === 'ap' ? 'Server (AP)' : 'Client';
+    if (
+      !confirm(
+        `Switch this instance to ${label} mode?\n\nThe service installs ${label} dependencies and restarts. The console disconnects and reloads when it is back; this can take a minute.`
+      )
+    ) {
+      return;
+    }
+    swapping = true;
+    try {
+      const r = await fetch('/api/wte/system/mode', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json', Authorization: pb.authStore.token },
+        body: JSON.stringify({ mode: target })
+      });
+      if (!r.ok) throw new Error((await r.json())?.error ?? 'swap failed');
+      toast.success(`Switching to ${label} mode; the console will reconnect`);
+      pollForMode(target);
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to switch mode');
+      swapping = false;
+    }
+  }
+
+  // Poll status until the service is back in the target role, then reload.
+  function pollForMode(target: string) {
+    let elapsed = 0;
+    const tick = async () => {
+      elapsed += 3;
+      try {
+        const st = await fetch('/api/wte/system/status').then((r) => r.json());
+        if (st?.mode === target) {
+          window.location.href = '/';
+          return;
+        }
+      } catch {
+        // service still restarting; keep waiting
+      }
+      if (elapsed < 240) {
+        setTimeout(tick, 3000);
+      } else {
+        swapping = false;
+        toast.err('Mode did not switch within 4 minutes; reload manually.');
+      }
+    };
+    setTimeout(tick, 5000);
+  }
 </script>
 
 <svelte:head><title>Settings - Tala WTE</title></svelte:head>
@@ -158,6 +214,33 @@
 
 <div class="grid grid-2" style="align-items:start">
   <div class="stack">
+    <section class="panel">
+      <div class="panel-head"><h2 class="panel-title">Instance Role</h2></div>
+      <div class="panel-body">
+        <div class="role-row">
+          <div>
+            <div class="role-now">{mode === 'client' ? 'Client' : 'Server (AP)'}</div>
+            <span class="field-desc">
+              {mode === 'client'
+                ? 'This box joins a network and generates traffic.'
+                : 'This box broadcasts networks as an access point.'}
+            </span>
+          </div>
+          <button class="btn btn-primary" onclick={swapMode} disabled={swapping}>
+            {swapping
+              ? 'Switching...'
+              : mode === 'client'
+                ? 'Switch to Server mode'
+                : 'Switch to Client mode'}
+          </button>
+        </div>
+        <span class="field-desc">
+          Switching installs the other role's dependencies and restarts the service; the console
+          reconnects automatically.
+        </span>
+      </div>
+    </section>
+
     <section class="panel">
       <div class="panel-head"><h2 class="panel-title">Radio &amp; Network</h2></div>
       <div class="panel-body">
@@ -329,6 +412,18 @@
 </div>
 
 <style>
+  .role-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-lg);
+    margin-bottom: var(--space-md);
+  }
+  .role-now {
+    font-size: var(--font-size-lg);
+    font-weight: 600;
+    color: var(--text-primary);
+  }
   .field {
     margin-bottom: var(--space-xl);
   }

@@ -24,8 +24,7 @@
     last_event?: string;
   };
 
-  let config = $state<Record<string, any> | null>(null);
-  let configName = $state('');
+  let savedConfigs = $state<any[]>([]);
   let status = $state<ClientStatus | null>(null);
   let busy = $state('');
   let poll: ReturnType<typeof setInterval> | null = null;
@@ -73,23 +72,47 @@
 
   onMount(() => {
     refresh();
+    loadSaved();
     poll = setInterval(refresh, 2000);
   });
   onDestroy(() => poll && clearInterval(poll));
 
   let dragging = $state(false);
+  async function loadSaved() {
+    try {
+      savedConfigs = await pb.collection('client_configs').getFullList({ sort: '-created' });
+    } catch {
+      /* collection empty or unavailable */
+    }
+  }
+  // Uploading a config saves it as a reusable network rather than connecting now.
   async function loadFile(file: File | null | undefined) {
     if (!file) return;
     try {
-      config = JSON.parse(await file.text());
-      configName = file.name;
-      toast.success(`Imported config for "${config?.ssid ?? 'network'}"`);
+      const cfg = JSON.parse(await file.text());
+      await pb.collection('client_configs').create({
+        ssid: cfg.ssid ?? 'network',
+        protocol: cfg.protocol ?? 'open',
+        passphrase: cfg.passphrase ?? '',
+        band: cfg.band ?? '2.4',
+        channel: cfg.channel ?? 0,
+        hidden: !!cfg.hidden,
+        identity: cfg.identity ?? '',
+        eap_password: cfg.eap_password ?? '',
+        portal_enabled: !!cfg.portal?.enabled,
+        portal_username: cfg.portal?.username ?? '',
+        portal_password: cfg.portal?.password ?? ''
+      });
+      toast.success(`Saved network "${cfg.ssid ?? 'network'}"`);
+      await loadSaved();
     } catch {
       toast.err('That file is not a valid Tala WTE client config');
     }
   }
   function onFile(e: Event) {
-    loadFile((e.target as HTMLInputElement).files?.[0]);
+    const input = e.target as HTMLInputElement;
+    loadFile(input.files?.[0]);
+    input.value = '';
   }
   function onDrop(e: DragEvent) {
     e.preventDefault();
@@ -97,21 +120,39 @@
     loadFile(e.dataTransfer?.files?.[0]);
   }
 
-  async function connect() {
-    if (!config) return;
-    busy = 'connect';
+  async function connectTo(rec: any) {
+    busy = 'connect:' + rec.id;
     try {
       const r = await fetch('/api/wte/client/connect', {
         method: 'POST',
         headers: authHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify(config)
+        body: JSON.stringify({
+          ssid: rec.ssid,
+          protocol: rec.protocol,
+          passphrase: rec.passphrase,
+          band: rec.band,
+          channel: rec.channel,
+          hidden: rec.hidden,
+          identity: rec.identity,
+          eap_password: rec.eap_password,
+          portal: { enabled: rec.portal_enabled, username: rec.portal_username, password: rec.portal_password }
+        })
       });
       if (!r.ok) throw new Error((await r.json())?.error ?? 'connect failed');
-      toast.success('Connecting to ' + config.ssid);
+      toast.success('Connecting to ' + rec.ssid);
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to connect');
     }
     busy = '';
+  }
+
+  async function deleteSaved(rec: any) {
+    try {
+      await pb.collection('client_configs').delete(rec.id);
+      await loadSaved();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to delete network');
+    }
   }
 
   async function disconnect() {
@@ -241,26 +282,47 @@
       ondrop={onDrop}
     >
       <input class="file-hidden" id="cfg" type="file" accept=".json,application/json" onchange={onFile} />
-      <span class="dz-title">{configName || 'Drop a client config here, or click to browse'}</span>
-      <span class="dz-sub">Export a config from an access point (network detail page), then upload it to connect.</span>
+      <span class="dz-title">Drop a client config here, or click to browse</span>
+      <span class="dz-sub">Upload configs exported from access points; each is saved below to reuse anytime.</span>
     </label>
 
-    {#if config}
-      <div class="cfg-summary">
-        <div><span class="dim">SSID</span> <span class="mono">{config.ssid}</span></div>
-        <div><span class="dim">Security</span> <span class="mono">{config.protocol}</span></div>
-        <div><span class="dim">Captive portal</span> {config.portal?.enabled ? 'yes (auto-bypass)' : 'no'}</div>
-      </div>
-    {/if}
-
-    <div class="btn-row">
-      <button class="btn btn-primary" onclick={connect} disabled={!config || busy === 'connect'}>
-        {busy === 'connect' ? 'Connecting...' : 'Connect'}
-      </button>
-      <button class="btn btn-secondary" onclick={disconnect} disabled={!status?.connected || busy === 'disconnect'}>
-        Disconnect
-      </button>
+    <div class="saved-head">
+      <span class="sub-label" style="margin:0">Saved networks</span>
+      {#if status?.connected}
+        <button class="btn btn-secondary btn-sm" onclick={disconnect} disabled={busy === 'disconnect'}>
+          Disconnect
+        </button>
+      {/if}
     </div>
+
+    {#if savedConfigs.length}
+      <div class="saved-list">
+        {#each savedConfigs as rec}
+          {@const isConnected = !!status?.connected && status?.ssid === rec.ssid}
+          <div class="saved-row" class:connected={isConnected}>
+            <div class="saved-meta">
+              <span class="mono saved-ssid">{rec.ssid}</span>
+              <span class="saved-proto">{(rec.protocol || 'open').replace('_', '-').toUpperCase()}</span>
+              {#if isConnected}<span class="saved-badge">connected</span>{/if}
+            </div>
+            <div class="saved-actions">
+              <button
+                class="btn btn-primary btn-sm"
+                onclick={() => connectTo(rec)}
+                disabled={busy === 'connect:' + rec.id || isConnected}
+              >
+                {busy === 'connect:' + rec.id ? 'Connecting...' : isConnected ? 'Connected' : 'Connect'}
+              </button>
+              <button class="btn btn-sm icon-btn" onclick={() => deleteSaved(rec)} aria-label="Delete network"
+                >&times;</button
+              >
+            </div>
+          </div>
+        {/each}
+      </div>
+    {:else}
+      <span class="field-desc">No saved networks yet. Upload a config above to save it here.</span>
+    {/if}
   </div>
 </div>
 
@@ -376,20 +438,58 @@
 </div>
 
 <style>
-  .cfg-summary {
+  .saved-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .saved-list {
     display: flex;
     flex-direction: column;
-    gap: 4px;
-    padding: var(--space-md);
-    background: var(--bg-input);
+    gap: var(--space-sm);
+  }
+  .saved-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
     border: 1px solid var(--border-primary);
     border-radius: var(--radius-sm);
-    font-size: var(--font-size-sm);
+    background: var(--bg-input);
   }
-  .cfg-summary .dim {
-    color: var(--text-muted);
-    display: inline-block;
-    width: 110px;
+  .saved-row.connected {
+    border-color: var(--accent);
+  }
+  .saved-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-md);
+    min-width: 0;
+  }
+  .saved-ssid {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .saved-proto {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    letter-spacing: 0.04em;
+  }
+  .saved-badge {
+    font-size: var(--font-size-xs);
+    color: var(--accent-hover);
+    border: 1px solid var(--accent);
+    border-radius: 4px;
+    padding: 1px 6px;
+  }
+  .saved-actions {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .icon-btn {
+    padding: 4px 11px;
   }
   .mono {
     font-family: var(--font-mono);

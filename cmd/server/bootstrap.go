@@ -138,6 +138,25 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.RelationField{Name: "server_cert_id", CollectionId: "certificates"},
 			},
 		},
+		{
+			// Saved client connection profiles. In client mode the operator uploads
+			// configs exported from APs; they persist here so any one can be reused.
+			name: "client_configs",
+			fields: []core.Field{
+				&core.TextField{Name: "ssid", Required: true},
+				&core.TextField{Name: "protocol"},
+				&core.TextField{Name: "passphrase"},
+				&core.TextField{Name: "band"},
+				&core.NumberField{Name: "channel"},
+				&core.BoolField{Name: "hidden"},
+				&core.TextField{Name: "identity"},
+				&core.TextField{Name: "eap_password"},
+				&core.BoolField{Name: "portal_enabled"},
+				&core.TextField{Name: "portal_username"},
+				&core.TextField{Name: "portal_password"},
+				&core.AutodateField{Name: "created", OnCreate: true},
+			},
+		},
 	}
 
 	for _, c := range collections {

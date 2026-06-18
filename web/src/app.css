@@ -221,10 +221,10 @@ pre {
 .btn-primary {
 	color: #fff;
 	border-color: transparent;
-	background: #1f6feb; /* flat solid, no gradient/glow */
+	background: var(--accent-strong); /* flat solid, no gradient/glow */
 }
 .btn-primary:hover {
-	background: #2f81f7;
+	background: var(--accent);
 	color: #fff;
 	border-color: transparent;
 }

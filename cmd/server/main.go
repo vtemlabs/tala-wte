@@ -234,6 +234,7 @@ func main() {
 
 		se.Router.GET("/api/wte/system/interfaces", wrapAuth(interfacesHandler()))
 		se.Router.GET("/api/wte/system/status", wrap(systemStatusHandler(app)))
+		se.Router.POST("/api/wte/system/mode", wrapAuth(systemModeSwapHandler()))
 		se.Router.GET("/api/wte/system/version", wrapAuth(versionHandler()))
 		se.Router.POST("/api/wte/system/update", wrapAuth(updateHandler()))
 		se.Router.GET("/api/wte/system/settings", wrapAuth(settingsGetHandler(app)))

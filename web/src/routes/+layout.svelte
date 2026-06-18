@@ -135,7 +135,7 @@
 {:else if isLoginPage}
   {@render children()}
 {:else}
-  <div class="app-shell" class:sidebar-collapsed={collapsed}>
+  <div class="app-shell" class:sidebar-collapsed={collapsed} class:client-mode={mode === 'client'}>
     <button class="hamburger" onclick={() => (sidebarOpen = !sidebarOpen)} aria-label="Toggle menu">
       {sidebarOpen ? '×' : '≡'}
     </button>
@@ -312,6 +312,15 @@
   .app-shell {
     display: flex;
     min-height: 100vh;
+  }
+  /* Client mode recolors the accent to orange so it is visually distinct from an
+     AP server (blue) at a glance, using the existing palette. */
+  .app-shell.client-mode {
+    --accent: #f97316;
+    --accent-hover: #fb923c;
+    --accent-strong: #ea580c;
+    --accent-soft: rgba(249, 115, 22, 0.14);
+    --accent-glow: rgba(249, 115, 22, 0.4);
   }
 
   .hamburger {

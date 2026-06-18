@@ -10,18 +10,74 @@ import (
 	"fmt"
 	"net/http"
 	"os"
+	"os/exec"
 	"regexp"
 	"strings"
+	"time"
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/vtemlabs/tala-wte/internal/api"
 	"github.com/vtemlabs/tala-wte/internal/client"
+	"github.com/vtemlabs/tala-wte/internal/deps"
 )
 
-// clientMode reports whether this instance runs as a Tala WTE client (set by the
-// install-client systemd unit via TALA_MODE=client) rather than an AP.
+// modeOverrideFile persists the AP/client role chosen via the in-app swap. It
+// takes precedence over the install-time TALA_MODE env so the choice survives a
+// restart, letting one binary switch roles without reinstalling.
+var modeOverrideFile = installDataDir + "/mode"
+
+// clientMode reports whether this instance runs as a Tala WTE client rather than
+// an AP. The persisted swap file wins; otherwise it falls back to the install-time
+// TALA_MODE env (set by the install-client systemd unit).
 func clientMode() bool {
+	if b, err := os.ReadFile(modeOverrideFile); err == nil {
+		switch strings.TrimSpace(string(b)) {
+		case "client":
+			return true
+		case "ap", "server":
+			return false
+		}
+	}
 	return strings.EqualFold(os.Getenv("TALA_MODE"), "client")
+}
+
+// systemModeSwapHandler flips the instance between AP (server) and client roles:
+// it persists the target role, then (in the background) installs that role's
+// dependencies and restarts the service so it comes back up in the new mode. The
+// console polls status and reloads once the new mode is live.
+func systemModeSwapHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var body struct {
+			Mode string `json:"mode"`
+		}
+		_ = json.NewDecoder(r.Body).Decode(&body)
+		target := strings.ToLower(strings.TrimSpace(body.Mode))
+		if target == "server" {
+			target = "ap"
+		}
+		if target != "ap" && target != "client" {
+			api.WriteErr(w, http.StatusBadRequest, "mode must be 'ap' or 'client'")
+			return
+		}
+		api.WriteJSON(w, map[string]any{"status": "switching", "mode": target})
+		go swapModeAsync(target)
+	}
+}
+
+// swapModeAsync installs the target role's dependencies, persists the new role,
+// then restarts the service into it. It runs in the background so the HTTP
+// response returns first. The mode file is written only after deps are in place
+// and right before the restart, so status keeps reporting the current role until
+// the new one is actually live (and a failed dep install leaves the role unchanged).
+func swapModeAsync(target string) {
+	time.Sleep(500 * time.Millisecond)
+	if target == "client" {
+		deps.InstallPackages(clientDepPackages)
+	} else {
+		_ = deps.VerifyAndInstall()
+	}
+	_ = os.WriteFile(modeOverrideFile, []byte(target), 0o644)
+	_ = exec.Command("systemctl", "restart", installUnitName).Run()
 }
 
 var filenameSafe = regexp.MustCompile(`[^A-Za-z0-9._-]+`)
