@@ -236,16 +236,9 @@ Add `--purge` to also remove the database.
 
 ## Updates
 
-Tala WTE checks GitHub for newer releases and surfaces them in the console under Settings -> Software Updates (a dot also appears on the Settings nav item when an update is available). One click downloads the architecture-matched binary, verifies it against the release checksums, swaps it in place, and restarts the service; the console reconnects on its own.
+Tala WTE checks GitHub for newer releases and surfaces them in the console under Settings -> Software Updates (a dot also appears on the Settings nav item when an update is available). One click downloads the architecture-matched binary, verifies it against the release checksums, swaps it in place, and restarts the service; the console reconnects on its own. There is no command line and no manual download - the appliance updates itself.
 
-Cutting a release is a single command from a clean checkout:
-
-```
-./scripts/bump-version.sh patch        # or minor / major / 0.3.0
-./scripts/bump-version.sh 0.3.0 beta   # prerelease channel
-```
-
-This tags the commit and pushes it, which triggers the release workflow (`.github/workflows/release.yml`) to build the `linux/amd64` and `linux/arm64` binaries, generate `checksums.txt`, and publish a GitHub Release. The version is stamped into each binary from the tag, so the in-app updater can compare against it. Pass `--dry-run` to preview or `--no-push` to tag locally without releasing.
+Running a den? The leader updates its whole pack in one step. The Den page has an **Update all members** action that tells every reachable member to pull and apply the same update, so the server and its clients stay on matching versions.
 
 ## First run
 

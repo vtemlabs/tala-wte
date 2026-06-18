@@ -44,6 +44,7 @@
   let agentKey = $state('');
   let adding = $state(false);
   let guideOpen = $state(false);
+  let updating = $state(false);
 
   function authHeaders(extra: Record<string, string> = {}): Record<string, string> {
     return pb.authStore.token ? { Authorization: pb.authStore.token, ...extra } : extra;
@@ -152,6 +153,26 @@
   function netName(id: string): string {
     return networkList.find((n) => n.id === id)?.ssid ?? '';
   }
+
+  // Update the whole pack: each member pulls and applies the latest release, then
+  // restarts, so the leader and its members stay on matching versions.
+  async function updateAll() {
+    if (!confirm('Push the latest update to all den members? Each downloads, applies, and restarts.')) return;
+    updating = true;
+    try {
+      const r = await fetch('/api/wte/den/update', { method: 'POST', headers: authHeaders() });
+      const j = await r.json();
+      if (!r.ok) throw new Error(j?.error ?? 'update failed');
+      const results = j.results ?? [];
+      const ok = results.filter((x: any) => x.ok).length;
+      for (const x of results) if (!x.ok) toast.err(`${x.name}: ${x.detail}`);
+      toast.success(`Update sent to ${ok}/${results.length} member${results.length === 1 ? '' : 's'}`);
+      refreshStatuses();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Den update failed');
+    }
+    updating = false;
+  }
 </script>
 
 <svelte:head><title>Den - Tala WTE</title></svelte:head>
@@ -161,7 +182,12 @@
     <h1 class="page-title">Den</h1>
     <p class="page-subtitle">Drive a pack of client members from the den leader</p>
   </div>
-  <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
+  <div class="header-actions">
+    <button class="btn" onclick={updateAll} disabled={updating || members.length === 0}>
+      {updating ? 'Updating...' : 'Update all members'}
+    </button>
+    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
+  </div>
 </div>
 
 <GuideModal bind:open={guideOpen} title={GUIDES.den.title} doc={GUIDES.den.doc} />

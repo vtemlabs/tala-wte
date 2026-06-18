@@ -270,6 +270,52 @@ func denStatusHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 	}
 }
 
+// denUpdateHandler tells every reachable member to pull and apply the latest
+// release so the leader and its pack stay on matching versions. Each member runs
+// its own in-app update and restarts; results report per member.
+func denUpdateHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		members, err := app.FindAllRecords("den_members")
+		if err != nil {
+			api.WriteErr(w, http.StatusInternalServerError, "could not list den members")
+			return
+		}
+		type updateResult struct {
+			Name   string `json:"name"`
+			OK     bool   `json:"ok"`
+			Detail string `json:"detail"`
+		}
+		results := make([]updateResult, 0, len(members))
+		for _, m := range members {
+			base := memberBaseURL(m.GetString("address"))
+			key := m.GetString("agent_key")
+			res := updateResult{Name: m.GetString("name")}
+			resp, e := memberRequest(http.MethodPost, base, "/api/wte/system/update", key, nil)
+			if e != nil {
+				res.Detail = "unreachable: " + e.Error()
+			} else {
+				var body struct {
+					Version string `json:"version"`
+					Error   string `json:"error"`
+				}
+				_ = json.NewDecoder(resp.Body).Decode(&body)
+				resp.Body.Close()
+				if resp.StatusCode >= 300 {
+					res.Detail = body.Error
+					if res.Detail == "" {
+						res.Detail = fmt.Sprintf("HTTP %d", resp.StatusCode)
+					}
+				} else {
+					res.OK = true
+					res.Detail = "updating to " + body.Version
+				}
+			}
+			results = append(results, res)
+		}
+		api.WriteJSON(w, map[string]any{"results": results})
+	}
+}
+
 // teardownDenForNetwork disconnects every member assigned to a network. The leader
 // calls this when the network stops or is deleted, so members stop chasing a
 // network that no longer exists.

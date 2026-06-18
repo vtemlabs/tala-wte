@@ -1,7 +1,8 @@
 // Tala WTE - Wireless Training Environment
 // Copyright (c) 2026 VTEM Labs. All rights reserved.
-// Free for personal and non-profit use. Commercial, paid training, paid CTF,
-// or any for-profit use requires a license from VTEM Labs. See the LICENSE file.
+// Free for personal and non-profit use. Commercial, for-profit, and government
+// use require a license from VTEM Labs. The Software may not be copied or
+// redistributed. See the LICENSE file.
 
 package main
 
@@ -206,6 +207,7 @@ func main() {
 		se.Router.POST("/api/wte/den/{id}/deploy", wrapAuth(denDeployHandler(app)))
 		se.Router.POST("/api/wte/den/{id}/stop", wrapAuth(denStopHandler(app)))
 		se.Router.GET("/api/wte/den/{id}/status", wrapAuth(denStatusHandler(app)))
+		se.Router.POST("/api/wte/den/update", wrapAuth(denUpdateHandler(app)))
 
 		se.Router.GET("/api/wte/enterprise/preflight", wrapAuth(sim.PreflightHandler()))
 		se.Router.POST("/api/wte/enterprise/provision", wrapAuth(sim.ProvisionHandler()))
@@ -247,7 +249,8 @@ func main() {
 		se.Router.GET("/api/wte/system/status", wrap(systemStatusHandler(app)))
 		se.Router.POST("/api/wte/system/mode", wrapAuth(systemModeSwapHandler()))
 		se.Router.GET("/api/wte/system/version", wrapAuth(versionHandler()))
-		se.Router.POST("/api/wte/system/update", wrapAuth(updateHandler()))
+		// wrapAgent so a den leader can trigger a member's self-update with its agent key.
+		se.Router.POST("/api/wte/system/update", wrapAgent(app, updateHandler()))
 		se.Router.GET("/api/wte/system/settings", wrapAuth(settingsGetHandler(app)))
 		se.Router.POST("/api/wte/system/settings", wrapAuth(settingsSaveHandler(app)))
 
