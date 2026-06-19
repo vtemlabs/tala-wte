@@ -27,9 +27,10 @@ var wifiUSBVendors = map[string]string{
 // no working driver/firmware (no ieee80211 phy), so the operator needs to find
 // and install a driver for it before it can be used.
 type UnsupportedAdapter struct {
-	USBID  string `json:"usb_id"`
-	Name   string `json:"name"`
-	Reason string `json:"reason"`
+	USBID   string `json:"usb_id"`
+	UsbPath string `json:"usb_path"` // sysfs USB device name (e.g. "2-3"), for targeted heal
+	Name    string `json:"name"`
+	Reason  string `json:"reason"`
 }
 
 // UnsupportedAdapters scans USB for wireless devices that have no working phy
@@ -75,9 +76,10 @@ func UnsupportedAdapters() []UnsupportedAdapter {
 			reason = "detected but not initialized - re-plug the adapter (its driver and firmware are present)"
 		}
 		out = append(out, UnsupportedAdapter{
-			USBID:  id,
-			Name:   label,
-			Reason: reason,
+			USBID:   id,
+			UsbPath: name,
+			Name:    label,
+			Reason:  reason,
 		})
 	}
 	return out

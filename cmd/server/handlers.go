@@ -68,18 +68,71 @@ func staticHandler() func(http.ResponseWriter, *http.Request) {
 // interfacesHandler returns available wireless interfaces; in_use maps claimed adapters to their network's SSID.
 func interfacesHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
+		// One snapshot of the claimed adapters drives all three views, so a free
+		// radio and an in-use radio can never disagree.
+		inUseAdapters := sim.InUseAdapters()
+		inUse := make(map[string]string, len(inUseAdapters))
+		for _, a := range inUseAdapters {
+			inUse[a.Interface] = a.InUseBy
+		}
 		// Tala WTE does not support virtual/simulated adapters; expose real radios only.
 		ifaces := make([]iface.Adapter, 0)
 		for _, a := range iface.DiscoverAdapters() {
-			if !iface.IsVirtualDriver(a.Driver) {
-				ifaces = append(ifaces, a)
+			if iface.IsVirtualDriver(a.Driver) {
+				continue
 			}
+			// An adapter claimed by a running network is reported via in_use_adapters.
+			// Skip it here so it is never listed twice during the brief window after
+			// start where its netdev is still visible in the main namespace.
+			if _, claimed := inUse[a.Interface]; claimed {
+				continue
+			}
+			ifaces = append(ifaces, a)
 		}
 		api.WriteJSON(w, map[string]any{
-			"interfaces":  ifaces,
-			"in_use":      sim.InUseInterfaces(),
-			"unsupported": iface.UnsupportedAdapters(),
+			"interfaces":      ifaces,
+			"in_use":          inUse,           // legacy iface->ssid map
+			"in_use_adapters": inUseAdapters,   // full hardware detail per claimed adapter
+			"unsupported":     iface.UnsupportedAdapters(),
 		})
+	}
+}
+
+// healInterfaceHandler runs a USB-reset recovery on a wedged adapter. Target a
+// radio with a netdev by "interface", or a device that enumerated but never
+// initialized by "usb_path" (from the unsupported list).
+func healInterfaceHandler() func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		var req struct {
+			Interface string `json:"interface"`
+			UsbPath   string `json:"usb_path"`
+		}
+		if err := json.NewDecoder(r.Body).Decode(&req); err != nil {
+			api.WriteErr(w, http.StatusBadRequest, "invalid json")
+			return
+		}
+		var (
+			err    error
+			target string
+		)
+		switch {
+		case req.Interface != "":
+			target = req.Interface
+			err = iface.HealAdapter(req.Interface)
+		case req.UsbPath != "":
+			target = req.UsbPath
+			err = iface.HealUSBDevice(req.UsbPath)
+		default:
+			api.WriteErr(w, http.StatusBadRequest, "interface or usb_path required")
+			return
+		}
+		if err != nil {
+			log.Printf("[heal] %s failed: %v", target, err)
+			api.WriteErr(w, http.StatusBadGateway, err.Error())
+			return
+		}
+		log.Printf("[heal] %s recovered", target)
+		api.WriteJSON(w, map[string]any{"ok": true, "message": "Adapter " + target + " recovered"})
 	}
 }
 

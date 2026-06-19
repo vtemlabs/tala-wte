@@ -248,6 +248,7 @@ func main() {
 		se.Router.POST("/api/wte/ldap/provision/random", wrapAuth(ldap.RandomProvisionHandler(app)))
 
 		se.Router.GET("/api/wte/system/interfaces", wrapAuth(interfacesHandler()))
+		se.Router.POST("/api/wte/system/interfaces/heal", wrapAuth(healInterfaceHandler()))
 		se.Router.GET("/api/wte/system/status", wrap(systemStatusHandler(app)))
 		se.Router.POST("/api/wte/system/mode", wrapAuth(systemModeSwapHandler()))
 		se.Router.GET("/api/wte/system/version", wrapAuth(versionHandler()))

@@ -67,7 +67,8 @@ func resolveUplinkIface() string {
 
 type Session struct {
 	ID        string
-	Interface string // the real adapter this network claimed (for in-use tracking)
+	Interface string         // the real adapter this network claimed (for in-use tracking)
+	Adapter   *iface.Adapter // full hardware detail, cached at start (the phy moves into the netns, so it cannot be re-enumerated from the main namespace while running)
 	SSID      string
 	Hostapd   *hostapd.Process
 	DNSMasq   *routing.DNSMasqProcess
@@ -190,6 +191,35 @@ func InUseInterfaces() map[string]string {
 		if s.Interface != "" {
 			out[s.Interface] = s.SSID
 		}
+	}
+	return out
+}
+
+// InUseAdapter is a running network's claimed adapter with full hardware detail
+// plus the SSID using it. The embedded Adapter fields marshal at the top level.
+type InUseAdapter struct {
+	iface.Adapter
+	InUseBy string `json:"in_use_by"`
+}
+
+// InUseAdapters returns full hardware detail for every adapter currently claimed
+// by a running network. The phy lives in the network's namespace while running,
+// so this start-time cache is the only source of the adapter's full capabilities.
+func InUseAdapters() []InUseAdapter {
+	mu.Lock()
+	defer mu.Unlock()
+	out := []InUseAdapter{}
+	for _, s := range running {
+		if s.Interface == "" {
+			continue
+		}
+		ad := InUseAdapter{InUseBy: s.SSID}
+		if s.Adapter != nil {
+			ad.Adapter = *s.Adapter
+		} else {
+			ad.Adapter = iface.Adapter{Interface: s.Interface}
+		}
+		out = append(out, ad)
 	}
 	return out
 }
@@ -386,6 +416,13 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 
 		// Claim the adapter via a placeholder session so concurrent starts see it as in use.
 		session := &Session{ID: id, Interface: ifName, SSID: ssid}
+		// Cache full hardware detail now: once the phy moves into the network's
+		// namespace it can no longer be enumerated from the main namespace, so this
+		// is the only point the UI can show the adapter's chipset/bands/power/etc.
+		if a := iface.FindByInterface(adapters, ifName); a != nil {
+			ac := *a
+			session.Adapter = &ac
+		}
 		running[id] = session
 		mu.Unlock()
 

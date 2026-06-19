@@ -272,6 +272,15 @@ export const system = {
 		fetch('/api/wte/system/interfaces', { headers: authHeaders() }).then(handleResponse),
 	status: () => fetch('/api/wte/system/status').then(handleResponse),
 
+	// USB-reset recovery for a wedged adapter. Target by interface name (a radio
+	// with a netdev) or usb_path (a device that enumerated but never initialized).
+	heal: (target: { interface?: string; usb_path?: string }) =>
+		fetch('/api/wte/system/interfaces/heal', {
+			method: 'POST',
+			headers: authHeaders({ 'Content-Type': 'application/json' }),
+			body: JSON.stringify(target)
+		}).then(handleResponse<{ ok: boolean; message: string }>),
+
 	getSettings: () =>
 		fetch('/api/wte/system/settings', { headers: authHeaders() }).then(handleResponse),
 

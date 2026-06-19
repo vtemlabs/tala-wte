@@ -25,7 +25,15 @@
   const displayVersion = $derived(versionInfo?.current ?? '0.1.0');
 
   let interfaces = $state<WirelessInterface[]>([]);
-  let unsupported = $state<{ usb_id: string; name: string; reason: string }[]>([]);
+  // Adapters claimed by a running network. The main-namespace scan can't see them
+  // (their phy is in the network's namespace), so the backend returns full
+  // hardware detail cached at start-time, with an in_use_by field for the SSID.
+  let inUseAdapters = $state<any[]>([]);
+  let unsupported = $state<{ usb_id: string; usb_path?: string; name: string; reason: string }[]>([]);
+  let healing = $state<Record<string, boolean>>({});
+
+  // Free radios first, then in-use ones - all rendered as full hardware cards.
+  const allAdapters = $derived([...interfaces, ...inUseAdapters]);
   let uplinkIface = $state('eth0');
   let countryCode = $state('US');
   let apSubnet = $state('10.0.0.0/24');
@@ -65,6 +73,27 @@
       : [{ code: countryCode, name: countryCode }, ...COUNTRIES]
   );
 
+  async function loadInterfaces() {
+    const ifaceRes = await system.interfaces();
+    interfaces = ifaceRes.interfaces ?? [];
+    inUseAdapters = (ifaceRes as any).in_use_adapters ?? [];
+    unsupported = (ifaceRes as any).unsupported ?? [];
+  }
+
+  // heal runs a USB-reset recovery on a wedged adapter, then refreshes the list.
+  async function heal(key: string, target: { interface?: string; usb_path?: string }) {
+    healing = { ...healing, [key]: true };
+    try {
+      const res = await system.heal(target);
+      toast.success(res.message || 'Adapter recovered');
+      await loadInterfaces();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Heal failed');
+    } finally {
+      healing = { ...healing, [key]: false };
+    }
+  }
+
   onMount(async () => {
     try {
       const [ifaceRes, settingsRes] = await Promise.all([
@@ -72,6 +101,7 @@
         system.getSettings()
       ]);
       interfaces = ifaceRes.interfaces ?? [];
+      inUseAdapters = (ifaceRes as any).in_use_adapters ?? [];
       unsupported = (ifaceRes as any).unsupported ?? [];
       if (settingsRes.uplink_iface) uplinkIface = settingsRes.uplink_iface;
       if (settingsRes.country_code) countryCode = settingsRes.country_code;
@@ -416,13 +446,13 @@
     <section class="panel">
       <div class="panel-head">
         <h2 class="panel-title">Wireless Interfaces</h2>
-        {#if interfaces.length}<span class="count-pill">{interfaces.length}</span>{/if}
+        {#if allAdapters.length}<span class="count-pill">{allAdapters.length}</span>{/if}
       </div>
       <div class="panel-body">
-        {#if interfaces.length}
+        {#if allAdapters.length}
           <div class="stack">
-            {#each interfaces as iface}
-              <HardwareCard adapter={iface} />
+            {#each allAdapters as adapter}
+              <HardwareCard {adapter} />
             {/each}
           </div>
         {/if}
@@ -434,12 +464,17 @@
                   <div class="unsupported-name">{u.name}</div>
                   <div class="unsupported-reason">{u.reason}</div>
                 </div>
-                <span class="badge badge-warning">needs driver</span>
+                <button
+                  class="btn btn-sm"
+                  disabled={healing[u.usb_id]}
+                  onclick={() => heal(u.usb_id, { usb_path: u.usb_path })}
+                  >{healing[u.usb_id] ? 'Healing...' : 'Heal'}</button
+                >
               </div>
             {/each}
           </div>
         {/if}
-        {#if !interfaces.length && !unsupported.length}
+        {#if !allAdapters.length && !unsupported.length}
           <div class="empty-state" style="padding:var(--space-2xl)">
             <p>No wireless interfaces detected.</p>
           </div>
