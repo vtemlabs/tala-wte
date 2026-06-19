@@ -6,7 +6,7 @@
 -->
 <footer class="app-footer">
   <img class="footer-logo" src="/brand/vtem-labs.png" alt="VTEM Labs" />
-  <span class="footer-copy">(c) 2026 VTEM Labs. All rights reserved.</span>
+  <span class="footer-copy">(c) 2026 VTEM Labs, Inc. All rights reserved.</span>
   <span class="footer-sep">|</span>
   <a class="footer-link" href="https://vtemlabs.com" target="_blank" rel="noopener noreferrer"
     >vtemlabs.com</a
@@ -21,7 +21,7 @@
     gap: var(--space-md);
     flex-wrap: wrap;
     padding: var(--space-lg) var(--space-xl);
-    margin-top: var(--space-2xl);
+    margin-top: auto;
     border-top: 1px solid var(--border-primary);
     color: var(--text-dim);
     font-size: var(--font-size-xs);

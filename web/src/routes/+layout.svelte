@@ -513,6 +513,8 @@
 
   .content {
     flex: 1;
+    display: flex;
+    flex-direction: column;
     margin-left: 236px;
     padding: var(--space-2xl);
     min-height: 100vh;
