@@ -34,7 +34,9 @@
     }
   }
   function fields(rec: Record<string, any>): [string, string][] {
-    return Object.entries(dataOf(rec)).map(([k, v]) => [k, String(v)]);
+    return Object.entries(dataOf(rec))
+      .filter(([k]) => norm(k) !== 'pack_member')
+      .map(([k, v]) => [k, String(v)]);
   }
 
   const isSecret = (k: string) => /pass|pwd|secret|pin|code|cvv|card/i.test(k);
@@ -58,6 +60,13 @@
   function authResult(rec: Record<string, any>): string {
     const d = dataOf(rec);
     for (const k of Object.keys(d)) if (norm(k) === 'auth_result') return String(d[k]);
+    return '';
+  }
+  // packMember returns the member hostname when this submission came from a pack
+  // member's traffic generator, or '' for a real target.
+  function packMember(rec: Record<string, any>): string {
+    const d = dataOf(rec);
+    for (const k of Object.keys(d)) if (norm(k) === 'pack_member') return String(d[k]);
     return '';
   }
 
@@ -205,7 +214,7 @@
           <thead>
             <tr>
               <th>Network</th><th>Captured</th><th>Username</th><th>Password</th>
-              <th>Result</th><th>MAC</th><th>IP</th><th class="act"></th>
+              <th>Result</th><th>Source</th><th>MAC</th><th>IP</th><th class="act"></th>
             </tr>
           </thead>
           <tbody>
@@ -224,6 +233,9 @@
                     >
                   {:else}<span class="dim">-</span>{/if}
                 </td>
+                <td>
+                  {#if packMember(rec)}<span class="badge badge-neutral" title="Pack member: {packMember(rec)}">pack member</span>{:else}<span class="dim">target</span>{/if}
+                </td>
                 <td class="mono dim">{rec.mac || '-'}</td>
                 <td class="mono dim">{rec.ip || '-'}</td>
                 <td class="act"
@@ -241,6 +253,7 @@
         <div class="card cap-card">
           <header class="cap-head">
             <span class="badge badge-info net-badge" title={netName(rec)}>{netName(rec)}</span>
+            {#if packMember(rec)}<span class="badge badge-neutral" title="Pack member: {packMember(rec)}">pack member</span>{/if}
             <time class="cap-time">{fmtTime(rec.created)}</time>
             <button class="action-btn cap-del" onclick={() => del(rec.id)}>Del</button>
           </header>

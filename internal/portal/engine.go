@@ -216,30 +216,9 @@ func (e *Engine) startHTTPServer() error {
 		clientIP := strings.Split(r.RemoteAddr, ":")[0]
 		mac := e.getMACFromIP(clientIP)
 
-		// Harvest every submitted field except control fields.
-		_ = r.ParseForm()
-		fields := make(map[string]string)
-		for k, vals := range r.PostForm {
-			if k == "redirect" || len(vals) == 0 {
-				continue
-			}
-			fields[k] = vals[0]
-		}
-
-		// Auth portals validate credentials before granting access; the result is recorded with the submission.
-		authPassed := true
-		if e.RequireAuth {
-			user, pass := extractCreds(r.PostForm)
-			authPassed = user != "" && pass != "" && e.Authenticate != nil && e.Authenticate(user, pass)
-			if user != "" {
-				fields["_auth_user"] = user
-			}
-			if authPassed {
-				fields["_auth_result"] = "success"
-			} else {
-				fields["_auth_result"] = "fail"
-			}
-		}
+		// Harvest the submitted form, tag pack-member traffic, and (for auth
+		// portals) validate the credentials.
+		fields, authPassed := submissionFields(r, e.RequireAuth, e.Authenticate)
 
 		if e.OnSubmit != nil && len(fields) > 0 {
 			e.OnSubmit(Submission{
@@ -414,6 +393,42 @@ func extractCreds(form url.Values) (user, pass string) {
 		}
 	}
 	return user, pass
+}
+
+// submissionFields harvests the posted form (dropping control fields), tags
+// pack-member traffic from the X-Tala-Member header, and - for auth portals -
+// validates the credentials. It returns the recorded fields and whether auth
+// passed (always true when auth is not required).
+func submissionFields(r *http.Request, requireAuth bool, authenticate func(string, string) bool) (map[string]string, bool) {
+	_ = r.ParseForm()
+	fields := make(map[string]string)
+	for k, vals := range r.PostForm {
+		if k == "redirect" || len(vals) == 0 {
+			continue
+		}
+		fields[k] = vals[0]
+	}
+
+	// Tag pack-member traffic (submitted by a Tala WTE member) so the console
+	// can separate simulated logins from real targets.
+	if m := r.Header.Get("X-Tala-Member"); m != "" {
+		fields["_pack_member"] = m
+	}
+
+	authPassed := true
+	if requireAuth {
+		user, pass := extractCreds(r.PostForm)
+		authPassed = user != "" && pass != "" && authenticate != nil && authenticate(user, pass)
+		if user != "" {
+			fields["_auth_user"] = user
+		}
+		if authPassed {
+			fields["_auth_result"] = "success"
+		} else {
+			fields["_auth_result"] = "fail"
+		}
+	}
+	return fields, authPassed
 }
 
 // servePortalBody renders the configured portal page, optionally with an error banner injected at the top.

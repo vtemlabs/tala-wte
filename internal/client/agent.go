@@ -395,7 +395,20 @@ func (a *Agent) handlePortal(gateway string, pc PortalConfig) {
 	if strings.HasPrefix(action, "http://") || strings.HasPrefix(action, "https://") {
 		postURL = action
 	}
-	resp, err := client.PostForm(postURL, values)
+	req, reqErr := http.NewRequest(http.MethodPost, postURL, strings.NewReader(values.Encode()))
+	if reqErr != nil {
+		a.mu.Lock()
+		a.status.PortalState = "failed"
+		a.mu.Unlock()
+		a.setErr("portal submit: %v", reqErr)
+		return
+	}
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	// Tag the submission so the leader can separate pack-member traffic from real targets.
+	if host, _ := os.Hostname(); host != "" {
+		req.Header.Set("X-Tala-Member", host)
+	}
+	resp, err := client.Do(req)
 	if err != nil {
 		a.mu.Lock()
 		a.status.PortalState = "failed"
