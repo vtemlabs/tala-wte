@@ -245,29 +245,22 @@
 
 {#if !loading && list.length > 0}
   <div class="portal-controls">
-    <input class="input portal-search" bind:value={search} placeholder="Search portals..." />
-    <div class="seg" role="group" aria-label="Source">
-      <button class="seg-btn" class:active={source === 'all'} onclick={() => (source = 'all')}
-        >All <span class="seg-n">{list.length}</span></button
-      >
-      <button
-        class="seg-btn"
-        class:active={source === 'builtin'}
-        onclick={() => (source = 'builtin')}>Built-in <span class="seg-n">{builtinCount}</span></button
-      >
-      <button class="seg-btn" class:active={source === 'custom'} onclick={() => (source = 'custom')}
-        >Custom <span class="seg-n">{customCount}</span></button
-      >
-    </div>
-    <label class="sort-wrap">
-      <span class="sort-lbl">Sort</span>
-      <select class="input sort-select" bind:value={sortBy}>
-        <option value="name">Name</option>
-        <option value="category">Category</option>
-        <option value="type">Source</option>
-      </select>
-    </label>
-    <span class="count-pill filter-count">{filtered.length}</span>
+    <input class="input filter-field" bind:value={search} placeholder="Search portals…" />
+    <button class="chip" class:active={source === 'all'} onclick={() => (source = 'all')}
+      >All ({list.length})</button
+    >
+    <button class="chip" class:active={source === 'builtin'} onclick={() => (source = 'builtin')}
+      >Built-in ({builtinCount})</button
+    >
+    <button class="chip" class:active={source === 'custom'} onclick={() => (source = 'custom')}
+      >Custom ({customCount})</button
+    >
+    <select class="input sort-select" bind:value={sortBy} aria-label="Sort by">
+      <option value="name">Sort: Name</option>
+      <option value="category">Sort: Category</option>
+      <option value="type">Sort: Source</option>
+    </select>
+    <span class="count-pill">{filtered.length}</span>
   </div>
   <div class="filter-row">
     {#each categories as c}
@@ -527,54 +520,15 @@
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: var(--space-md);
+    gap: var(--space-sm);
     margin-bottom: var(--space-md);
   }
-  .portal-search {
-    width: 280px;
-    max-width: 100%;
-  }
-  .seg {
-    display: inline-flex;
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-  }
-  .seg-btn {
-    background: transparent;
-    border: none;
-    color: var(--text-muted);
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    padding: 6px 12px;
-    cursor: pointer;
-  }
-  .seg-btn:not(:last-child) {
-    border-right: 1px solid var(--border-primary);
-  }
-  .seg-btn.active {
-    background: var(--accent-soft);
-    color: var(--accent-hover);
-  }
-  .seg-n {
-    opacity: 0.6;
-    margin-left: 2px;
-  }
-  .sort-wrap {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-sm);
-  }
-  .sort-lbl {
-    font-size: 10px;
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
+  .filter-field {
+    max-width: 280px;
+    margin-right: auto;
   }
   .sort-select {
     width: auto;
-    min-width: 130px;
   }
   .filter-row {
     display: flex;
@@ -582,9 +536,6 @@
     align-items: center;
     gap: var(--space-sm);
     margin-bottom: var(--space-lg);
-  }
-  .filter-count {
-    margin-left: auto;
   }
 
   .gallery {

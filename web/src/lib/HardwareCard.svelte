@@ -31,7 +31,8 @@
       <span class="hw-iface">{adapter.interface}</span>
       <span class="hw-model">{model}</span>
     </div>
-    {#if inUseBy}<span class="hw-inuse" title="In use by {inUseBy}">in use: {inUseBy}</span>{/if}
+    {#if inUseBy}<span class="badge badge-success" title="In use by {inUseBy}">in use: {inUseBy}</span
+      >{/if}
     {#if adapter.chipset}<span class="hw-chip">{adapter.chipset}</span>{/if}
   </div>
 
@@ -127,16 +128,9 @@
     border-radius: 999px;
     padding: 2px 9px;
   }
-  .hw-inuse {
+  .hw-head .badge {
     flex-shrink: 0;
-    font-size: 10px;
-    font-weight: 600;
-    color: var(--color-green);
-    background: rgba(34, 197, 94, 0.1);
-    border: 1px solid rgba(34, 197, 94, 0.3);
-    border-radius: 999px;
-    padding: 2px 9px;
-    max-width: 180px;
+    max-width: 200px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;

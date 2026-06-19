@@ -503,39 +503,39 @@
       {:else if users.length === 0}
         <div class="empty-state"><p>No users in directory</p></div>
       {:else}
-        <div class="grp-controls">
+        <div class="list-controls">
           <input
-            class="input grp-filter"
+            class="input filter-field"
             bind:value={userFilter}
-            placeholder="Filter by name, uid, title, department..."
+            placeholder="Filter by name, uid, title, department…"
           />
-          <span class="grp-count">{shownUsers.length} of {users.length} users</span>
+          <span class="count-pill">{shownUsers.length} / {users.length}</span>
         </div>
         <div class="table-wrap">
           <table class="table">
             <thead>
               <tr>
                 <th class="sortable" onclick={() => sortUsersBy('uid')}>
-                  UID{#if userSort === 'uid'}<span class="arrow"
+                  UID{#if userSort === 'uid'}<span class="sort-arrow"
                       >{userSortDir === 'asc' ? '▲' : '▼'}</span
                     >{/if}
                 </th>
                 <th class="sortable" onclick={() => sortUsersBy('cn')}>
-                  Name{#if userSort === 'cn'}<span class="arrow"
+                  Name{#if userSort === 'cn'}<span class="sort-arrow"
                       >{userSortDir === 'asc' ? '▲' : '▼'}</span
                     >{/if}
                 </th>
                 <th class="sortable" onclick={() => sortUsersBy('title')}>
-                  Title{#if userSort === 'title'}<span class="arrow"
+                  Title{#if userSort === 'title'}<span class="sort-arrow"
                       >{userSortDir === 'asc' ? '▲' : '▼'}</span
                     >{/if}
                 </th>
                 <th class="sortable" onclick={() => sortUsersBy('department')}>
-                  Department{#if userSort === 'department'}<span class="arrow"
+                  Department{#if userSort === 'department'}<span class="sort-arrow"
                       >{userSortDir === 'asc' ? '▲' : '▼'}</span
                     >{/if}
                 </th>
-                <th>Email</th><th>Password</th><th></th>
+                <th>Email</th><th>Password</th><th class="actions-col"></th>
               </tr>
             </thead>
             <tbody>
@@ -568,12 +568,8 @@
                       </button>
                     {/if}
                   </td>
-                  <td data-label="">
-                    <button
-                      class="action-btn"
-                      style="color:var(--color-red)"
-                      onclick={() => deleteUser(u.uid)}>Del</button
-                    >
+                  <td data-label="" class="actions-col">
+                    <button class="action-btn del-btn" onclick={() => deleteUser(u.uid)}>Del</button>
                   </td>
                 </tr>
               {/each}
@@ -608,55 +604,53 @@
         {#if groups.length === 0}
           <div class="empty-state"><p>No groups in directory</p></div>
         {:else}
-          <div class="grp-controls">
+          <div class="list-controls">
             <input
-              class="input grp-filter"
+              class="input filter-field"
               bind:value={groupFilter}
-              placeholder="Filter by group or member..."
+              placeholder="Filter by group or member…"
             />
-            <span class="grp-count">{shownGroups.length} of {groups.length} groups</span>
+            <span class="count-pill">{shownGroups.length} / {groups.length}</span>
           </div>
-          <div class="panel" style="margin-top:var(--space-md)">
-            <div class="table-wrap">
-              <table class="table grp-table">
-                <thead>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
+                <tr>
+                  <th class="sortable" onclick={() => sortGroupsBy('name')}>
+                    Group{#if groupSort === 'name'}<span class="sort-arrow"
+                        >{groupSortDir === 'asc' ? '▲' : '▼'}</span
+                      >{/if}
+                  </th>
+                  <th class="sortable num-col" onclick={() => sortGroupsBy('members')}>
+                    Members{#if groupSort === 'members'}<span class="sort-arrow"
+                        >{groupSortDir === 'asc' ? '▲' : '▼'}</span
+                      >{/if}
+                  </th>
+                  <th>Membership</th>
+                  <th class="actions-col"></th>
+                </tr>
+              </thead>
+              <tbody>
+                {#each shownGroups as g (g.cn)}
                   <tr>
-                    <th class="sortable" onclick={() => sortGroupsBy('name')}>
-                      Group{#if groupSort === 'name'}<span class="arrow"
-                          >{groupSortDir === 'asc' ? '▲' : '▼'}</span
-                        >{/if}
-                    </th>
-                    <th class="sortable num" onclick={() => sortGroupsBy('members')}>
-                      Members{#if groupSort === 'members'}<span class="arrow"
-                          >{groupSortDir === 'asc' ? '▲' : '▼'}</span
-                        >{/if}
-                    </th>
-                    <th>Membership</th>
-                    <th class="act"></th>
+                    <td data-label="Group">{g.cn}</td>
+                    <td data-label="Members" class="num-col"
+                      ><span class="count-pill">{g.uids.length}</span></td
+                    >
+                    <td data-label="Membership">
+                      {#if g.uids.length}
+                        <span class="mono member-list">{g.uids.join(', ')}</span>
+                      {:else}<span class="dim">empty</span>{/if}
+                    </td>
+                    <td data-label="" class="actions-col">
+                      <button class="action-btn del-btn" onclick={() => deleteGroup(g.cn)}
+                        >Del</button
+                      >
+                    </td>
                   </tr>
-                </thead>
-                <tbody>
-                  {#each shownGroups as g (g.cn)}
-                    <tr>
-                      <td><span class="grp-name">{g.cn}</span></td>
-                      <td class="num"><span class="count-pill">{g.uids.length}</span></td>
-                      <td>
-                        {#if g.uids.length}
-                          <div class="grp-members">
-                            {#each g.uids as uid}<span class="uid-chip mono">{uid}</span>{/each}
-                          </div>
-                        {:else}<span class="dim">empty</span>{/if}
-                      </td>
-                      <td class="act">
-                        <button class="action-btn grp-del" onclick={() => deleteGroup(g.cn)}
-                          >Del</button
-                        >
-                      </td>
-                    </tr>
-                  {/each}
-                </tbody>
-              </table>
-            </div>
+                {/each}
+              </tbody>
+            </table>
           </div>
         {/if}
       </div>
@@ -766,21 +760,16 @@
     align-items: flex-end;
     flex-wrap: wrap;
   }
-  .grp-controls {
+  .list-controls {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-md);
     flex-wrap: wrap;
-    margin-top: var(--space-lg);
+    margin-bottom: var(--space-md);
   }
-  .grp-filter {
-    width: 320px;
-    max-width: 100%;
-  }
-  .grp-count {
-    font-size: var(--font-size-xs);
-    color: var(--text-muted);
+  .filter-field {
+    max-width: 340px;
   }
   th.sortable {
     cursor: pointer;
@@ -790,47 +779,27 @@
   th.sortable:hover {
     color: var(--accent-hover);
   }
-  .grp-table th.num,
-  .grp-table td.num {
-    text-align: center;
-    width: 1%;
-    white-space: nowrap;
-  }
-  .grp-table th.act,
-  .grp-table td.act {
-    text-align: right;
-    width: 1%;
-  }
-  .arrow {
+  .sort-arrow {
     margin-left: 4px;
-    font-size: 9px;
     color: var(--accent);
   }
-  .grp-name {
-    font-weight: 600;
-    color: var(--text-primary);
+  th.num-col,
+  td.num-col {
+    text-align: center;
     white-space: nowrap;
   }
-  .grp-members {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 4px;
-    max-height: 88px;
-    overflow-y: auto;
+  th.actions-col,
+  td.actions-col {
+    text-align: right;
+    white-space: nowrap;
   }
-  .uid-chip {
-    font-size: 10px;
-    color: var(--text-secondary);
-    background: var(--bg-elevated);
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-sm);
-    padding: 1px 6px;
+  .member-list {
+    color: var(--text-dim);
   }
-  .grp-del {
+  .del-btn {
     color: var(--color-red);
-    border-color: rgba(244, 63, 94, 0.3);
   }
-  .grp-del:hover {
+  .del-btn:hover {
     background: var(--color-red);
     color: #fff;
     border-color: transparent;
