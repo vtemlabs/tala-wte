@@ -7,6 +7,7 @@ require (
 	github.com/gorilla/websocket v1.5.3
 	github.com/pocketbase/pocketbase v0.36.8
 	github.com/vishvananda/netns v0.0.4
+	golang.org/x/net v0.55.0
 	golang.org/x/sys v0.45.0
 )
 
@@ -35,7 +36,6 @@ require (
 	github.com/stretchr/testify v1.8.2 // indirect
 	golang.org/x/crypto v0.51.0 // indirect
 	golang.org/x/image v0.41.0 // indirect
-	golang.org/x/net v0.55.0 // indirect
 	golang.org/x/oauth2 v0.36.0 // indirect
 	golang.org/x/sync v0.20.0 // indirect
 	golang.org/x/text v0.37.0 // indirect

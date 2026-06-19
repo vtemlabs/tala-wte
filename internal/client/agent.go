@@ -371,21 +371,36 @@ func (a *Agent) handlePortal(gateway string, pc PortalConfig) {
 	a.mu.Lock()
 	a.status.PortalState = "detected"
 	a.mu.Unlock()
-	a.setEvent("captive portal: submitting accept")
+	a.setEvent("captive portal: filling form")
 
-	form := url.Values{}
-	form.Set("accept", "1")
-	if pc.Username != "" {
-		form.Set("username", pc.Username)
-		form.Set("password", pc.Password)
-	}
+	base := "http://" + gateway
 	client := &http.Client{Timeout: 8 * time.Second}
-	resp, err := client.PostForm("http://"+gateway+"/portal/accept", form)
+	// Default to a bare accept (plus any operator creds) if the page can't be read.
+	action := "/portal/accept"
+	values := url.Values{"accept": {"1"}}
+	if pc.Username != "" {
+		values.Set("username", pc.Username)
+		values.Set("password", pc.Password)
+	}
+	// Fetch the portal page and fill its actual form, so any template (room, plan,
+	// PII, terms checkbox, AD/ISP login) is satisfied, not just a bare accept.
+	if pageResp, gerr := client.Get(base + "/"); gerr == nil {
+		body, _ := io.ReadAll(io.LimitReader(pageResp.Body, 1<<20))
+		pageResp.Body.Close()
+		if act, vals := buildPortalSubmission(string(body), pc); len(vals) > 0 {
+			action, values = act, vals
+		}
+	}
+	postURL := base + action
+	if strings.HasPrefix(action, "http://") || strings.HasPrefix(action, "https://") {
+		postURL = action
+	}
+	resp, err := client.PostForm(postURL, values)
 	if err != nil {
 		a.mu.Lock()
 		a.status.PortalState = "failed"
 		a.mu.Unlock()
-		a.setErr("portal accept: %v", err)
+		a.setErr("portal submit: %v", err)
 		return
 	}
 	resp.Body.Close()
