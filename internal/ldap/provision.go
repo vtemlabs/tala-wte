@@ -41,10 +41,44 @@ type ProvisionResponse struct {
 
 // ProvisionUser is a user created during provisioning.
 type ProvisionUser struct {
-	UID      string `json:"uid"`
-	CN       string `json:"cn"`
-	Mail     string `json:"mail"`
-	Password string `json:"password"`
+	UID        string `json:"uid"`
+	CN         string `json:"cn"`
+	Mail       string `json:"mail"`
+	Password   string `json:"password"`
+	Department string `json:"department"`
+	Title      string `json:"title"`
+}
+
+// orgDept is a department template: the name doubles as the LDAP group cn and the
+// user's ou attribute, Titles seeds realistic job titles, and Weight skews how
+// many users land in it (a small company has many engineers, few executives).
+type orgDept struct {
+	Name   string
+	Titles []string
+	Weight int
+}
+
+// orgDepartments models the org chart of a typical small company, so a generated
+// directory has the department, role, and access groups a trainee expects to
+// enumerate in a real domain.
+var orgDepartments = []orgDept{
+	{"Engineering", []string{"Software Engineer", "Senior Software Engineer", "DevOps Engineer", "QA Engineer", "Engineering Manager"}, 5},
+	{"Sales", []string{"Account Executive", "Sales Representative", "Regional Sales Manager", "Sales Development Rep"}, 4},
+	{"Customer Support", []string{"Support Specialist", "Customer Success Manager", "Support Team Lead"}, 3},
+	{"Information Technology", []string{"Systems Administrator", "Network Engineer", "Help Desk Technician", "IT Manager", "Security Analyst"}, 3},
+	{"Marketing", []string{"Marketing Specialist", "Content Strategist", "Marketing Manager"}, 2},
+	{"Finance", []string{"Accountant", "Financial Analyst", "Controller", "Accounts Payable Clerk"}, 2},
+	{"Human Resources", []string{"HR Generalist", "Recruiter", "HR Manager"}, 2},
+	{"Operations", []string{"Operations Analyst", "Operations Manager", "Logistics Coordinator"}, 2},
+	{"Legal", []string{"Corporate Counsel", "Paralegal"}, 1},
+	{"Executive", []string{"Chief Executive Officer", "Chief Financial Officer", "Chief Technology Officer", "Chief Operating Officer"}, 1},
+}
+
+// provisionGroup is an LDAP groupOfNames to emit, with its member uids.
+type provisionGroup struct {
+	CN          string
+	Description string
+	Members     []string
 }
 
 var (
@@ -56,6 +90,26 @@ var (
 		"Steven", "Ashley", "Paul", "Kimberly", "Andrew", "Emily", "Joshua", "Donna",
 		"Kenneth", "Michelle", "Kevin", "Carol", "Brian", "Amanda", "George", "Melissa",
 		"Timothy", "Deborah", "Ronald", "Stephanie",
+		"Aaron", "Adam", "Adrian", "Alan", "Albert", "Alexander", "Alexis", "Alice",
+		"Amber", "Amy", "Andrea", "Angela", "Anna", "Austin", "Bradley", "Brandon",
+		"Brenda", "Brittany", "Bruce", "Bryan", "Caleb", "Cameron", "Carl", "Carlos",
+		"Catherine", "Charles", "Cheryl", "Christina", "Christine", "Cynthia", "Dale",
+		"Dana", "Danielle", "Dennis", "Derek", "Diana", "Diane", "Douglas", "Dylan",
+		"Edward", "Eric", "Erica", "Eugene", "Evelyn", "Frances", "Frank", "Gabriel",
+		"Gary", "Gerald", "Gloria", "Grace", "Gregory", "Harold", "Heather", "Henry",
+		"Howard", "Ian", "Isaac", "Jack", "Jacob", "Jacqueline", "Jane", "Janet",
+		"Janice", "Jason", "Jean", "Jeffrey", "Jeremy", "Jesse", "Jessica", "Joan",
+		"Jonathan", "Jordan", "Jose", "Joyce", "Juan", "Judith", "Julia", "Julie",
+		"Justin", "Katherine", "Kathleen", "Kathryn", "Kayla", "Keith", "Kelly", "Kyle",
+		"Larry", "Laura", "Lauren", "Lawrence", "Logan", "Louis", "Lucas", "Madison",
+		"Marie", "Marilyn", "Mason", "Megan", "Nathan", "Nicholas", "Nicole", "Noah",
+		"Olivia", "Pamela", "Patrick", "Peter", "Philip", "Rachel", "Ralph", "Raymond",
+		"Rebecca", "Roger", "Roy", "Russell", "Ruth", "Ryan", "Samantha", "Samuel",
+		"Sara", "Scott", "Sean", "Sharon", "Shirley", "Sophia", "Stephen", "Teresa",
+		"Terry", "Theresa", "Tiffany", "Tyler", "Vincent", "Virginia", "Walter", "Wayne",
+		"Wendy", "Zachary", "Priya", "Raj", "Wei", "Mei", "Hiro", "Yuki", "Omar", "Fatima",
+		"Diego", "Sofia", "Mateo", "Camila", "Liam", "Emma", "Aisha", "Ahmed", "Ananya",
+		"Arjun", "Chen", "Ling", "Kenji", "Sakura", "Ivan", "Natasha", "Sven", "Astrid",
 	}
 	randomLastNames = []string{
 		"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis",
@@ -65,6 +119,18 @@ var (
 		"Walker", "Young", "Allen", "King", "Wright", "Scott", "Torres", "Nguyen",
 		"Hill", "Flores", "Green", "Adams", "Nelson", "Baker", "Hall", "Rivera",
 		"Campbell", "Mitchell", "Carter", "Roberts",
+		"Bailey", "Bell", "Bennett", "Brooks", "Bryant", "Butler", "Cook", "Cooper",
+		"Cox", "Coleman", "Collins", "Cruz", "Diaz", "Edwards", "Evans", "Fisher",
+		"Foster", "Gomez", "Gray", "Griffin", "Hayes", "Henderson", "Howard", "Hughes",
+		"Jenkins", "Kelly", "Kim", "Long", "Morales", "Morgan", "Morris", "Murphy",
+		"Myers", "Ortiz", "Parker", "Patel", "Peterson", "Powell", "Price", "Reed",
+		"Reyes", "Richardson", "Ross", "Sanders", "Simmons", "Stewart", "Sullivan",
+		"Turner", "Ward", "Washington", "Watson", "Webb", "Wells", "West", "Wood",
+		"Woods", "Bishop", "Chen", "Wang", "Singh", "Kumar", "Khan", "Ali", "Murray",
+		"Hamilton", "Graham", "Crawford", "Olsen", "Hansen", "Schmidt", "Meyer",
+		"Fischer", "Weber", "Romano", "Russo", "Costa", "Silva", "Santos", "Oliveira",
+		"Nakamura", "Yamamoto", "Sato", "Tanaka", "Park", "Choi", "Tran", "Pham", "Vu",
+		"Petrov", "Ivanov", "Novak", "Kowalski", "Andersson", "Larsen", "Mueller",
 	}
 	randomCompanies = []string{
 		"Meridian Systems", "Vanguard Industries", "Apex Dynamics", "Summit Technologies",
@@ -241,8 +307,9 @@ ou: Groups
 
 `, defaultBaseDN, req.CompanyName, defaultBaseDN, req.CompanyName, AdminPassword(), defaultBaseDN, defaultBaseDN)
 
-	memberLines := ""
 	for _, u := range users {
+		fields := strings.Fields(u.CN)
+		sn := fields[len(fields)-1]
 		fmt.Fprintf(&ldif, `dn: uid=%s,ou=Users,%s
 objectClass: top
 objectClass: person
@@ -251,24 +318,26 @@ objectClass: inetOrgPerson
 uid: %s
 cn: %s
 sn: %s
+displayName: %s
+title: %s
+ou: %s
 mail: %s
 userPassword: %s
 
-`, u.UID, defaultBaseDN, u.UID, u.CN, strings.Fields(u.CN)[len(strings.Fields(u.CN))-1], u.Mail, u.Password)
-		memberLines += fmt.Sprintf("member: uid=%s,ou=Users,%s\n", u.UID, defaultBaseDN)
+`, u.UID, defaultBaseDN, u.UID, u.CN, sn, u.CN, u.Title, u.Department, u.Mail, u.Password)
 	}
 
-	fmt.Fprintf(&ldif, `dn: cn=wifi-users,ou=Groups,%s
-objectClass: top
-objectClass: groupOfNames
-cn: wifi-users
-%s
-dn: cn=wifi-admins,ou=Groups,%s
-objectClass: top
-objectClass: groupOfNames
-cn: wifi-admins
-member: uid=%s,ou=Users,%s
-`, defaultBaseDN, memberLines, defaultBaseDN, users[0].UID, defaultBaseDN)
+	groups := buildGroups(users)
+	for _, g := range groups {
+		fmt.Fprintf(&ldif, "dn: cn=%s,ou=Groups,%s\nobjectClass: top\nobjectClass: groupOfNames\ncn: %s\n", g.CN, defaultBaseDN, g.CN)
+		if g.Description != "" {
+			fmt.Fprintf(&ldif, "description: %s\n", g.Description)
+		}
+		for _, uid := range g.Members {
+			fmt.Fprintf(&ldif, "member: uid=%s,ou=Users,%s\n", uid, defaultBaseDN)
+		}
+		ldif.WriteString("\n")
+	}
 
 	bootstrapFile := filepath.Join(ldapDataDir, "bootstrap.ldif")
 	if err := os.WriteFile(bootstrapFile, ldif.Bytes(), 0o640); err != nil {
@@ -283,7 +352,7 @@ member: uid=%s,ou=Users,%s
 		return nil, fmt.Errorf("restart slapd: %w", err)
 	}
 
-	log.Printf("[ldap] Provisioning complete: %s - %d users, 2 groups", req.CompanyName, len(users))
+	log.Printf("[ldap] Provisioning complete: %s - %d users, %d groups", req.CompanyName, len(users), len(groups))
 
 	return &ProvisionResponse{
 		Status:      "provisioned",
@@ -296,6 +365,14 @@ member: uid=%s,ou=Users,%s
 func generateUsers(req ProvisionRequest) []ProvisionUser {
 	used := make(map[string]bool)
 	users := make([]ProvisionUser, 0, req.UserCount)
+
+	// Expand departments by weight so a weighted pick is a plain index lookup.
+	deptPool := make([]orgDept, 0, 32)
+	for _, d := range orgDepartments {
+		for i := 0; i < d.Weight; i++ {
+			deptPool = append(deptPool, d)
+		}
+	}
 
 	for i := 0; i < req.UserCount; i++ {
 		var first, last, uid string
@@ -318,13 +395,124 @@ func generateUsers(req ProvisionRequest) []ProvisionUser {
 			password = generateMixedPassword(first, last, req.CompanyName)
 		}
 
+		dept := deptPool[randomInt(len(deptPool))]
+		title := dept.Titles[randomInt(len(dept.Titles))]
+
 		users = append(users, ProvisionUser{
-			UID:      uid,
-			CN:       first + " " + last,
-			Mail:     uid + "@" + req.Domain,
-			Password: password,
+			UID:        uid,
+			CN:         first + " " + last,
+			Mail:       uid + "@" + req.Domain,
+			Password:   password,
+			Department: dept.Name,
+			Title:      title,
 		})
 	}
 
 	return users
+}
+
+// buildGroups derives a realistic set of LDAP groups from the provisioned users:
+// the catch-all Domain Users, one group per populated department, privilege
+// groups (Domain Admins and IT-derived operator groups), access groups (VPN and
+// Remote Desktop), and the Wi-Fi groups the RADIUS path expects. Empty groups are
+// never emitted, since groupOfNames requires at least one member.
+func buildGroups(users []ProvisionUser) []provisionGroup {
+	if len(users) == 0 {
+		return nil
+	}
+
+	allUIDs := make([]string, len(users))
+	byDept := map[string][]string{}
+	var itUsers, execUsers []string
+	for i, u := range users {
+		allUIDs[i] = u.UID
+		byDept[u.Department] = append(byDept[u.Department], u.UID)
+		switch u.Department {
+		case "Information Technology":
+			itUsers = append(itUsers, u.UID)
+		case "Executive":
+			execUsers = append(execUsers, u.UID)
+		}
+	}
+
+	// Domain Admins is small and privileged: IT staff plus executives, capped, and
+	// never empty (a directory always has at least one admin).
+	admins := capN(dedup(append(append([]string{}, itUsers...), execUsers...)), 3)
+	if len(admins) == 0 {
+		admins = []string{users[0].UID}
+	}
+
+	groups := []provisionGroup{
+		{"Domain Users", "All domain user accounts", allUIDs},
+		{"Domain Admins", "Domain administrators (full control)", admins},
+	}
+
+	// One group per populated department, in the org-chart order above.
+	for _, d := range orgDepartments {
+		if m := byDept[d.Name]; len(m) > 0 {
+			groups = append(groups, provisionGroup{d.Name, d.Name + " department", m})
+		}
+	}
+
+	// Privilege/operator groups derived from IT and the executive team.
+	if len(itUsers) > 0 {
+		groups = append(groups,
+			provisionGroup{"Help Desk", "Tier-1 support operators", itUsers},
+			provisionGroup{"Backup Operators", "May back up and restore all files", capN(itUsers, 2)},
+			provisionGroup{"File Server Admins", "Full control of file shares", itUsers},
+		)
+	}
+	if len(execUsers) > 0 {
+		groups = append(groups, provisionGroup{"Executives", "Executive leadership team", execUsers})
+	}
+
+	// Access groups: realistic subsets of the company.
+	if vpn := randomSubset(allUIDs, 55); len(vpn) > 0 {
+		groups = append(groups, provisionGroup{"VPN Users", "Permitted remote VPN access", vpn})
+	}
+	rdp := dedup(append(append([]string{}, itUsers...), randomSubset(byDept["Engineering"], 60)...))
+	if len(rdp) > 0 {
+		groups = append(groups, provisionGroup{"Remote Desktop Users", "Permitted RDP access to servers", rdp})
+	}
+
+	// Wi-Fi groups consumed by the RADIUS path: everyone may join, admins manage.
+	groups = append(groups,
+		provisionGroup{"wifi-users", "Wi-Fi network access", allUIDs},
+		provisionGroup{"wifi-admins", "Wi-Fi administration", admins},
+	)
+	return groups
+}
+
+func dedup(in []string) []string {
+	seen := make(map[string]bool, len(in))
+	out := make([]string, 0, len(in))
+	for _, s := range in {
+		if !seen[s] {
+			seen[s] = true
+			out = append(out, s)
+		}
+	}
+	return out
+}
+
+func capN(in []string, n int) []string {
+	if len(in) <= n {
+		return in
+	}
+	return in[:n]
+}
+
+// randomSubset returns each element with the given percent probability, but never
+// an empty set when the input is non-empty (groupOfNames needs a member).
+func randomSubset(in []string, percent int) []string {
+	out := make([]string, 0, len(in))
+	for _, s := range in {
+		if randomInt(100) < percent {
+			out = append(out, s)
+		}
+	}
+	if len(out) == 0 && len(in) > 0 {
+		out = append(out, in[randomInt(len(in))])
+	}
+	return out
 }

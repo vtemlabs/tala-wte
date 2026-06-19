@@ -238,6 +238,12 @@ export const ldap = {
 			body: JSON.stringify({ cn, members })
 		}).then(handleResponse),
 
+	deleteGroup: (cn: string) =>
+		fetch(`/api/wte/ldap/groups/${encodeURIComponent(cn)}`, {
+			method: 'DELETE',
+			headers: authHeaders()
+		}).then(handleResponse),
+
 	provision: (data: {
 		company_name: string;
 		domain: string;

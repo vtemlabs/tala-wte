@@ -139,6 +139,50 @@
   let newGroupCN = $state('');
   let addingGroup = $state(false);
 
+  // Groups list: sortable by name or member count, filterable by group name or
+  // member uid (so an operator can find which groups a user belongs to).
+  let groupFilter = $state('');
+  let groupSort = $state<'name' | 'members'>('name');
+  let groupSortDir = $state<'asc' | 'desc'>('asc');
+
+  // memberUID extracts the bare uid from a member DN ("uid=jsmith,ou=Users,..").
+  const memberUID = (dn: string) => dn.replace(/^uid=/i, '').split(',')[0] || dn;
+
+  const shownGroups = $derived.by(() => {
+    const q = groupFilter.trim().toLowerCase();
+    let list = groups.map((g) => ({ ...g, uids: (g.members ?? []).map(memberUID) }));
+    if (q) {
+      list = list.filter(
+        (g) => g.cn.toLowerCase().includes(q) || g.uids.some((u) => u.toLowerCase().includes(q))
+      );
+    }
+    const dir = groupSortDir === 'asc' ? 1 : -1;
+    list.sort((a, b) =>
+      groupSort === 'members'
+        ? (a.uids.length - b.uids.length) * dir
+        : a.cn.localeCompare(b.cn) * dir
+    );
+    return list;
+  });
+
+  function sortGroupsBy(key: 'name' | 'members') {
+    if (groupSort === key) groupSortDir = groupSortDir === 'asc' ? 'desc' : 'asc';
+    else {
+      groupSort = key;
+      groupSortDir = key === 'members' ? 'desc' : 'asc';
+    }
+  }
+
+  async function deleteGroup(cn: string) {
+    if (!confirm(`Delete group "${cn}"?`)) return;
+    try {
+      await ldap.deleteGroup(cn);
+      groups = groups.filter((g) => g.cn !== cn);
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Delete failed');
+    }
+  }
+
   let testUID = $state('');
   let testPass = $state('');
   let testResult = $state<TestAuthResult | null>(null);
@@ -506,27 +550,55 @@
         {#if groups.length === 0}
           <div class="empty-state"><p>No groups in directory</p></div>
         {:else}
-          <div class="grid grid-3" style="margin-top:var(--space-lg)">
-            {#each groups as g}
-              <div class="card group-card">
-                <div style="font-weight:600;margin-bottom:var(--space-xs)">{g.cn}</div>
-                <div class="mono dim" style="font-size:var(--font-size-xs);word-break:break-all">
-                  {g.dn}
-                </div>
-                {#if g.members?.length}
-                  <div style="margin-top:var(--space-md)">
-                    {#each g.members as m}
-                      <div
-                        class="mono"
-                        style="font-size:var(--font-size-xs);color:var(--text-secondary)"
-                      >
-                        • {m}
-                      </div>
-                    {/each}
-                  </div>
-                {/if}
-              </div>
-            {/each}
+          <div class="grp-controls">
+            <input
+              class="input grp-filter"
+              bind:value={groupFilter}
+              placeholder="Filter by group or member..."
+            />
+            <span class="grp-count">{shownGroups.length} of {groups.length} groups</span>
+          </div>
+          <div class="panel" style="margin-top:var(--space-md)">
+            <div class="table-wrap">
+              <table class="table grp-table">
+                <thead>
+                  <tr>
+                    <th class="sortable" onclick={() => sortGroupsBy('name')}>
+                      Group{#if groupSort === 'name'}<span class="arrow"
+                          >{groupSortDir === 'asc' ? '▲' : '▼'}</span
+                        >{/if}
+                    </th>
+                    <th class="sortable num" onclick={() => sortGroupsBy('members')}>
+                      Members{#if groupSort === 'members'}<span class="arrow"
+                          >{groupSortDir === 'asc' ? '▲' : '▼'}</span
+                        >{/if}
+                    </th>
+                    <th>Membership</th>
+                    <th class="act"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {#each shownGroups as g (g.cn)}
+                    <tr>
+                      <td><span class="grp-name">{g.cn}</span></td>
+                      <td class="num"><span class="count-pill">{g.uids.length}</span></td>
+                      <td>
+                        {#if g.uids.length}
+                          <div class="grp-members">
+                            {#each g.uids as uid}<span class="uid-chip mono">{uid}</span>{/each}
+                          </div>
+                        {:else}<span class="dim">empty</span>{/if}
+                      </td>
+                      <td class="act">
+                        <button class="action-btn grp-del" onclick={() => deleteGroup(g.cn)}
+                          >Del</button
+                        >
+                      </td>
+                    </tr>
+                  {/each}
+                </tbody>
+              </table>
+            </div>
           </div>
         {/if}
       </div>
@@ -636,8 +708,74 @@
     align-items: flex-end;
     flex-wrap: wrap;
   }
-  .group-card {
-    word-break: break-all;
+  .grp-controls {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    margin-top: var(--space-lg);
+  }
+  .grp-filter {
+    width: 320px;
+    max-width: 100%;
+  }
+  .grp-count {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+  }
+  .grp-table th.sortable {
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+  }
+  .grp-table th.sortable:hover {
+    color: var(--accent-hover);
+  }
+  .grp-table th.num,
+  .grp-table td.num {
+    text-align: center;
+    width: 1%;
+    white-space: nowrap;
+  }
+  .grp-table th.act,
+  .grp-table td.act {
+    text-align: right;
+    width: 1%;
+  }
+  .grp-table .arrow {
+    margin-left: 4px;
+    font-size: 9px;
+    color: var(--accent);
+  }
+  .grp-name {
+    font-weight: 600;
+    color: var(--text-primary);
+    white-space: nowrap;
+  }
+  .grp-members {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    max-height: 88px;
+    overflow-y: auto;
+  }
+  .uid-chip {
+    font-size: 10px;
+    color: var(--text-secondary);
+    background: var(--bg-elevated);
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-sm);
+    padding: 1px 6px;
+  }
+  .grp-del {
+    color: var(--color-red);
+    border-color: rgba(244, 63, 94, 0.3);
+  }
+  .grp-del:hover {
+    background: var(--color-red);
+    color: #fff;
+    border-color: transparent;
   }
 
   .test-form {

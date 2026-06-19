@@ -92,48 +92,55 @@ ou: Groups
 	firstNames := []string{"James", "Mary", "Robert", "Patricia", "John", "Jennifer", "Michael", "Linda", "David", "Elizabeth", "William", "Barbara", "Richard", "Susan", "Joseph"}
 	lastNames := []string{"Smith", "Johnson", "Williams", "Brown", "Jones", "Garcia", "Miller", "Davis", "Rodriguez", "Martinez", "Hernandez", "Lopez", "Gonzalez", "Wilson", "Anderson"}
 
-	memberLines := ""
-
-	for i := 0; i < 15; i++ {
+	// Deterministic baseline so a known account (jsmith) always exists for the
+	// operator's first enterprise SSID test; departments round-robin so every
+	// group is represented. The randomized provisioner shares buildGroups below.
+	users := make([]ProvisionUser, 0, len(firstNames))
+	for i := range firstNames {
 		first := firstNames[i]
 		last := lastNames[i]
-		uid := fmt.Sprintf("%c%s", first[0], last) // e.g. jsmith
-		uid = string(bytes.ToLower([]byte(uid)))
+		uid := strings.ToLower(fmt.Sprintf("%c%s", first[0], last)) // e.g. jsmith
+		dept := orgDepartments[i%len(orgDepartments)]
+		title := dept.Titles[i%len(dept.Titles)]
+		users = append(users, ProvisionUser{
+			UID:        uid,
+			CN:         first + " " + last,
+			Mail:       uid + "@acmecorp.local",
+			Password:   generateMixedPassword(first, last, "ACME Corp"),
+			Department: dept.Name,
+			Title:      title,
+		})
+	}
 
-		// Realistic mix, not a universal Password1!; this is what the operator's
-		// first enterprise SSID will be tested against.
-		password := generateMixedPassword(first, last, "ACME Corp")
-
-		userLdif := fmt.Sprintf(`dn: uid=%s,ou=Users,%s
+	for i, u := range users {
+		fmt.Fprintf(&ldif, `dn: uid=%s,ou=Users,%s
 objectClass: top
 objectClass: person
 objectClass: organizationalPerson
 objectClass: inetOrgPerson
 uid: %s
-cn: %s %s
+cn: %s
 sn: %s
 givenName: %s
-mail: %s@acmecorp.local
+displayName: %s
+title: %s
+ou: %s
+mail: %s
 userPassword: %s
 
-`, uid, defaultBaseDN, uid, first, last, last, first, uid, password)
-		ldif.WriteString(userLdif)
-		memberLines += fmt.Sprintf("member: uid=%s,ou=Users,%s\n", uid, defaultBaseDN)
+`, u.UID, defaultBaseDN, u.UID, u.CN, lastNames[i], firstNames[i], u.CN, u.Title, u.Department, u.Mail, u.Password)
 	}
 
-	groupsLdif := fmt.Sprintf(`dn: cn=wifi-users,ou=Groups,%s
-objectClass: top
-objectClass: groupOfNames
-cn: wifi-users
-%s
-dn: cn=wifi-admins,ou=Groups,%s
-objectClass: top
-objectClass: groupOfNames
-cn: wifi-admins
-member: uid=%s,ou=Users,%s
-`, defaultBaseDN, memberLines, defaultBaseDN, "jsmith", defaultBaseDN)
-
-	ldif.WriteString(groupsLdif)
+	for _, g := range buildGroups(users) {
+		fmt.Fprintf(&ldif, "dn: cn=%s,ou=Groups,%s\nobjectClass: top\nobjectClass: groupOfNames\ncn: %s\n", g.CN, defaultBaseDN, g.CN)
+		if g.Description != "" {
+			fmt.Fprintf(&ldif, "description: %s\n", g.Description)
+		}
+		for _, uid := range g.Members {
+			fmt.Fprintf(&ldif, "member: uid=%s,ou=Users,%s\n", uid, defaultBaseDN)
+		}
+		ldif.WriteString("\n")
+	}
 
 	bootstrapFile := ldapDataDir + "/bootstrap.ldif"
 	if err := os.WriteFile(bootstrapFile, ldif.Bytes(), 0o640); err != nil {
