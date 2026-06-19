@@ -189,10 +189,10 @@
         <tbody>
           {#each certs as c}
             <tr>
-              <td class="mono">{c.name}</td>
-              <td><span class="badge badge-neutral">{c.type}</span></td>
-              <td class="dim">{c.network_id || '-'}</td>
-              <td class="mono dim">{c.expires_at || '-'}</td>
+              <td data-label="Name" class="mono">{c.name}</td>
+              <td data-label="Type"><span class="badge badge-neutral">{c.type}</span></td>
+              <td data-label="Network" class="dim">{c.network_id || '-'}</td>
+              <td data-label="Expires" class="mono dim">{c.expires_at || '-'}</td>
             </tr>
           {/each}
         </tbody>

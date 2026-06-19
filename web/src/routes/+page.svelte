@@ -19,6 +19,11 @@
   let loading = $state(true);
   let unsubscribe: (() => void) | null = null;
 
+  // Den: surface the leader's client pack on the dashboard, under Networks.
+  let denMembers = $state<Record<string, any>[]>([]);
+  let denStatuses = $state<Record<string, any>>({});
+  let denPoll: ReturnType<typeof setInterval> | null = null;
+
   const activeNets = $derived(networkList.filter((n) => n.status === 'running'));
   const totalClients = $derived(networkList.reduce((s, n) => s + (n.client_count ?? 0), 0));
   // Adapters in use by a running network have their PHY moved into that network's
@@ -26,6 +31,9 @@
   const inUseList = $derived(Object.entries(inUse).map(([iface, ssid]) => ({ iface, ssid })));
   const totalAdapters = $derived(interfaces.length + inUseList.length);
   const hasRealHardware = $derived(totalAdapters > 0);
+  // Ready to broadcast requires a present, driver-supported wireless adapter,
+  // not just the software services. No adapter (or a driver-less one) = not ready.
+  const systemReady = $derived(hasRealHardware && unsupported.length === 0);
 
   const PROTO_COLOR: Record<string, string> = {
     open: 'var(--text-muted)',
@@ -45,6 +53,29 @@
   });
   const protoLabel = (p: string) => p.replace('_', '-').toUpperCase();
 
+  function denAuthHeaders(): Record<string, string> {
+    return pb.authStore.token ? { Authorization: pb.authStore.token } : {};
+  }
+  async function loadDen() {
+    try {
+      denMembers = await pb.collection('den_members').getFullList({ sort: '-created' });
+    } catch {
+      denMembers = [];
+    }
+  }
+  async function refreshDen() {
+    for (const m of denMembers) {
+      try {
+        denStatuses[m.id] = await fetch(`/api/wte/den/${m.id}/status`, {
+          headers: denAuthHeaders()
+        }).then((r) => r.json());
+      } catch {
+        denStatuses[m.id] = { reachable: false };
+      }
+    }
+    denStatuses = { ...denStatuses };
+  }
+
   onMount(async () => {
     try {
       const [nets, sys] = await Promise.all([networks.list(), system.interfaces()]);
@@ -57,6 +88,10 @@
     }
     loading = false;
 
+    await loadDen();
+    refreshDen();
+    denPoll = setInterval(refreshDen, 7000);
+
     unsubscribe = await pb.collection('networks').subscribe('*', (e) => {
       if (e.action === 'update') {
         networkList = networkList.map((n) => (n.id === e.record.id ? e.record : n));
@@ -68,7 +103,10 @@
     });
   });
 
-  onDestroy(() => unsubscribe?.());
+  onDestroy(() => {
+    unsubscribe?.();
+    if (denPoll) clearInterval(denPoll);
+  });
 </script>
 
 <svelte:head><title>Dashboard - Tala WTE</title></svelte:head>
@@ -160,54 +198,112 @@
 {/if}
 
 <div class="split-main">
-  <div class="panel">
-    <div class="panel-head">
-      <span class="panel-title">Networks</span>
-      <a href="/networks" class="action-btn">View all</a>
-    </div>
-    {#if loading}
-      <div class="empty-state"><p>Loading…</p></div>
-    {:else if networkList.length === 0}
-      <div class="empty-state">
-        <p>No networks configured yet.</p>
-        <a href="/networks/new" class="btn btn-primary" style="margin-top:var(--space-lg)"
-          >Create First Network</a
-        >
+  <div class="stack">
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Networks</span>
+        <a href="/networks" class="action-btn">View all</a>
       </div>
-    {:else}
-      <div class="table-wrap">
-        <table class="table">
-          <thead><tr><th>SSID</th><th>Protocol</th><th>Band</th><th>Status</th><th></th></tr></thead
+      {#if loading}
+        <div class="empty-state"><p>Loading…</p></div>
+      {:else if networkList.length === 0}
+        <div class="empty-state">
+          <p>No networks configured yet.</p>
+          <a href="/networks/new" class="btn btn-primary" style="margin-top:var(--space-lg)"
+            >Create First Network</a
           >
-          <tbody>
-            {#each networkList as net}
-              <tr>
-                <td><a href="/networks/{net.id}" class="mono ssid-link">{net.ssid}</a></td>
-                <td
-                  ><span class="badge {protocolBadge(net.protocol)}"
-                    >{protoLabel(net.protocol)}</span
-                  ></td
-                >
-                <td class="dim">{net.band ?? '2.4'} GHz</td>
-                <td
-                  ><span class="stat-status"
-                    ><span
-                      class="status-dot"
-                      class:active={net.status === 'running'}
-                      class:inactive={net.status === 'stopped'}
-                      class:error={net.status === 'error'}
-                    ></span>{net.status}</span
-                  ></td
-                >
-                <td style="text-align:right"
-                  ><a href="/networks/{net.id}" class="action-btn">View</a></td
-                >
-              </tr>
-            {/each}
-          </tbody>
-        </table>
+        </div>
+      {:else}
+        <div class="table-wrap">
+          <table class="table">
+            <thead
+              ><tr><th>SSID</th><th>Protocol</th><th>Band</th><th>Status</th><th></th></tr></thead
+            >
+            <tbody>
+              {#each networkList as net}
+                <tr>
+                  <td data-label="SSID"
+                    ><a href="/networks/{net.id}" class="mono ssid-link">{net.ssid}</a></td
+                  >
+                  <td data-label="Protocol"
+                    ><span class="badge {protocolBadge(net.protocol)}"
+                      >{protoLabel(net.protocol)}</span
+                    ></td
+                  >
+                  <td data-label="Band" class="dim">{net.band ?? '2.4'} GHz</td>
+                  <td data-label="Status"
+                    ><span class="stat-status"
+                      ><span
+                        class="status-dot"
+                        class:active={net.status === 'running'}
+                        class:inactive={net.status === 'stopped'}
+                        class:error={net.status === 'error'}
+                      ></span>{net.status}</span
+                    ></td
+                  >
+                  <td data-label="" style="text-align:right"
+                    ><a href="/networks/{net.id}" class="action-btn">View</a></td
+                  >
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Den</span>
+        <a href="/den" class="action-btn">View all</a>
       </div>
-    {/if}
+      {#if denMembers.length === 0}
+        <div class="empty-state" style="padding:var(--space-xl)">
+          <p>No den members yet. Drive a pack of clients from the Den page.</p>
+        </div>
+      {:else}
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr>
+                <th style="width: 26%">Member</th>
+                <th style="width: 24%">Status</th>
+                <th style="width: 24%">Network</th>
+                <th style="width: 26%; text-align: right">Address</th>
+              </tr>
+            </thead>
+            <tbody>
+              {#each denMembers as m}
+                {@const st = denStatuses[m.id]}
+                {@const reachable = !!st?.reachable}
+                {@const adapters = st?.status?.adapters ?? 0}
+                {@const connected = reachable && !!st?.status?.connected}
+                {@const noAdapter = reachable && adapters === 0}
+                <tr>
+                  <td data-label="Member"><span class="mono ssid-link">{m.name}</span></td>
+                  <td data-label="Status">
+                    <span class="stat-status">
+                      <span
+                        class="status-dot"
+                        class:active={connected}
+                        class:error={st && (!reachable || noAdapter)}
+                        class:inactive={reachable && adapters > 0 && !connected}
+                      ></span>
+                      {#if !st}checking{:else if !reachable}unreachable{:else if noAdapter}no
+                        adapter{:else if connected}connected{:else}idle{/if}
+                    </span>
+                  </td>
+                  <td data-label="Network" class="dim">{connected ? st.status.ssid : '-'}</td>
+                  <td data-label="Address" class="dim mono" style="text-align: right"
+                    >{m.address}</td
+                  >
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
+    </div>
   </div>
 
   <div class="stack">
@@ -252,9 +348,29 @@
     <div class="panel">
       <div class="panel-head">
         <span class="panel-title">Services</span>
-        <span class="status-dot active"></span>
+        <span
+          class="status-dot"
+          class:active={systemReady}
+          class:error={!systemReady}
+          title={systemReady ? 'Ready to broadcast' : 'Not ready: no healthy wireless adapter'}
+        ></span>
       </div>
       <div class="rail-list">
+        <div class="rail-row svc-row">
+          <span class="status-dot" class:active={systemReady} class:error={!systemReady}></span>
+          <span class="svc-name">Wireless adapter</span>
+          <span
+            class="svc-state"
+            style="color:{systemReady
+              ? 'var(--color-green)'
+              : unsupported.length > 0
+                ? 'var(--color-yellow)'
+                : 'var(--color-red)'}"
+          >
+            {#if systemReady}{totalAdapters} ready{:else if unsupported.length > 0}driver missing{:else}none
+              detected{/if}
+          </span>
+        </div>
         <div class="rail-row svc-row">
           <span class="status-dot active"></span><span class="svc-name">FreeRADIUS</span><span
             class="svc-state">online</span

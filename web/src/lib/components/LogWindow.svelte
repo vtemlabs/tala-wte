@@ -200,6 +200,18 @@
     border-bottom-left-radius: 0 !important;
     border-bottom-right-radius: 0 !important;
   }
+  /* Mobile: a draggable/resizable floating window is useless on a phone, so the
+     default (non-min) state fills the screen. */
+  @media (max-width: 768px) {
+    .tw:not(.min) {
+      left: 0 !important;
+      top: 0 !important;
+      width: 100vw !important;
+      height: 100dvh !important;
+      border-radius: 0 !important;
+      border-width: 0 !important;
+    }
+  }
 
   .tw-title {
     display: flex;

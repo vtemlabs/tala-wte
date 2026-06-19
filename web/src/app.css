@@ -123,6 +123,9 @@ body {
 	background-attachment: fixed;
 	line-height: 1.6;
 	min-height: 100vh;
+	min-height: 100dvh;
+	/* Never let a stray wide element scroll the whole page sideways on mobile. */
+	overflow-x: hidden;
 }
 
 a {
@@ -771,6 +774,107 @@ textarea.input {
 	.form-grid {
 		grid-template-columns: 1fr;
 	}
+	/* Stat cells: 2 per row on phones and wrap long values (e.g. an LDAP host:port)
+	   instead of clipping them. */
+	.stat-cell {
+		min-width: 45%;
+		overflow-wrap: anywhere;
+	}
+	/* iOS Safari zooms in on focus for inputs under 16px; force 16px on mobile. */
+	.input,
+	input,
+	select,
+	textarea {
+		font-size: 16px;
+	}
+	/* Tighten chrome and headings on small screens. */
+	.panel-head {
+		padding: var(--space-md) var(--space-lg);
+	}
+	.page-title {
+		font-size: var(--font-size-xl);
+	}
+	.page-header {
+		flex-wrap: wrap;
+		gap: var(--space-md);
+	}
+	/* Tables become stacked cards on mobile instead of scrolling sideways and
+	   clipping the most important column. */
+	.table-wrap {
+		overflow-x: visible;
+	}
+	.table thead {
+		display: none;
+	}
+	.table,
+	.table tbody,
+	.table tr,
+	.table td {
+		display: block;
+		width: 100%;
+	}
+	.table tr {
+		border: 1px solid var(--border-primary);
+		border-radius: var(--radius-md);
+		background: var(--bg-tertiary);
+		margin-bottom: var(--space-md);
+		padding: var(--space-xs) var(--space-md);
+	}
+	.table tr:hover td {
+		background: transparent;
+	}
+	.table td {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: var(--space-md);
+		text-align: right;
+		padding: var(--space-sm) 0;
+		border-bottom: 1px solid var(--border-subtle);
+	}
+	.table tr td:last-child {
+		border-bottom: none;
+	}
+	.table td:empty {
+		display: none;
+	}
+	.table td::before {
+		content: attr(data-label);
+		color: var(--text-muted);
+		font-size: var(--font-size-xs);
+		font-weight: 600;
+		text-transform: uppercase;
+		text-align: left;
+		white-space: nowrap;
+	}
+	.panel .table th:first-child,
+	.panel .table td:first-child,
+	.panel .table th:last-child,
+	.panel .table td:last-child {
+		padding-left: 0;
+		padding-right: 0;
+	}
+	/* Modals: drop the draggable desktop positioning and go full-screen so they
+	   cover the page instead of floating half off-screen. */
+	.modal-window {
+		inset: 0 !important;
+		width: 100% !important;
+		max-width: 100% !important;
+		min-width: 0 !important;
+		max-height: none !important;
+		transform: none !important;
+		border-radius: 0 !important;
+	}
+	.modal-header {
+		cursor: default;
+	}
+	/* Centered component modals (.modal): fit the viewport and stay scrollable so
+	   the action buttons at the bottom are always reachable. */
+	.modal {
+		max-width: 94vw !important;
+		max-height: 90dvh !important;
+		overflow-y: auto !important;
+	}
 }
 
 .toggle-field {
@@ -1008,6 +1112,9 @@ textarea.input {
 	border: 1px solid rgba(47, 129, 247, 0.3);
 	border-radius: 999px;
 	padding: 3px 11px;
+	/* Stay a pill: never wrap or get squished into an oval next to a flexed input. */
+	white-space: nowrap;
+	flex-shrink: 0;
 }
 
 .split {
@@ -1025,7 +1132,7 @@ textarea.input {
 @media (max-width: 1000px) {
 	.split,
 	.split-main {
-		grid-template-columns: 1fr;
+		grid-template-columns: minmax(0, 1fr);
 	}
 }
 .section {
@@ -1035,4 +1142,13 @@ textarea.input {
 	display: flex;
 	flex-direction: column;
 	gap: var(--space-lg);
+}
+/* Let grid/flex children shrink below their content's intrinsic width so wide
+   tables scroll inside .table-wrap instead of widening the whole page on mobile. */
+.split > *,
+.split-main > *,
+.stack,
+.panel,
+.table-wrap {
+	min-width: 0;
 }

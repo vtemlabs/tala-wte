@@ -341,9 +341,9 @@
               <tbody>
                 {#each clients as c}
                   <tr>
-                    <td class="mono">{c.mac}</td>
-                    <td class="mono">{c.ip ?? '-'}</td>
-                    <td class="mono">{c.signal} dBm</td>
+                    <td data-label="MAC" class="mono">{c.mac}</td>
+                    <td data-label="IP" class="mono">{c.ip ?? '-'}</td>
+                    <td data-label="Signal" class="mono">{c.signal} dBm</td>
                   </tr>
                 {/each}
               </tbody>

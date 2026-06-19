@@ -262,6 +262,8 @@
                 Checking...
               {:else if !st.reachable}
                 <span class="warn">unreachable{st.error ? ` (${st.error})` : ''}</span>
+              {:else if (st.status?.adapters ?? 0) === 0}
+                <span class="warn">no wireless adapter</span>
               {:else if st.status?.connected}
                 Connected to <b>{st.status.ssid}</b> · {st.status.ip} · {st.status.requests ?? 0} requests
               {:else}

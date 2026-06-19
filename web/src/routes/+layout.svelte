@@ -324,6 +324,7 @@
   .app-shell {
     display: flex;
     min-height: 100vh;
+    min-height: 100dvh;
   }
   /* Client mode recolors the accent to orange so it is visually distinct from an
      AP server (blue) at a glance, using the existing palette. */
@@ -518,6 +519,7 @@
     margin-left: 236px;
     padding: var(--space-2xl);
     min-height: 100vh;
+    min-height: 100dvh;
     min-width: 0;
     transition: margin-left 0.16s ease;
   }

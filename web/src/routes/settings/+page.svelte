@@ -348,25 +348,6 @@
         </div>
       </div>
     </section>
-
-    <section class="panel">
-      <div class="panel-head"><h2 class="panel-title">About &amp; License</h2></div>
-      <div class="panel-body">
-        <p class="about-line">
-          Tala WTE v{displayVersion} - a VTEM Labs Wireless Training Environment.
-        </p>
-        <p class="about-line dim">
-          &copy; 2026 VTEM Labs. Free for personal and non-profit use. Commercial and for-profit
-          use, including paid training, paid CTF, and use by any for-profit school, institution,
-          company, government, or government agency, requires written authorization and a license
-          from VTEM Labs. Redistribution, rebranding, or claiming this platform (or any variant or
-          copy) as your own is prohibited.
-        </p>
-        <button class="btn btn-sm license-btn" onclick={() => (showLicense = true)}
-          >View Full License</button
-        >
-      </div>
-    </section>
   </div>
 
   <LicenseModal bind:open={showLicense} />
@@ -471,6 +452,25 @@
         {:else}
           <p class="update-note dim">Checking for updates...</p>
         {/if}
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2 class="panel-title">About &amp; License</h2></div>
+      <div class="panel-body">
+        <p class="about-line">
+          Tala WTE v{displayVersion} - a VTEM Labs Wireless Training Environment.
+        </p>
+        <p class="about-line dim">
+          &copy; 2026 VTEM Labs. Free for personal and non-profit use. Commercial and for-profit
+          use, including paid training, paid CTF, and use by any for-profit school, institution,
+          company, government, or government agency, requires written authorization and a license
+          from VTEM Labs. Redistribution, rebranding, or claiming this platform (or any variant or
+          copy) as your own is prohibited.
+        </p>
+        <button class="btn btn-sm license-btn" onclick={() => (showLicense = true)}
+          >View Full License</button
+        >
       </div>
     </section>
   </div>

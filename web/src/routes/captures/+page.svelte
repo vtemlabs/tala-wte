@@ -194,11 +194,11 @@
           <tbody>
             {#each captureList as c}
               <tr>
-                <td class="mono">{ssidFor(c)}</td>
-                <td><span class="badge badge-neutral">{c.layer}</span></td>
-                <td class="mono dim">{c.interface}</td>
-                <td class="mono num">{c.packet_count ?? '-'}</td>
-                <td>
+                <td data-label="SSID" class="mono">{ssidFor(c)}</td>
+                <td data-label="Layer"><span class="badge badge-neutral">{c.layer}</span></td>
+                <td data-label="Interface" class="mono dim">{c.interface}</td>
+                <td data-label="Packets" class="mono num">{c.packet_count ?? '-'}</td>
+                <td data-label="Status">
                   <span class="status-label">
                     <span
                       class="status-dot"
@@ -208,7 +208,7 @@
                     {c.status}
                   </span>
                 </td>
-                <td class="act">
+                <td data-label="" class="act">
                   <div class="row-actions">
                     {#if c.status === 'running'}
                       <button class="action-btn btn-danger" onclick={() => stop(c.id)}>Stop</button>

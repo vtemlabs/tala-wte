@@ -186,16 +186,18 @@
         <tbody>
           {#each filtered as net}
             <tr>
-              <td><a href="/networks/{net.id}" class="mono ssid-link">{net.ssid}</a></td>
-              <td
+              <td data-label="SSID"
+                ><a href="/networks/{net.id}" class="mono ssid-link">{net.ssid}</a></td
+              >
+              <td data-label="Protocol"
                 ><span class="badge {protocolBadge(net.protocol)}"
                   >{net.protocol.replace('_', '-').toUpperCase()}</span
                 ></td
               >
-              <td class="dim">{net.band ?? '2.4'} GHz</td>
-              <td class="mono dim">{net.channel ?? 6}</td>
-              <td class="mono dim">{net.interface || '-'}</td>
-              <td>
+              <td data-label="Band" class="dim">{net.band ?? '2.4'} GHz</td>
+              <td data-label="Channel" class="mono dim">{net.channel ?? 6}</td>
+              <td data-label="Interface" class="mono dim">{net.interface || '-'}</td>
+              <td data-label="Status">
                 <span class="net-status">
                   <span
                     class="status-dot"
@@ -205,7 +207,7 @@
                   ></span>{net.status}
                 </span>
               </td>
-              <td class="actions-col">
+              <td data-label="" class="actions-col">
                 <div class="row-actions">
                   <button
                     class="action-btn"

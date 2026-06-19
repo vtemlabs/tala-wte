@@ -21,7 +21,10 @@
     gap: var(--space-md);
     flex-wrap: wrap;
     padding: var(--space-lg) var(--space-xl);
-    margin-top: auto;
+    /* margin-top:auto pins it to the bottom; the negative left/right/bottom
+       cancel the .content padding so it sits flush against the bottom edge and
+       spans the full width. */
+    margin: auto calc(-1 * var(--space-2xl)) calc(-1 * var(--space-2xl));
     border-top: 1px solid var(--border-primary);
     color: var(--text-dim);
     font-size: var(--font-size-xs);
@@ -45,5 +48,22 @@
   .footer-link:hover {
     color: var(--accent-hover);
     text-decoration: underline;
+  }
+  @media (max-width: 900px) {
+    .app-footer {
+      /* On mobile .content padding is space-lg, so match the negative margin to
+         it; the desktop -space-2xl overshoots by 16px and overflows the page.
+         Stack the parts so the long copyright line stops wrapping into the logo. */
+      flex-direction: column;
+      gap: var(--space-xs);
+      text-align: center;
+      margin-right: calc(-1 * var(--space-lg));
+      margin-left: calc(-1 * var(--space-lg));
+      margin-bottom: calc(-1 * var(--space-lg));
+      padding: var(--space-lg);
+    }
+    .footer-sep {
+      display: none;
+    }
   }
 </style>

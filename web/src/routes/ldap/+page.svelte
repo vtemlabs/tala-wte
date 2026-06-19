@@ -350,10 +350,10 @@
               <tbody>
                 {#each provisionResult.users ?? [] as u}
                   <tr>
-                    <td class="mono">{u.uid}</td>
-                    <td>{u.cn}</td>
-                    <td class="dim">{u.mail}</td>
-                    <td class="mono">{u.password}</td>
+                    <td data-label="UID" class="mono">{u.uid}</td>
+                    <td data-label="Name">{u.cn}</td>
+                    <td data-label="Email" class="dim">{u.mail}</td>
+                    <td data-label="Password" class="mono">{u.password}</td>
                   </tr>
                 {/each}
               </tbody>
@@ -439,10 +439,10 @@
               {#each users as u}
                 {@const pw = passwordCell(u.password, u.uid)}
                 <tr>
-                  <td class="mono">{u.uid}</td>
-                  <td>{u.cn}</td>
-                  <td class="dim">{u.mail || '-'}</td>
-                  <td>
+                  <td data-label="UID" class="mono">{u.uid}</td>
+                  <td data-label="CN">{u.cn}</td>
+                  <td data-label="Email" class="dim">{u.mail || '-'}</td>
+                  <td data-label="Password">
                     <span class="mono pw-cell"
                       >{revealedPasswords[u.uid] ? pw.revealed : pw.hidden}</span
                     >
@@ -463,8 +463,10 @@
                       </button>
                     {/if}
                   </td>
-                  <td class="mono dim" style="font-size:var(--font-size-xs)">{u.dn}</td>
-                  <td>
+                  <td data-label="DN" class="mono dim" style="font-size:var(--font-size-xs)"
+                    >{u.dn}</td
+                  >
+                  <td data-label="">
                     <button
                       class="action-btn"
                       style="color:var(--color-red)"

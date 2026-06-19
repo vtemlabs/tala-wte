@@ -137,9 +137,9 @@
               <thead><tr><th>Type</th><th>Host</th><th>Captured</th></tr></thead>
               <tbody
                 >{#each analysis.credentials as cr}<tr
-                    ><td>{cr.kind}</td><td class="mono dim">{cr.source || '-'}</td><td
-                      class="mono secret">{cr.detail}</td
-                    ></tr
+                    ><td data-label="Type">{cr.kind}</td><td data-label="Host" class="mono dim"
+                      >{cr.source || '-'}</td
+                    ><td data-label="Captured" class="mono secret">{cr.detail}</td></tr
                   >{/each}</tbody
               >
             </table>
@@ -179,9 +179,10 @@
               >
               <tbody
                 >{#each analysis.top_talkers as t}<tr
-                    ><td class="mono">{t.a}</td><td class="mono">{t.b}</td><td class="mono num"
-                      >{t.packets}</td
-                    ></tr
+                    ><td data-label="Endpoint A" class="mono">{t.a}</td><td
+                      data-label="Endpoint B"
+                      class="mono">{t.b}</td
+                    ><td data-label="Packets" class="mono num">{t.packets}</td></tr
                   >{/each}</tbody
               >
             </table>
@@ -197,9 +198,10 @@
               <thead><tr><th>Method</th><th>Host</th><th>URI</th></tr></thead>
               <tbody
                 >{#each analysis.http_requests as h}<tr
-                    ><td class="mono">{h.method}</td><td class="mono dim">{h.host}</td><td
-                      class="mono uri">{h.uri}</td
-                    ></tr
+                    ><td data-label="Method" class="mono">{h.method}</td><td
+                      data-label="Host"
+                      class="mono dim">{h.host}</td
+                    ><td data-label="URI" class="mono uri">{h.uri}</td></tr
                   >{/each}</tbody
               >
             </table>
@@ -296,13 +298,13 @@
           <tbody>
             {#each packets as p}
               <tr class="pk-row" class:sel={selectedNo === p.no} onclick={() => selectPacket(p.no)}>
-                <td class="num mono dim">{p.no}</td>
-                <td class="num mono dim">{Number(p.time).toFixed(3)}</td>
-                <td class="mono">{p.source}</td>
-                <td class="mono">{p.dest}</td>
-                <td><span class="badge badge-neutral">{p.protocol}</span></td>
-                <td class="num mono dim">{p.length}</td>
-                <td class="mono info">{p.info}</td>
+                <td data-label="No." class="num mono dim">{p.no}</td>
+                <td data-label="Time" class="num mono dim">{Number(p.time).toFixed(3)}</td>
+                <td data-label="Source" class="mono">{p.source}</td>
+                <td data-label="Destination" class="mono">{p.dest}</td>
+                <td data-label="Protocol"><span class="badge badge-neutral">{p.protocol}</span></td>
+                <td data-label="Len" class="num mono dim">{p.length}</td>
+                <td data-label="Info" class="mono info">{p.info}</td>
               </tr>
             {/each}
           </tbody>
