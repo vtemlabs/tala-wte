@@ -15,13 +15,7 @@
   let loading = $state(true);
   let unsub: (() => void) | null = null;
 
-  let view = $state<'cards' | 'list'>(
-    (browser && (localStorage.getItem('view:captured') as 'cards' | 'list')) || 'cards'
-  );
   let sortKey = $state((browser && localStorage.getItem('sort:captured')) || 'newest');
-  $effect(() => {
-    if (browser) localStorage.setItem('view:captured', view);
-  });
   $effect(() => {
     if (browser) localStorage.setItem('sort:captured', sortKey);
   });
@@ -33,15 +27,6 @@
       return {};
     }
   }
-  // Control fields are shown as badges (result, source) or columns, not as raw
-  // key/value rows, so the cards read like real harvested data, not the database.
-  const CONTROL_FIELDS = new Set(['pack_member', 'auth_result', 'auth_user', 'accept', 'redirect']);
-  function fields(rec: Record<string, any>): [string, string][] {
-    return Object.entries(dataOf(rec))
-      .filter(([k]) => !k.startsWith('_') && !CONTROL_FIELDS.has(norm(k)))
-      .map(([k, v]) => [k, String(v)]);
-  }
-
   const isSecret = (k: string) => /pass|pwd|secret|pin|code|cvv|card/i.test(k);
   const fmtTime = (s: string) => (s ? new Date(s).toLocaleString() : '');
   const netName = (rec: Record<string, any>) =>
@@ -190,14 +175,6 @@
   </div>
 {:else}
   <div class="cap-controls">
-    <div class="seg" role="tablist" aria-label="View mode">
-      <button class="seg-btn" class:active={view === 'cards'} onclick={() => (view = 'cards')}
-        >Cards</button
-      >
-      <button class="seg-btn" class:active={view === 'list'} onclick={() => (view = 'list')}
-        >List</button
-      >
-    </div>
     <label class="sort-wrap">
       <span class="sort-lbl">Sort</span>
       <select class="input sort-select" bind:value={sortKey}>
@@ -210,84 +187,45 @@
     </label>
   </div>
 
-  {#if view === 'list'}
-    <div class="panel">
-      <div class="table-wrap">
-        <table class="table cap-list">
-          <thead>
+  <div class="panel">
+    <div class="table-wrap">
+      <table class="table cap-list">
+        <thead>
+          <tr>
+            <th>Network</th><th>Captured</th><th>Username</th><th>Password</th>
+            <th>Result</th><th>Source</th><th>MAC</th><th>IP</th><th class="act"></th>
+          </tr>
+        </thead>
+        <tbody>
+          {#each sorted as rec (rec.id)}
             <tr>
-              <th>Network</th><th>Captured</th><th>Username</th><th>Password</th>
-              <th>Result</th><th>Source</th><th>MAC</th><th>IP</th><th class="act"></th>
+              <td><span class="badge badge-info">{netName(rec)}</span></td>
+              <td class="mono dim">{fmtTime(rec.created) || '-'}</td>
+              <td class="mono">{primaryUser(rec) || '-'}</td>
+              <td class="mono secret">{primarySecret(rec) || '-'}</td>
+              <td>
+                {#if authResult(rec)}
+                  <span
+                    class="badge {authResult(rec).toLowerCase() === 'success'
+                      ? 'badge-success'
+                      : 'badge-error'}">{authResult(rec)}</span
+                  >
+                {:else}<span class="dim">-</span>{/if}
+              </td>
+              <td>
+                {#if packMember(rec)}<span class="badge badge-neutral" title="Pack member: {packMember(rec)}">pack member</span>{:else}<span class="dim">target</span>{/if}
+              </td>
+              <td class="mono dim">{rec.mac || '-'}</td>
+              <td class="mono dim">{rec.ip || '-'}</td>
+              <td class="act"
+                ><button class="action-btn cap-del" onclick={() => del(rec.id)}>Del</button></td
+              >
             </tr>
-          </thead>
-          <tbody>
-            {#each sorted as rec (rec.id)}
-              <tr>
-                <td><span class="badge badge-info">{netName(rec)}</span></td>
-                <td class="mono dim">{fmtTime(rec.created) || '-'}</td>
-                <td class="mono">{primaryUser(rec) || '-'}</td>
-                <td class="mono secret">{primarySecret(rec) || '-'}</td>
-                <td>
-                  {#if authResult(rec)}
-                    <span
-                      class="badge {authResult(rec).toLowerCase() === 'success'
-                        ? 'badge-success'
-                        : 'badge-error'}">{authResult(rec)}</span
-                    >
-                  {:else}<span class="dim">-</span>{/if}
-                </td>
-                <td>
-                  {#if packMember(rec)}<span class="badge badge-neutral" title="Pack member: {packMember(rec)}">pack member</span>{:else}<span class="dim">target</span>{/if}
-                </td>
-                <td class="mono dim">{rec.mac || '-'}</td>
-                <td class="mono dim">{rec.ip || '-'}</td>
-                <td class="act"
-                  ><button class="action-btn cap-del" onclick={() => del(rec.id)}>Del</button></td
-                >
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
+          {/each}
+        </tbody>
+      </table>
     </div>
-  {:else}
-    <div class="grid grid-2 cap-grid">
-      {#each sorted as rec (rec.id)}
-        <div class="card cap-card">
-          <header class="cap-head">
-            <span class="badge badge-info net-badge" title={netName(rec)}>{netName(rec)}</span>
-            {#if packMember(rec)}<span class="badge badge-neutral" title="Pack member: {packMember(rec)}">pack member</span>{/if}
-            {#if authResult(rec)}<span
-                class="badge {authResult(rec).toLowerCase() === 'success'
-                  ? 'badge-success'
-                  : 'badge-error'}">{authResult(rec)}</span
-              >{/if}
-            <time class="cap-time">{fmtTime(rec.created)}</time>
-            <button class="action-btn cap-del" onclick={() => del(rec.id)}>Del</button>
-          </header>
-
-          <div class="cap-table">
-            {#each fields(rec) as [k, v]}
-              <div class="cap-row">
-                <div class="cap-key">{k}</div>
-                <div class="cap-val" class:secret={isSecret(k)}>{v}</div>
-              </div>
-            {/each}
-          </div>
-
-          <footer class="cap-foot">
-            <div class="cap-meta">
-              <span class="m"><i>MAC</i><b>{rec.mac || '-'}</b></span>
-              <span class="m"><i>IP</i><b>{rec.ip || '-'}</b></span>
-            </div>
-            {#if rec.user_agent}
-              <div class="cap-ua" title={rec.user_agent}>{rec.user_agent}</div>
-            {/if}
-          </footer>
-        </div>
-      {/each}
-    </div>
-  {/if}
+  </div>
 {/if}
 
 <style>
@@ -314,36 +252,6 @@
     flex-wrap: wrap;
     gap: var(--space-md);
     margin-bottom: var(--space-lg);
-  }
-  .seg {
-    display: inline-flex;
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    overflow: hidden;
-    background: var(--bg-card);
-  }
-  .seg-btn {
-    padding: 7px 18px;
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    color: var(--text-muted);
-    background: transparent;
-    border: none;
-    cursor: pointer;
-    border-right: 1px solid var(--border-primary);
-    transition:
-      color 0.12s,
-      background 0.12s;
-  }
-  .seg-btn:last-child {
-    border-right: none;
-  }
-  .seg-btn:hover {
-    color: var(--text-secondary);
-  }
-  .seg-btn.active {
-    background: var(--accent-soft);
-    color: var(--accent-hover);
   }
   .sort-wrap {
     display: inline-flex;
@@ -374,38 +282,6 @@
     text-align: right;
   }
 
-  .cap-grid {
-    align-items: start;
-  }
-  .cap-card {
-    display: flex;
-    flex-direction: column;
-    gap: var(--space-md);
-    padding: var(--space-lg);
-  }
-
-  .cap-head {
-    display: flex;
-    align-items: center;
-    gap: var(--space-sm);
-    min-width: 0;
-  }
-  .net-badge {
-    max-width: 45%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-  .cap-time {
-    flex: 1;
-    min-width: 0;
-    font-size: var(--font-size-xs);
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-  }
   .cap-del {
     flex-shrink: 0;
     color: var(--color-red);
@@ -415,88 +291,6 @@
     background: var(--color-red);
     color: #fff;
     border-color: transparent;
-  }
-
-  .cap-table {
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-sm);
-    overflow: hidden;
-  }
-  .cap-row {
-    display: grid;
-    grid-template-columns: 120px 1fr;
-    border-bottom: 1px solid var(--border-subtle);
-  }
-  .cap-row:last-child {
-    border-bottom: none;
-  }
-  .cap-row:hover {
-    background: var(--bg-hover);
-  }
-  .cap-key {
-    padding: var(--space-sm) var(--space-md);
-    font-size: var(--font-size-xs);
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    background: var(--bg-tertiary);
-    font-family: var(--font-mono);
-    word-break: break-all;
-    border-right: 1px solid var(--border-primary);
-  }
-  .cap-val {
-    padding: var(--space-sm) var(--space-md);
-    font-size: var(--font-size-sm);
-    color: var(--text-primary);
-    font-family: var(--font-mono);
-    word-break: break-all;
-  }
-  .cap-val.secret {
-    color: var(--color-red);
-    font-weight: 700;
-  }
-
-  .cap-foot {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-    padding-top: 2px;
-    border-top: 1px solid var(--border-subtle);
-  }
-  .cap-meta {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--space-md);
-    padding-top: var(--space-sm);
-  }
-  .cap-meta .m {
-    display: inline-flex;
-    align-items: baseline;
-    gap: 6px;
-    font-size: var(--font-size-xs);
-  }
-  .cap-meta i {
-    font-style: normal;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
-    font-size: 10px;
-    font-weight: 700;
-  }
-  .cap-meta b {
-    color: var(--text-secondary);
-    font-family: var(--font-mono);
-    font-weight: 500;
-    word-break: break-all;
-  }
-  .cap-ua {
-    font-size: 10px;
-    color: var(--text-dim);
-    font-family: var(--font-mono);
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   .cap-empty {
