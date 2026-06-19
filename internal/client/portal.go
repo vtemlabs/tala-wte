@@ -72,6 +72,7 @@ func buildPortalSubmission(pageHTML string, pc PortalConfig) (action string, val
 	}
 	action = strings.TrimSpace(getNodeAttr(form, "action"))
 	id := portalIdentityFor(pc)
+	dataDefaults := collectDataDefaults(form)
 
 	radioSeen := map[string]bool{}
 	var walk func(*html.Node)
@@ -79,7 +80,7 @@ func buildPortalSubmission(pageHTML string, pc PortalConfig) (action string, val
 		if n.Type == html.ElementNode {
 			switch n.Data {
 			case "input":
-				fillInput(values, n, id, radioSeen)
+				fillInput(values, n, id, radioSeen, dataDefaults)
 			case "select":
 				if name := getNodeAttr(n, "name"); name != "" {
 					values.Set(name, firstOptionValue(n))
@@ -103,7 +104,7 @@ func buildPortalSubmission(pageHTML string, pc PortalConfig) (action string, val
 	return action, values
 }
 
-func fillInput(values url.Values, n *html.Node, id portalIdentity, radioSeen map[string]bool) {
+func fillInput(values url.Values, n *html.Node, id portalIdentity, radioSeen map[string]bool, dataDefaults map[string]string) {
 	name := getNodeAttr(n, "name")
 	if name == "" {
 		return
@@ -112,6 +113,15 @@ func fillInput(values url.Values, n *html.Node, id portalIdentity, radioSeen map
 	val := getNodeAttr(n, "value")
 	switch typ {
 	case "hidden":
+		// A JS-populated hidden field (set by clicking an option) arrives empty;
+		// emulate the first option's data-<name>, else a generic non-empty flag.
+		if strings.TrimSpace(val) == "" {
+			if dv := dataDefaults[strings.ToLower(name)]; dv != "" {
+				val = dv
+			} else {
+				val = "1"
+			}
+		}
 		values.Set(name, val)
 	case "checkbox":
 		values.Set(name, orDefault(val, "on")) // check terms/accept/opt-in
@@ -127,6 +137,31 @@ func fillInput(values url.Values, n *html.Node, id portalIdentity, radioSeen map
 	default: // text, email, tel, number, search, url, ...
 		values.Set(name, portalFieldValue(name, typ, id))
 	}
+}
+
+// collectDataDefaults maps a field name to the first data-<field> attribute value
+// in the form. Click-to-select widgets (plan tiers, room types) carry the value a
+// click would copy into a hidden field of the same name on a data-<field> attr, so
+// this lets the filler emulate that selection without running JavaScript.
+func collectDataDefaults(form *html.Node) map[string]string {
+	out := map[string]string{}
+	var walk func(*html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.ElementNode {
+			for _, a := range n.Attr {
+				if key, ok := strings.CutPrefix(strings.ToLower(a.Key), "data-"); ok {
+					if strings.TrimSpace(a.Val) != "" && out[key] == "" {
+						out[key] = a.Val
+					}
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(form)
+	return out
 }
 
 // portalFieldValue picks a value for a named text field from the chosen identity

@@ -5,8 +5,13 @@
 package client
 
 import (
+	"net/url"
+	"os"
+	"path/filepath"
 	"strings"
 	"testing"
+
+	"golang.org/x/net/html"
 )
 
 // TestBuildPortalSubmission feeds the filler a form of each template shape and
@@ -83,4 +88,78 @@ func TestPortalIdentity(t *testing.T) {
 	if vals2.Get("username") != "opuser" || vals2.Get("password") != "oppass1234" {
 		t.Errorf("operator creds should win: got %q / %q", vals2.Get("username"), vals2.Get("password"))
 	}
+}
+
+// TestAllTemplatesFillable runs the filler against every built-in portal template
+// and fails if any user-fillable form field is left empty - i.e. a template a
+// member could not satisfy.
+func TestAllTemplatesFillable(t *testing.T) {
+	dir := "../portal/templates"
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Skipf("templates dir unavailable: %v", err)
+	}
+	checked := 0
+	for _, e := range entries {
+		if e.IsDir() || !strings.HasSuffix(e.Name(), ".html") {
+			continue
+		}
+		b, err := os.ReadFile(filepath.Join(dir, e.Name()))
+		if err != nil {
+			t.Fatalf("%s: %v", e.Name(), err)
+		}
+		_, vals := buildPortalSubmission(string(b), PortalConfig{})
+		if missing := unfilledFields(string(b), vals); len(missing) > 0 {
+			t.Errorf("%s: filler left fields empty: %v", e.Name(), missing)
+		}
+		checked++
+	}
+	if checked == 0 {
+		t.Fatal("no templates found to check")
+	}
+	t.Logf("filled every field in %d templates", checked)
+}
+
+// unfilledFields returns the named, user-fillable fields of the first form that
+// the filler did not populate (submit/button/reset/image/file are ignored).
+func unfilledFields(pageHTML string, vals url.Values) []string {
+	doc, err := html.Parse(strings.NewReader(pageHTML))
+	if err != nil {
+		return nil
+	}
+	form := findFirstForm(doc)
+	if form == nil {
+		return nil
+	}
+	var missing []string
+	seen := map[string]bool{}
+	var walk func(*html.Node)
+	walk = func(n *html.Node) {
+		if n.Type == html.ElementNode {
+			name := getNodeAttr(n, "name")
+			switch n.Data {
+			case "input":
+				typ := strings.ToLower(getNodeAttr(n, "type"))
+				skip := typ == "submit" || typ == "button" || typ == "reset" || typ == "image" || typ == "file"
+				if name != "" && !skip && !seen[name] {
+					seen[name] = true
+					if strings.TrimSpace(vals.Get(name)) == "" {
+						missing = append(missing, name)
+					}
+				}
+			case "select", "textarea":
+				if name != "" && !seen[name] {
+					seen[name] = true
+					if strings.TrimSpace(vals.Get(name)) == "" {
+						missing = append(missing, name)
+					}
+				}
+			}
+		}
+		for c := n.FirstChild; c != nil; c = c.NextSibling {
+			walk(c)
+		}
+	}
+	walk(form)
+	return missing
 }
