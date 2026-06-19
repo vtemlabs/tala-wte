@@ -131,12 +131,9 @@
 {#if !loading && unsupported.length > 0}
   <div class="error-toast hw-warn">
     <span>
-      Wireless adapter(s) detected without driver support: {unsupported
-        .map((a) => a.name)
-        .join(', ')}. Find and install the driver/firmware for {unsupported.length > 1
-        ? 'these adapters'
-        : 'this adapter'}
-      before {unsupported.length > 1 ? 'they' : 'it'} can be used as a radio.
+      Wireless adapter(s) not ready: {unsupported
+        .map((a) => a.name + ' - ' + a.reason)
+        .join('; ')}.
     </span>
   </div>
 {/if}
@@ -372,7 +369,7 @@
                 ? 'var(--color-yellow)'
                 : 'var(--color-red)'}"
           >
-            {#if systemReady}{totalAdapters} ready{:else if unsupported.length > 0}driver missing:
+            {#if systemReady}{totalAdapters} ready{:else if unsupported.length > 0}not ready:
               {unsupported.map((u) => u.name).join(', ')}{:else}none detected{/if}
           </span>
         </div>

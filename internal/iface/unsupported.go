@@ -65,13 +65,19 @@ func UnsupportedAdapters() []UnsupportedAdapter {
 		}
 		id := vendor + ":" + product
 		label := vName + " wireless adapter (" + id + ")"
+		reason := "no driver/firmware loaded; install the driver for this adapter"
 		if info, ok := wirelessDeviceDB[id]; ok {
-			label = info.Manufacturer + " " + info.Model // recognized model, just no driver/firmware
+			label = info.Manufacturer + " " + info.Model
+			// A recognized chipset ships with an in-tree driver, so a device that
+			// is present but has no phy is almost always a USB firmware-init wedge
+			// (common on USB-passthrough VMs), not a missing driver. Re-plugging
+			// the adapter re-probes and initializes it.
+			reason = "detected but not initialized - re-plug the adapter (its driver and firmware are present)"
 		}
 		out = append(out, UnsupportedAdapter{
 			USBID:  id,
 			Name:   label,
-			Reason: "no driver/firmware loaded; install the driver for this adapter",
+			Reason: reason,
 		})
 	}
 	return out
