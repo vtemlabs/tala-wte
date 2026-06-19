@@ -201,6 +201,8 @@ Tala WTE broadcasts access points in standard AP (master) mode. It does not use 
 
 The adapters below are recognized out of the box and surface their manufacturer, model, chipset, and hostable bands in the interface picker. This is a convenience, not a compatibility list. Unlisted adapters work just as well; they are shown by their driver name, and the server validates the band when a network starts.
 
+**Recommended:** the [Panda Wireless PAU0F AXE3000](https://amzn.to/4oGifdO) (MediaTek MT7921AU) is the adapter used to build and test Tala WTE, and a budget-friendly pick. It runs the same MT7921AU chipset as the pricier [ALFA AWUS036AXM](https://amzn.to/4oHZ8A7). A tri-band (2.4 / 5 / 6 GHz) Wi-Fi 6E USB 3.0 card, it hosts WPA2 and WPA3 access points on 2.4 and 5 GHz and joins all three bands as a client.
+
 | Adapter                              | Chipset   | Bands           | Standard                 |
 | ------------------------------------ | --------- | --------------- | ------------------------ |
 | ALFA AWUS036AXM (also Panda AXE3000) | MT7921AU  | 2.4 / 5 / 6 GHz | Wi-Fi 6E (a/b/g/n/ac/ax) |
