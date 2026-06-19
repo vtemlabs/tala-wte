@@ -79,7 +79,7 @@ When on, the AP blocks station-to-station traffic so clients cannot talk to each
 
 ### Captive portal options (Open networks only)
 
-For **Open** networks the form adds a **Captive Portal Sandbox** toggle. Enable it to intercept unauthenticated client traffic and serve a portal splash page, then pick a **Portal Module** from your library. A nested **Require Login (Directory / LDAP)** toggle validates the submitted username and password against the embedded directory before granting access, exactly like a corporate or ISP hotspot; failed logins are denied and recorded. See the [Captive Portals guide](/portals/guide) for building and assigning portals.
+For **Open** networks the form adds a **Captive Portal Sandbox** toggle. Enable it to intercept unauthenticated client traffic and serve a portal splash page, then pick a **Portal Module** from your library. A nested **Require Login (Directory / LDAP)** toggle validates the submitted username and password against the embedded directory before granting access, exactly like a corporate or ISP hotspot; failed logins are denied and recorded. If you turn on Require Login without choosing a portal module, the built-in portal automatically presents a username and password form, so the sign-in still works. See the [Captive Portals guide](/portals/guide) for building and assigning portals.
 
 ## Starting and stopping a network
 
@@ -940,6 +940,8 @@ For each member pick a **network** and a **profile**, then **Deploy**. The profi
 
 Deploy pushes the network's client config to the member, waits for it to associate, then starts the chosen traffic (and reconnect cycling for the handshake profile). The member's row then shows it connected and generating. **Stop** disconnects the member and clears its assignment.
 
+If the network has a captive portal, the member fetches the portal page and fills the actual form before generating traffic - credentials with a believable directory identity (for example \`user@corp.local\` and a realistic password), sensible values for any name, email, room, or postal fields, the first real option for any dropdown or radio, and any accept or terms checkbox - then submits it. The portal harvests that submission to **Captured Data** exactly as it would from a real user, so a deployed pack populates the portal with convincing logins on its own. To submit a specific account instead of the generated one, set the portal username and password on the member.
+
 ## Teardown propagation
 
 When you stop or delete a network on the leader, every member assigned to that network is automatically disconnected. Members never keep chasing a network that has gone away.
@@ -950,6 +952,9 @@ The Den page polls each member's live status through the leader (using the agent
 
 It also surfaces a member's problems on the leader side, so you do not have to open the member to find them:
 
+- **card** - the model and chipset of each wireless adapter the member reports (for example **Panda Wireless PAU09 (RT5572)**), so you can see what each member can do without opening it.
+- **version** - the member's Tala WTE software version, so you can spot a member running behind the leader before pushing work to it.
+- **in use by another pack leader** - shown when a member is connected but this leader did not deploy it, meaning another leader (or the member's own saved config) is driving it. Avoid retasking it unless you mean to take it over.
 - **card limits** - if the member's adapter has capability limits (for example **No WPA3-SAE (legacy chipset)**), they show in yellow under the member, the same flags described in the [Settings guide](/settings/guide). Check these before assigning a protocol the member's card cannot do.
 - **error** - if a deployed member is not connected and reported an error (such as a failed association), the leader shows it in yellow. Common causes are a protocol the member's card cannot do, the network not running, or a wrong passphrase or EAP identity. **Stop** clears the assignment so you can fix it and redeploy.`
 	},
