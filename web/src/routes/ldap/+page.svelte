@@ -633,7 +633,7 @@
               <tbody>
                 {#each shownGroups as g (g.cn)}
                   <tr>
-                    <td data-label="Group">{g.cn}</td>
+                    <td data-label="Group" class="mono">{g.cn}</td>
                     <td data-label="Members" class="num-col"
                       ><span class="count-pill">{g.uids.length}</span></td
                     >
