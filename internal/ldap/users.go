@@ -65,14 +65,16 @@ func ldifAttr(name, value string) string {
 // User represents an LDAP user entry. Password is the userPassword attribute
 // verbatim from slapd: plaintext, or a hash prefix like "{SSHA}" if stored hashed.
 type User struct {
-	UID       string   `json:"uid"`
-	CN        string   `json:"cn"`
-	SN        string   `json:"sn"`
-	GivenName string   `json:"given_name"`
-	Mail      string   `json:"mail"`
-	Password  string   `json:"password,omitempty"`
-	Groups    []string `json:"groups"`
-	DN        string   `json:"dn"`
+	UID        string   `json:"uid"`
+	CN         string   `json:"cn"`
+	SN         string   `json:"sn"`
+	GivenName  string   `json:"given_name"`
+	Mail       string   `json:"mail"`
+	Title      string   `json:"title,omitempty"`
+	Department string   `json:"department,omitempty"`
+	Password   string   `json:"password,omitempty"`
+	Groups     []string `json:"groups"`
+	DN         string   `json:"dn"`
 }
 
 // ListUsersHandler returns all users in ou=Users.
@@ -239,13 +241,15 @@ func TestAuthHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http
 func entryToUser(entry map[string]string) User {
 	// LDAP attribute names are case-insensitive; parseLDIF lowercases them.
 	return User{
-		UID:       entry["uid"],
-		CN:        entry["cn"],
-		SN:        entry["sn"],
-		GivenName: entry["givenname"],
-		Mail:      entry["mail"],
-		Password:  entry["userpassword"],
-		DN:        entry["dn"],
+		UID:        entry["uid"],
+		CN:         entry["cn"],
+		SN:         entry["sn"],
+		GivenName:  entry["givenname"],
+		Mail:       entry["mail"],
+		Title:      entry["title"],
+		Department: entry["ou"],
+		Password:   entry["userpassword"],
+		DN:         entry["dn"],
 	}
 }
 

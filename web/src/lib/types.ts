@@ -28,6 +28,8 @@ export interface LDAPUser {
 	cn: string;
 	sn: string;
 	mail: string;
+	title?: string;
+	department?: string;
 	password?: string;
 }
 

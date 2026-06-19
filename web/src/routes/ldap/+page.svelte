@@ -139,6 +139,36 @@
   let newGroupCN = $state('');
   let addingGroup = $state(false);
 
+  // Users list: filterable across uid/name/email/title/department, sortable by
+  // any of those columns.
+  let userFilter = $state('');
+  let userSort = $state<'uid' | 'cn' | 'title' | 'department'>('uid');
+  let userSortDir = $state<'asc' | 'desc'>('asc');
+
+  const shownUsers = $derived.by(() => {
+    const q = userFilter.trim().toLowerCase();
+    let list = users;
+    if (q) {
+      list = list.filter((u) =>
+        `${u.uid} ${u.cn} ${u.mail ?? ''} ${u.title ?? ''} ${u.department ?? ''}`
+          .toLowerCase()
+          .includes(q)
+      );
+    }
+    const dir = userSortDir === 'asc' ? 1 : -1;
+    return [...list].sort(
+      (a, b) => ((a[userSort] || '') as string).localeCompare((b[userSort] || '') as string) * dir
+    );
+  });
+
+  function sortUsersBy(key: 'uid' | 'cn' | 'title' | 'department') {
+    if (userSort === key) userSortDir = userSortDir === 'asc' ? 'desc' : 'asc';
+    else {
+      userSort = key;
+      userSortDir = 'asc';
+    }
+  }
+
   // Groups list: sortable by name or member count, filterable by group name or
   // member uid (so an operator can find which groups a user belongs to).
   let groupFilter = $state('');
@@ -473,18 +503,49 @@
       {:else if users.length === 0}
         <div class="empty-state"><p>No users in directory</p></div>
       {:else}
+        <div class="grp-controls">
+          <input
+            class="input grp-filter"
+            bind:value={userFilter}
+            placeholder="Filter by name, uid, title, department..."
+          />
+          <span class="grp-count">{shownUsers.length} of {users.length} users</span>
+        </div>
         <div class="table-wrap">
           <table class="table">
-            <thead
-              ><tr><th>UID</th><th>CN</th><th>Email</th><th>Password</th><th>DN</th><th></th></tr
-              ></thead
-            >
+            <thead>
+              <tr>
+                <th class="sortable" onclick={() => sortUsersBy('uid')}>
+                  UID{#if userSort === 'uid'}<span class="arrow"
+                      >{userSortDir === 'asc' ? '▲' : '▼'}</span
+                    >{/if}
+                </th>
+                <th class="sortable" onclick={() => sortUsersBy('cn')}>
+                  Name{#if userSort === 'cn'}<span class="arrow"
+                      >{userSortDir === 'asc' ? '▲' : '▼'}</span
+                    >{/if}
+                </th>
+                <th class="sortable" onclick={() => sortUsersBy('title')}>
+                  Title{#if userSort === 'title'}<span class="arrow"
+                      >{userSortDir === 'asc' ? '▲' : '▼'}</span
+                    >{/if}
+                </th>
+                <th class="sortable" onclick={() => sortUsersBy('department')}>
+                  Department{#if userSort === 'department'}<span class="arrow"
+                      >{userSortDir === 'asc' ? '▲' : '▼'}</span
+                    >{/if}
+                </th>
+                <th>Email</th><th>Password</th><th></th>
+              </tr>
+            </thead>
             <tbody>
-              {#each users as u}
+              {#each shownUsers as u}
                 {@const pw = passwordCell(u.password, u.uid)}
                 <tr>
                   <td data-label="UID" class="mono">{u.uid}</td>
-                  <td data-label="CN">{u.cn}</td>
+                  <td data-label="Name">{u.cn}</td>
+                  <td data-label="Title" class="dim">{u.title || '-'}</td>
+                  <td data-label="Department" class="dim">{u.department || '-'}</td>
                   <td data-label="Email" class="dim">{u.mail || '-'}</td>
                   <td data-label="Password">
                     <span class="mono pw-cell"
@@ -507,9 +568,6 @@
                       </button>
                     {/if}
                   </td>
-                  <td data-label="DN" class="mono dim" style="font-size:var(--font-size-xs)"
-                    >{u.dn}</td
-                  >
                   <td data-label="">
                     <button
                       class="action-btn"
@@ -724,12 +782,12 @@
     font-size: var(--font-size-xs);
     color: var(--text-muted);
   }
-  .grp-table th.sortable {
+  th.sortable {
     cursor: pointer;
     user-select: none;
     white-space: nowrap;
   }
-  .grp-table th.sortable:hover {
+  th.sortable:hover {
     color: var(--accent-hover);
   }
   .grp-table th.num,
@@ -743,7 +801,7 @@
     text-align: right;
     width: 1%;
   }
-  .grp-table .arrow {
+  .arrow {
     margin-left: 4px;
     font-size: 9px;
     color: var(--accent);
