@@ -128,10 +128,10 @@ var wirelessDeviceDB = map[string]DeviceInfo{
 		MaxChannelWidth: 80, HasDFS: false,
 		Notes:               "In-kernel mt76 driver. ~450ms channel switch latency. Injection limited to ~1000 pps.",
 		StockAntennaGainDBI: 5, StockAntennaCount: 2, AntennaConnector: "RP-SMA",
-		OUIs: []string{"00:c0:ca"}, // ALFA; a non-ALFA OUI resolves to the variant.
-		Variants: []WirelessVariant{
-			{Manufacturer: "Panda Wireless", Model: "PAU0D"},
-		},
+		// 0e8d:7612 is MediaTek's generic MT7612U USB ID, shared by the ALFA
+		// AWUS036ACM and various clones that ship with a MediaTek reference MAC, so
+		// the OUI cannot reliably tell them apart. Report the dominant real product
+		// (the ALFA AWUS036ACM) rather than guess an unverifiable clone SKU.
 	},
 	"0e8d:7961": {
 		Manufacturer: "ALFA Network", Model: "AWUS036AXM", Chipset: "MT7921AU",
