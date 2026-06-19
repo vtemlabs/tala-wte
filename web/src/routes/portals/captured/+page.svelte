@@ -7,6 +7,7 @@
 -->
 <script lang="ts">
   import { onMount, onDestroy } from 'svelte';
+  import { browser } from '$app/environment';
   import { submissions } from '$lib/api';
   import { toast } from '$lib/stores/toast';
 
@@ -14,8 +15,16 @@
   let loading = $state(true);
   let unsub: (() => void) | null = null;
 
-  let view = $state<'cards' | 'list'>('cards');
-  let sortKey = $state('newest');
+  let view = $state<'cards' | 'list'>(
+    (browser && (localStorage.getItem('view:captured') as 'cards' | 'list')) || 'cards'
+  );
+  let sortKey = $state((browser && localStorage.getItem('sort:captured')) || 'newest');
+  $effect(() => {
+    if (browser) localStorage.setItem('view:captured', view);
+  });
+  $effect(() => {
+    if (browser) localStorage.setItem('sort:captured', sortKey);
+  });
 
   function dataOf(rec: Record<string, any>): Record<string, any> {
     try {
