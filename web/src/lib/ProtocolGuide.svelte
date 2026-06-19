@@ -280,7 +280,7 @@
       title: 'WPA2-Enterprise',
       badge: 'badge-enterprise',
       overview:
-        'Corporate standard - per-user credentials via RADIUS and EAP. Clients authenticate with username/password (PEAP/TTLS) or certificates (EAP-TLS) tunneled inside TLS. FreeRADIUS + OpenLDAP provide the backend in Tala WTE.',
+        'Corporate standard - per-user credentials via RADIUS and EAP. Clients authenticate with username/password (PEAP/TTLS) or certificates (EAP-TLS) tunneled inside TLS. FreeRADIUS + OpenLDAP provide the backend in Tala WTE; you set the test client identity and password on the network form.',
       provides: [
         'Per-user authentication (no shared passphrase)',
         'Credential isolation between users',

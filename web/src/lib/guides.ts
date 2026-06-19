@@ -124,6 +124,15 @@ The preflight checks what the Enterprise path needs - the RADIUS service, an LDA
 
 To manage these services directly, see the [RADIUS guide](/radius/guide), the [LDAP guide](/ldap/guide), and the [Certificates guide](/certificates/guide).
 
+### EAP test credentials
+
+After preflight passes, an Enterprise network needs the credentials a client presents during 802.1X. The form shows two fields:
+
+- **EAP Identity (directory username)** - the username a client (or a den member) authenticates as. It must match a user in the directory (see the [LDAP guide](/ldap/guide)).
+- **EAP Password** - that user's directory password.
+
+The leader hands these to each member when it deploys an Enterprise network, so every member authenticates against RADIUS as that user without anyone configuring the member by hand. If the identity is not in the directory, authentication fails; add the user on the LDAP page first.
+
 ## The built-in Protocol Guide
 
 ![The Protocol Guide panel](/guide/networks-protocol.png)
@@ -935,9 +944,14 @@ Deploy pushes the network's client config to the member, waits for it to associa
 
 When you stop or delete a network on the leader, every member assigned to that network is automatically disconnected. Members never keep chasing a network that has gone away.
 
-## Status
+## Status and errors
 
-The Den page polls each member's live status through the leader (using the agent key), so the Members list reflects reachability, the joined SSID, IP, and request counts without you opening each member's own console.`
+The Den page polls each member's live status through the leader (using the agent key), so the Members list reflects reachability, the joined SSID, IP, and request counts without you opening each member's own console.
+
+It also surfaces a member's problems on the leader side, so you do not have to open the member to find them:
+
+- **card limits** - if the member's adapter has capability limits (for example **No WPA3-SAE (legacy chipset)**), they show in yellow under the member, the same flags described in the [Settings guide](/settings/guide). Check these before assigning a protocol the member's card cannot do.
+- **error** - if a deployed member is not connected and reported an error (such as a failed association), the leader shows it in yellow. Common causes are a protocol the member's card cannot do, the network not running, or a wrong passphrase or EAP identity. **Stop** clears the assignment so you can fix it and redeploy.`
 	},
 	settings: {
 		title: 'Settings',
@@ -973,6 +987,18 @@ Click **Save Changes** to apply the regulatory domain, uplink interface, and def
 ## Wireless Interfaces and Services
 
 The right column lists the box's **Wireless Interfaces** with their model, chipset, capabilities, and MAC, and the backing **Services** (PocketBase, FreeRADIUS, OpenLDAP, and the portal server) with their ports, so you can confirm the stack is up at a glance.
+
+### Adapter capability limits
+
+When an adapter has a hardware or driver limitation, Tala WTE flags it in plain language so you know before a network fails to start. The flags appear on the **dashboard** Wireless Interfaces card, under the adapter dropdown in the **new-network form**, and on each card here. What you may see:
+
+- **2.4 GHz only (no 5/6 GHz)** - the radio has no 5 or 6 GHz support.
+- **No 5 GHz AP** / **No 6 GHz AP** - the radio can tune that band as a client but cannot beacon an access point on it.
+- **No WPA3-SAE (legacy chipset)** - an older chipset that cannot do WPA3; use WPA2 instead.
+- **No 5 GHz frame injection** - the driver cannot inject frames on 5 GHz.
+- **Max channel width N MHz** - the radio cannot use 80 or 160 MHz channels.
+
+A capable card (for example the MediaTek MT7921AU) shows no flags. If you pick a protocol or band an adapter cannot do, the start fails with the reason. The same limits are surfaced on the leader for each den member, so check them before deploying.
 
 ## Software Updates
 
