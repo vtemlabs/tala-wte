@@ -327,6 +327,11 @@
                   {#if iface.manufacturer || iface.device_model}{iface.manufacturer}
                     {iface.device_model}{:else if iface.driver}{iface.driver}{/if}
                 </div>
+                {#if iface.limits?.length}
+                  <div class="rail-limits">
+                    {#each iface.limits as limit}<span class="limit-chip">{limit}</span>{/each}
+                  </div>
+                {/if}
               </div>
               {#if iface.chipset}<span class="count-pill">{iface.chipset}</span>{/if}
             </div>
@@ -506,6 +511,20 @@
   }
   .rail-sub {
     font-size: var(--font-size-xs);
+  }
+  .rail-limits {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 4px;
+    margin-top: 3px;
+  }
+  .limit-chip {
+    font-size: var(--font-size-xs);
+    line-height: 1.3;
+    padding: 0 6px;
+    border: 1px solid var(--color-yellow);
+    border-radius: var(--radius-sm);
+    color: var(--color-yellow);
   }
 
   .svc-row .svc-name {

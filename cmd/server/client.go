@@ -119,12 +119,14 @@ func clientConfigExportHandler(app *pocketbase.PocketBase) func(http.ResponseWri
 			return
 		}
 		cfg := client.Config{
-			SSID:       rec.GetString("ssid"),
-			Protocol:   rec.GetString("protocol"),
-			Passphrase: rec.GetString("passphrase"),
-			Band:       rec.GetString("band"),
-			Channel:    rec.GetInt("channel"),
-			Hidden:     rec.GetBool("hidden"),
+			SSID:        rec.GetString("ssid"),
+			Protocol:    rec.GetString("protocol"),
+			Passphrase:  rec.GetString("passphrase"),
+			Band:        rec.GetString("band"),
+			Channel:     rec.GetInt("channel"),
+			Hidden:      rec.GetBool("hidden"),
+			Identity:    rec.GetString("identity"),
+			EAPPassword: rec.GetString("eap_password"),
 		}
 		cfg.Portal.Enabled = rec.GetBool("portal_enabled")
 

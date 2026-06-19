@@ -43,6 +43,7 @@ type Adapter struct {
 	StockAntennaGain  float64  `json:"stock_antenna_gain_dbi"`
 	StockAntennaCount int      `json:"stock_antenna_count"`
 	AntennaConnector  string   `json:"antenna_connector"`
+	Limits            []string `json:"limits,omitempty"` // plain-language capability limits, computed in discovery
 }
 
 // virtualDrivers lists kernel drivers that produce simulated (non-RF) interfaces.
@@ -56,6 +57,56 @@ func IsVirtualDriver(driver string) bool {
 		}
 	}
 	return false
+}
+
+// computeLimits derives plain-language capability limits from a populated Adapter
+// so the UI and logs can tell operators what a card cannot do. It only asserts a
+// limit when the underlying capability is actually known (bands populated, or the
+// device is in the curated table), so unknown adapters are never wrongly flagged.
+func computeLimits(a Adapter) []string {
+	var limits []string
+	has := func(list []string, band string) bool {
+		for _, b := range list {
+			if strings.HasPrefix(b, band) {
+				return true
+			}
+		}
+		return false
+	}
+
+	// Band coverage (only when we actually know the bands).
+	if len(a.Bands) > 0 && !has(a.Bands, "5") && !has(a.Bands, "6") {
+		limits = append(limits, "2.4 GHz only (no 5/6 GHz)")
+	}
+
+	// AP host narrower than the radio bands (can tune a band but not beacon on it).
+	if len(a.APBands) > 0 && len(a.APBands) < len(a.Bands) {
+		if has(a.Bands, "5") && !has(a.APBands, "5") {
+			limits = append(limits, "No 5 GHz AP (5 GHz is client/monitor only)")
+		}
+		if has(a.Bands, "6") && !has(a.APBands, "6") {
+			limits = append(limits, "No 6 GHz AP (6 GHz is client/monitor only)")
+		}
+	}
+
+	// WPA3-SAE: only assert for known chipsets that lack it (legacy needs PMF).
+	if a.USBID != "" {
+		if info := LookupDevice(a.USBID); info != nil && !info.SupportsWPA3SAE {
+			limits = append(limits, "No WPA3-SAE (legacy chipset)")
+		}
+	}
+
+	// Frame injection narrower than the radio bands (matters for security testing).
+	if len(a.InjectionBands) > 0 && len(a.InjectionBands) < len(a.Bands) && has(a.Bands, "5") && !has(a.InjectionBands, "5") {
+		limits = append(limits, "No 5 GHz frame injection")
+	}
+
+	// Channel width.
+	if a.MaxChannelWidth > 0 && a.MaxChannelWidth < 80 {
+		limits = append(limits, fmt.Sprintf("Max channel width %d MHz (no 80/160 MHz)", a.MaxChannelWidth))
+	}
+
+	return limits
 }
 
 // BestRealAdapter returns the first non-virtual adapter, or nil if none exist.
@@ -224,6 +275,7 @@ func DiscoverAdapters() []Adapter {
 			}
 		}
 
+		a.Limits = computeLimits(a)
 		adapters = append(adapters, a)
 	}
 

@@ -266,6 +266,21 @@ func (a *Agent) Connect(cfg Config) error {
 		return err
 	}
 
+	// Warn up front if this network needs a capability the adapter lacks, so a
+	// failure to associate reads as a known hardware limit, not a mystery.
+	if strings.HasPrefix(cfg.Protocol, "wpa3") {
+		for _, ad := range iface.DiscoverAdapters() {
+			if ad.Interface == ifc {
+				for _, lim := range ad.Limits {
+					if strings.Contains(lim, "WPA3-SAE") {
+						a.setEvent("warning: adapter %s lacks WPA3-SAE; WPA3 association will likely fail", ifc)
+					}
+				}
+				break
+			}
+		}
+	}
+
 	a.setEvent("associating with %q", cfg.SSID)
 	// -d gives verbose association/EAPOL output, streamed into the activity log so
 	// the Live Log shows real terminal output like the server's hostapd -d.

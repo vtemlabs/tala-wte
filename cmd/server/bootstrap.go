@@ -59,6 +59,8 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.SelectField{Name: "band", Values: []string{"2.4", "5", "6"}},
 				&core.NumberField{Name: "channel"},
 				&core.TextField{Name: "passphrase"},
+				&core.TextField{Name: "identity"},     // 802.1X EAP identity (enterprise)
+				&core.TextField{Name: "eap_password"}, // 802.1X EAP password (enterprise)
 				&core.SelectField{Name: "status", Values: []string{"stopped", "starting", "running", "error"}},
 				&core.TextField{Name: "interface"},
 				&core.TextField{Name: "config_json"},
@@ -210,6 +212,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 	reconcileNetworkProtocols(app)
 	reconcileCollectionRules(app)
 	reconcileDenMemberSchema(app)
+	reconcileNetworkSchema(app)
 	removeDefaultUsersCollection(app)
 	reconcilePortalFields(app)
 	reconcileNetworkPortalAuth(app)
@@ -473,6 +476,32 @@ func reconcileDenMemberSchema(app *pocketbase.PocketBase) {
 	col.Fields.Add(&core.TextField{Name: "cert_fingerprint"})
 	if err := app.Save(col); err != nil {
 		log.Printf("[bootstrap] failed to add cert_fingerprint to den_members: %v", err)
+	}
+}
+
+// reconcileNetworkSchema backfills the identity + eap_password fields on a networks
+// collection created before enterprise EAP credentials were stored per network. New
+// installs get them from the collection definition; this upgrades existing ones so a
+// den deploy (and the config export) can hand 802.1X clients the identity/password
+// they present to RADIUS.
+func reconcileNetworkSchema(app *pocketbase.PocketBase) {
+	col, err := app.FindCollectionByNameOrId("networks")
+	if err != nil || col == nil {
+		return
+	}
+	changed := false
+	if col.Fields.GetByName("identity") == nil {
+		col.Fields.Add(&core.TextField{Name: "identity"})
+		changed = true
+	}
+	if col.Fields.GetByName("eap_password") == nil {
+		col.Fields.Add(&core.TextField{Name: "eap_password"})
+		changed = true
+	}
+	if changed {
+		if err := app.Save(col); err != nil {
+			log.Printf("[bootstrap] failed to add EAP fields to networks: %v", err)
+		}
 	}
 }
 

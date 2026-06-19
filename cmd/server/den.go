@@ -182,12 +182,14 @@ func memberCall(app *pocketbase.PocketBase, member *core.Record, method, path st
 // clientConfigFromNetwork builds a client connection profile from a network record.
 func clientConfigFromNetwork(rec *core.Record) client.Config {
 	cfg := client.Config{
-		SSID:       rec.GetString("ssid"),
-		Protocol:   rec.GetString("protocol"),
-		Passphrase: rec.GetString("passphrase"),
-		Band:       rec.GetString("band"),
-		Channel:    rec.GetInt("channel"),
-		Hidden:     rec.GetBool("hidden"),
+		SSID:        rec.GetString("ssid"),
+		Protocol:    rec.GetString("protocol"),
+		Passphrase:  rec.GetString("passphrase"),
+		Band:        rec.GetString("band"),
+		Channel:     rec.GetInt("channel"),
+		Hidden:      rec.GetBool("hidden"),
+		Identity:    rec.GetString("identity"),
+		EAPPassword: rec.GetString("eap_password"),
 	}
 	cfg.Portal.Enabled = rec.GetBool("portal_enabled")
 	return cfg

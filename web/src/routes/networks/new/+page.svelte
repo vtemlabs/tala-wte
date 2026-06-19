@@ -90,6 +90,8 @@
   let band = $state('2.4');
   let channel = $state(6);
   let passphrase = $state('');
+  let identity = $state('');
+  let eapPassword = $state('');
   let iface = $state('');
   let clientIsolation = $state(false);
   let internetPassthrough = $state(true);
@@ -117,6 +119,7 @@
   const needsPassphrase = $derived(
     ['wpa', 'wpa2', 'wps', 'wpa3', 'wpa3_transition', 'wep'].includes(protocol)
   );
+  const isEnterprise = $derived(['wpa2_enterprise', 'wpa3_enterprise'].includes(protocol));
   const isWEP = $derived(protocol === 'wep');
   const canHavePortal = $derived(protocol === 'open');
 
@@ -235,6 +238,12 @@
         window.scrollTo(0, 0);
         return;
       }
+    } else if (isEnterprise) {
+      if (!identity.trim()) {
+        error = 'EAP identity is required for enterprise networks';
+        window.scrollTo(0, 0);
+        return;
+      }
     }
 
     saving = true;
@@ -253,7 +262,9 @@
         subnet,
         portal_enabled: canHavePortal ? portalEnabled : false,
         portal_html: canHavePortal && portalEnabled ? selectedPortalHTML : '',
-        portal_auth: canHavePortal && portalEnabled ? portalAuth : false
+        portal_auth: canHavePortal && portalEnabled ? portalAuth : false,
+        identity: isEnterprise ? identity : '',
+        eap_password: isEnterprise ? eapPassword : ''
       });
       goto(`/networks/${rec.id}`);
     } catch (e: any) {
@@ -343,6 +354,34 @@
             {/if}
           </div>
         {/if}
+
+        {#if isEnterprise}
+          <div class="form-group">
+            <label class="field-label" for="identity">EAP Identity (directory username)</label>
+            <input
+              class="input"
+              id="identity"
+              type="text"
+              bind:value={identity}
+              placeholder="e.g. amoore"
+            />
+          </div>
+          <div class="form-group" style="margin-top:var(--space-lg)">
+            <label class="field-label" for="eapPassword">EAP Password</label>
+            <input
+              class="input"
+              id="eapPassword"
+              type="text"
+              bind:value={eapPassword}
+              placeholder="directory password for this user"
+            />
+            <p class="field-desc">
+              The directory username and password test clients present for 802.1X. The den hands
+              these to deployed members so they authenticate against RADIUS / the directory. Must
+              match a user in the Directory (LDAP).
+            </p>
+          </div>
+        {/if}
       </div>
     </section>
 
@@ -396,6 +435,11 @@
                 )
                   .map(([i, s]) => `${i} -> ${s}`)
                   .join(', ')}
+              </div>
+            {/if}
+            {#if selectedAdapter?.limits?.length}
+              <div class="field-desc" style="color:var(--color-yellow)">
+                Limits: {selectedAdapter.limits.join('; ')}
               </div>
             {/if}
           {:else}

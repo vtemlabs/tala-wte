@@ -426,6 +426,12 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 			}
 		}
 
+		// Surface the resolved adapter's capability limits in the log so the operator
+		// sees them when starting (e.g. a WPA3 network on a no-SAE legacy card).
+		if a := iface.FindByInterface(adapters, ifName); a != nil && len(a.Limits) > 0 {
+			log.Printf("[sim][start] %s limits: %s", ifName, strings.Join(a.Limits, "; "))
+		}
+
 		// Clean up any stale resources for this network only.
 		TargetedCleanup(id)
 

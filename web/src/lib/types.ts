@@ -19,6 +19,7 @@ export interface WirelessInterface {
 	chipset?: string;
 	bands?: string[];
 	ap_bands?: string[]; // bands this card can host an AP on (subset of bands)
+	limits?: string[]; // plain-language capability limits computed in discovery
 }
 
 export interface LDAPUser {

@@ -57,6 +57,13 @@
     {#each adapter.bands || [] as band}<span class="hw-tag">{band}</span>{/each}
   </div>
 
+  {#if adapter.limits?.length}
+    <div class="hw-limits">
+      <span class="hw-limits-title">Limits</span>
+      {#each adapter.limits as limit}<span class="hw-limit">{limit}</span>{/each}
+    </div>
+  {/if}
+
   {#if adapter.notes}
     <details class="hw-notes">
       <summary>Lab notes</summary>
@@ -161,6 +168,32 @@
     color: var(--color-cyan);
     border-color: rgba(34, 211, 238, 0.3);
     background: rgba(34, 211, 238, 0.08);
+  }
+
+  .hw-limits {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 6px;
+    margin-top: var(--space-sm);
+    padding: var(--space-sm) var(--space-md);
+    border: 1px solid var(--color-yellow);
+    border-radius: var(--radius-sm);
+  }
+  .hw-limits-title {
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-yellow);
+  }
+  .hw-limit {
+    font-size: var(--font-size-xs);
+    color: var(--text-secondary);
+  }
+  .hw-limit:not(:last-child)::after {
+    content: ',';
+    color: var(--text-muted);
   }
 
   .hw-notes {

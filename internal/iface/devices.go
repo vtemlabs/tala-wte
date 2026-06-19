@@ -87,6 +87,7 @@ type DeviceInfo struct {
 	// narrower than Bands. Empty means same as Bands.
 	APBands           []string `json:"ap_bands,omitempty"`
 	Standard          string   `json:"standard"`
+	SupportsWPA3SAE   bool     `json:"supports_wpa3_sae"` // WPA3-SAE needs PMF (802.11w); false on legacy chipsets
 	TxPowerAdjustable bool     `json:"tx_power_adjustable"`
 	SafeMaxTxPower24  int      `json:"safe_max_tx_power_24"` // mBm, 0 = N/A
 	SafeMaxTxPower5   int      `json:"safe_max_tx_power_5"`  // mBm, 0 = N/A
@@ -110,7 +111,8 @@ type DeviceInfo struct {
 var wirelessDeviceDB = map[string]DeviceInfo{
 	"0bda:8812": {
 		Manufacturer: "ALFA Network", Model: "AWUS036ACH", Chipset: "RTL8812AU",
-		Bands: []string{"2.4 GHz", "5 GHz"}, Standard: "802.11a/b/g/n/ac",
+		SupportsWPA3SAE: true,
+		Bands:           []string{"2.4 GHz", "5 GHz"}, Standard: "802.11a/b/g/n/ac",
 		TxPowerAdjustable: true, SafeMaxTxPower24: 3000, SafeMaxTxPower5: 3000, HardCeiling: 3150,
 		MonitorBands: []string{"2.4 GHz", "5 GHz"}, InjectionBands: []string{"2.4 GHz", "5 GHz"},
 		MaxChannelWidth: 80, HasDFS: true,
@@ -119,7 +121,8 @@ var wirelessDeviceDB = map[string]DeviceInfo{
 	},
 	"0e8d:7612": {
 		Manufacturer: "ALFA Network", Model: "AWUS036ACM", Chipset: "MT7612U",
-		Bands: []string{"2.4 GHz", "5 GHz"}, Standard: "802.11a/b/g/n/ac",
+		SupportsWPA3SAE: true,
+		Bands:           []string{"2.4 GHz", "5 GHz"}, Standard: "802.11a/b/g/n/ac",
 		TxPowerAdjustable: true, SafeMaxTxPower24: 2300, SafeMaxTxPower5: 2000, HardCeiling: 2500,
 		MonitorBands: []string{"2.4 GHz", "5 GHz"}, InjectionBands: []string{"2.4 GHz", "5 GHz"},
 		MaxChannelWidth: 80, HasDFS: false,
@@ -132,7 +135,8 @@ var wirelessDeviceDB = map[string]DeviceInfo{
 	},
 	"0e8d:7961": {
 		Manufacturer: "ALFA Network", Model: "AWUS036AXM", Chipset: "MT7921AU",
-		Bands: []string{"2.4 GHz", "5 GHz", "6 GHz"},
+		SupportsWPA3SAE: true,
+		Bands:           []string{"2.4 GHz", "5 GHz", "6 GHz"},
 		// 6 GHz is monitor/client only here; the driver won't beacon a 6 GHz AP.
 		APBands:           []string{"2.4 GHz", "5 GHz"},
 		Standard:          "802.11a/b/g/n/ac/ax (WiFi 6E)",
