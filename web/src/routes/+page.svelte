@@ -372,8 +372,8 @@
                 ? 'var(--color-yellow)'
                 : 'var(--color-red)'}"
           >
-            {#if systemReady}{totalAdapters} ready{:else if unsupported.length > 0}driver missing{:else}none
-              detected{/if}
+            {#if systemReady}{totalAdapters} ready{:else if unsupported.length > 0}driver missing:
+              {unsupported.map((u) => u.name).join(', ')}{:else}none detected{/if}
           </span>
         </div>
         <div class="rail-row svc-row">

@@ -25,6 +25,7 @@
   const displayVersion = $derived(versionInfo?.current ?? '0.1.0');
 
   let interfaces = $state<WirelessInterface[]>([]);
+  let unsupported = $state<{ usb_id: string; name: string; reason: string }[]>([]);
   let uplinkIface = $state('eth0');
   let countryCode = $state('US');
   let apSubnet = $state('10.0.0.0/24');
@@ -71,6 +72,7 @@
         system.getSettings()
       ]);
       interfaces = ifaceRes.interfaces ?? [];
+      unsupported = (ifaceRes as any).unsupported ?? [];
       if (settingsRes.uplink_iface) uplinkIface = settingsRes.uplink_iface;
       if (settingsRes.country_code) countryCode = settingsRes.country_code;
       if (settingsRes.ap_subnet) apSubnet = settingsRes.ap_subnet;
@@ -423,7 +425,21 @@
               <HardwareCard adapter={iface} />
             {/each}
           </div>
-        {:else}
+        {/if}
+        {#if unsupported.length}
+          <div class="unsupported-list">
+            {#each unsupported as u}
+              <div class="unsupported-row">
+                <div class="unsupported-info">
+                  <div class="unsupported-name">{u.name}</div>
+                  <div class="unsupported-reason">{u.reason}</div>
+                </div>
+                <span class="badge badge-warning">needs driver</span>
+              </div>
+            {/each}
+          </div>
+        {/if}
+        {#if !interfaces.length && !unsupported.length}
           <div class="empty-state" style="padding:var(--space-2xl)">
             <p>No wireless interfaces detected.</p>
           </div>
@@ -546,5 +562,29 @@
     gap: var(--space-sm);
     margin-top: var(--space-md);
     align-items: center;
+  }
+  .unsupported-list {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+  }
+  .unsupported-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-md);
+    padding: var(--space-md);
+    border: 1px solid var(--color-yellow);
+    border-radius: var(--radius-md, 8px);
+  }
+  .unsupported-name {
+    color: var(--text-primary);
+    font-weight: 600;
+  }
+  .unsupported-reason {
+    color: var(--text-secondary);
+    font-size: var(--font-size-sm);
+    margin-top: 2px;
   }
 </style>
