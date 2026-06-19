@@ -602,6 +602,17 @@ func portalTemplatesHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
+// portalRestoreHandler re-seeds the built-in portal templates from the embedded
+// source: it recreates any built-in the operator deleted and resets a changed one
+// back to original. Custom portals are untouched.
+func portalRestoreHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
+	return func(w http.ResponseWriter, r *http.Request) {
+		seeded, resynced := seedPortalTemplates(app)
+		log.Printf("[portals] restore: %d recreated, %d reset to original", seeded, resynced)
+		api.WriteJSON(w, map[string]any{"restored": seeded, "reset": resynced})
+	}
+}
+
 // portalUploadHandler accepts an uploaded portal template: a single .html file (inline) or a .zip bundle (extracted to portalBundleDir).
 func portalUploadHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {

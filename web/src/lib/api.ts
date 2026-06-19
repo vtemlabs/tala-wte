@@ -125,6 +125,13 @@ export const portals = {
 			.then(handleResponse<{ templates: PortalTemplate[] }>)
 			.then((r) => r.templates),
 
+	// Re-seed built-in templates from the embedded source: recreate deleted ones
+	// and reset changed ones to original. Custom portals are untouched.
+	restore: () =>
+		fetch('/api/wte/portals/restore', { method: 'POST', headers: authHeaders() }).then(
+			handleResponse<{ restored: number; reset: number }>
+		),
+
 	// Upload a self-contained .html or a .zip bundle as a new custom portal.
 	upload: async (file: File, name: string) => {
 		const fd = new FormData();

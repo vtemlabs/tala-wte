@@ -215,6 +215,7 @@ func main() {
 		se.Router.POST("/api/wte/enterprise/provision", wrapAuth(sim.ProvisionHandler()))
 
 		se.Router.GET("/api/wte/portals/templates", wrapAuth(portalTemplatesHandler()))
+		se.Router.POST("/api/wte/portals/restore", wrapAuth(portalRestoreHandler(app)))
 		se.Router.POST("/api/wte/portals/upload", wrapAuth(portalUploadHandler(app)))
 		se.Router.POST("/api/wte/portals/scrape", wrapAuth(portalScrapeHandler(app)))
 		// Preview is unauthenticated (iframes can't attach the auth header); same-origin framed, non-sensitive content only.
@@ -283,6 +284,17 @@ func main() {
 	})
 	app.OnRecordAfterDeleteSuccess("networks").BindFunc(func(e *core.RecordEvent) error {
 		teardownDenForNetwork(app, e.Record.Id)
+		return e.Next()
+	})
+
+	// Built-in portal templates are read-only: reject any API edit of one so the
+	// originals stay pristine (the UI forks an editable custom copy instead). Uses
+	// the original DB type, so a request cannot flip type=custom to slip through.
+	// Fires only for API requests; the internal seed/restore uses app.Save directly.
+	app.OnRecordUpdateRequest("portals").BindFunc(func(e *core.RecordRequestEvent) error {
+		if e.Record.Original().GetString("type") == "builtin" {
+			return apis.NewBadRequestError("built-in templates are read-only; clone it to make an editable copy", nil)
+		}
 		return e.Next()
 	})
 

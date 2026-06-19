@@ -7,6 +7,7 @@
 -->
 <script lang="ts">
   import { onMount } from 'svelte';
+  import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
   import { portals, submissions } from '$lib/api';
   import { toast } from '$lib/stores/toast';
@@ -18,6 +19,19 @@
   let loading = $state(true);
   let activeCat = $state('all');
   let submissionCount = $state(0);
+  let restoring = $state(false);
+
+  // Search, source (built-in vs custom), and sort. Source + sort persist so the
+  // view is remembered across refreshes.
+  let search = $state('');
+  let source = $state((browser && localStorage.getItem('portals:source')) || 'all');
+  let sortBy = $state((browser && localStorage.getItem('portals:sort')) || 'name');
+  $effect(() => {
+    if (browser) {
+      localStorage.setItem('portals:source', source);
+      localStorage.setItem('portals:sort', sortBy);
+    }
+  });
 
   let showUpload = $state(false);
   let uploadName = $state('');
@@ -58,9 +72,43 @@
     'all',
     ...Array.from(new Set(list.map((p) => p.category || 'custom')))
   ]);
-  let filtered = $derived(
-    activeCat === 'all' ? list : list.filter((p) => (p.category || 'custom') === activeCat)
-  );
+  let filtered = $derived.by(() => {
+    const q = search.trim().toLowerCase();
+    let out = list.filter((p) => {
+      if (activeCat !== 'all' && (p.category || 'custom') !== activeCat) return false;
+      if (source === 'builtin' && p.type !== 'builtin') return false;
+      if (source === 'custom' && p.type === 'builtin') return false;
+      if (q && !(`${p.name} ${p.description ?? ''}`.toLowerCase().includes(q))) return false;
+      return true;
+    });
+    out = [...out].sort((a, b) => {
+      if (sortBy === 'category')
+        return catLabel(a.category || 'custom').localeCompare(catLabel(b.category || 'custom'));
+      if (sortBy === 'type') return (a.type || '').localeCompare(b.type || '');
+      return (a.name || '').localeCompare(b.name || '');
+    });
+    return out;
+  });
+
+  const builtinCount = $derived(list.filter((p) => p.type === 'builtin').length);
+  const customCount = $derived(list.filter((p) => p.type !== 'builtin').length);
+
+  async function restoreTemplates() {
+    restoring = true;
+    try {
+      const res: any = await portals.restore();
+      const n = res?.restored ?? 0;
+      const r = res?.reset ?? 0;
+      toast.success(
+        n || r ? `Restored ${n} template(s), reset ${r} to original` : 'Templates already up to date'
+      );
+      await load();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Restore failed');
+    } finally {
+      restoring = false;
+    }
+  }
 
   async function load() {
     loading = true;
@@ -179,6 +227,9 @@
         showUpload = true;
       }}>Upload Template</button
     >
+    <button class="btn" onclick={restoreTemplates} disabled={restoring}
+      >{restoring ? 'Restoring...' : 'Restore Templates'}</button
+    >
     <a href="/portals/new" class="btn btn-primary">+ New Portal</a>
   </div>
 </div>
@@ -193,13 +244,37 @@
 </a>
 
 {#if !loading && list.length > 0}
+  <div class="portal-controls">
+    <input class="input portal-search" bind:value={search} placeholder="Search portals..." />
+    <div class="seg" role="group" aria-label="Source">
+      <button class="seg-btn" class:active={source === 'all'} onclick={() => (source = 'all')}
+        >All <span class="seg-n">{list.length}</span></button
+      >
+      <button
+        class="seg-btn"
+        class:active={source === 'builtin'}
+        onclick={() => (source = 'builtin')}>Built-in <span class="seg-n">{builtinCount}</span></button
+      >
+      <button class="seg-btn" class:active={source === 'custom'} onclick={() => (source = 'custom')}
+        >Custom <span class="seg-n">{customCount}</span></button
+      >
+    </div>
+    <label class="sort-wrap">
+      <span class="sort-lbl">Sort</span>
+      <select class="input sort-select" bind:value={sortBy}>
+        <option value="name">Name</option>
+        <option value="category">Category</option>
+        <option value="type">Source</option>
+      </select>
+    </label>
+    <span class="count-pill filter-count">{filtered.length}</span>
+  </div>
   <div class="filter-row">
     {#each categories as c}
       <button class="chip" class:active={activeCat === c} onclick={() => (activeCat = c)}>
         {c === 'all' ? 'All' : catLabel(c)}
       </button>
     {/each}
-    <span class="count-pill filter-count">{filtered.length}</span>
   </div>
 {/if}
 
@@ -244,7 +319,13 @@
           <p class="portal-desc">{portal.description}</p>
         {/if}
         <div class="portal-actions">
-          <a href="/portals/{portal.id}" class="action-btn">Edit</a>
+          <a
+            href="/portals/{portal.id}"
+            class="action-btn"
+            title={portal.type === 'builtin'
+              ? 'Built-in templates are read-only; saving creates an editable copy'
+              : 'Edit this portal'}>{portal.type === 'builtin' ? 'Customize' : 'Edit'}</a
+          >
           <a href={portals.previewURL(portal.id)} target="_blank" rel="noopener" class="action-btn"
             >Preview</a
           >
@@ -442,6 +523,59 @@
     border-color: rgba(34, 197, 94, 0.35);
   }
 
+  .portal-controls {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .portal-search {
+    width: 280px;
+    max-width: 100%;
+  }
+  .seg {
+    display: inline-flex;
+    border: 1px solid var(--border-primary);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+  .seg-btn {
+    background: transparent;
+    border: none;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    padding: 6px 12px;
+    cursor: pointer;
+  }
+  .seg-btn:not(:last-child) {
+    border-right: 1px solid var(--border-primary);
+  }
+  .seg-btn.active {
+    background: var(--accent-soft);
+    color: var(--accent-hover);
+  }
+  .seg-n {
+    opacity: 0.6;
+    margin-left: 2px;
+  }
+  .sort-wrap {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-sm);
+  }
+  .sort-lbl {
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: var(--text-muted);
+  }
+  .sort-select {
+    width: auto;
+    min-width: 130px;
+  }
   .filter-row {
     display: flex;
     flex-wrap: wrap;

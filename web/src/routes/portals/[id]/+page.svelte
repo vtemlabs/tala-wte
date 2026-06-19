@@ -7,12 +7,15 @@
 -->
 <script lang="ts">
   import { page } from '$app/state';
+  import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
   import { portals } from '$lib/api';
   import { toast } from '$lib/stores/toast';
 
   const id = $derived(page.params.id ?? '');
   let portal = $state<Record<string, any> | null>(null);
+  // Built-in templates are read-only; editing one forks an editable custom copy.
+  let isBuiltin = $derived(portal?.type === 'builtin');
   let html = $state('');
   let name = $state('');
   let saving = $state(false);
@@ -49,6 +52,18 @@
     error = '';
     saved = false;
     try {
+      if (isBuiltin) {
+        // A built-in template is never modified in place; saving forks a custom copy.
+        const copyName = /\(copy\)\s*$/i.test(name) ? name : `${name} (copy)`;
+        const rec = await portals.create({
+          name: copyName,
+          html,
+          category: portal?.category || 'custom'
+        });
+        toast.success('Saved as a new copy (built-in templates are read-only)');
+        goto(`/portals/${rec.id}`);
+        return;
+      }
       await portals.update(id, { name, html });
       saved = true;
       setTimeout(() => (saved = false), 3000);
@@ -75,10 +90,11 @@
     </div>
     <div class="head-actions">
       {#if saved}<span class="badge badge-success">Saved</span>{/if}
+      {#if isBuiltin}<span class="badge badge-info" title="Built-in templates are read-only">read-only template</span>{/if}
       <a href={portals.previewURL(id)} target="_blank" rel="noopener" class="btn">Open Preview</a>
       <a href="/portals" class="btn">Back</a>
       <button class="btn btn-primary" onclick={save} disabled={saving}
-        >{saving ? 'Saving...' : 'Save Changes'}</button
+        >{saving ? 'Saving...' : isBuiltin ? 'Save as Copy' : 'Save Changes'}</button
       >
     </div>
   </header>

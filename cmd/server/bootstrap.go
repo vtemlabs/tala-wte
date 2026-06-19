@@ -386,18 +386,20 @@ func reconcilePortalHTMLLimits(app *pocketbase.PocketBase) {
 	bump("portal_submissions", "data_json", submissionDataMax)
 }
 
-// seedPortalTemplates upserts the embedded built-in portal templates into the portals collection, keyed by slug.
-func seedPortalTemplates(app *pocketbase.PocketBase) {
+// seedPortalTemplates upserts the embedded built-in portal templates into the
+// portals collection, keyed by slug: it recreates any deleted built-in and
+// re-syncs a changed one back to the embedded source. User clones (a different
+// slug, type=custom) are never touched. Returns how many were created/re-synced.
+func seedPortalTemplates(app *pocketbase.PocketBase) (seeded, resynced int) {
 	col, err := app.FindCollectionByNameOrId("portals")
 	if err != nil || col == nil {
-		return
+		return 0, 0
 	}
 	templates, err := portal.Catalog()
 	if err != nil {
 		log.Printf("[bootstrap] failed to load embedded portal templates: %v", err)
-		return
+		return 0, 0
 	}
-	seeded, resynced := 0, 0
 	for _, t := range templates {
 		existing, _ := app.FindFirstRecordByFilter("portals", "slug = {:slug}", map[string]any{"slug": t.Slug})
 		if existing != nil {
@@ -434,6 +436,7 @@ func seedPortalTemplates(app *pocketbase.PocketBase) {
 	if resynced > 0 {
 		log.Printf("[bootstrap] re-synced %d built-in portal templates to embedded source", resynced)
 	}
+	return seeded, resynced
 }
 
 // reconcileCollectionRules locks the managed collections to superusers only (nil rules); PocketBase treats "" as PUBLIC.
