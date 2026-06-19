@@ -348,54 +348,6 @@
         </div>
       </div>
     </section>
-  </div>
-
-  <LicenseModal bind:open={showLicense} />
-
-  <div class="stack">
-    <section class="panel">
-      <div class="panel-head">
-        <h2 class="panel-title">Wireless Interfaces</h2>
-        {#if interfaces.length}<span class="count-pill">{interfaces.length}</span>{/if}
-      </div>
-      <div class="panel-body">
-        {#if interfaces.length}
-          <div class="stack">
-            {#each interfaces as iface}
-              <HardwareCard adapter={iface} />
-            {/each}
-          </div>
-        {:else}
-          <div class="empty-state" style="padding:var(--space-2xl)">
-            <p>No wireless interfaces detected.</p>
-          </div>
-        {/if}
-      </div>
-    </section>
-
-    <section class="panel">
-      <div class="panel-head"><h2 class="panel-title">Services</h2></div>
-      <div class="panel-body">
-        <div class="meta-grid">
-          <div class="meta-row">
-            <div class="meta-key">PocketBase</div>
-            <div class="meta-val">:8090 (embedded)</div>
-          </div>
-          <div class="meta-row">
-            <div class="meta-key">FreeRADIUS</div>
-            <div class="meta-val">:1812 / :1813</div>
-          </div>
-          <div class="meta-row">
-            <div class="meta-key">OpenLDAP</div>
-            <div class="meta-val">127.0.0.1:3389</div>
-          </div>
-          <div class="meta-row">
-            <div class="meta-key">Portal Server</div>
-            <div class="meta-val">:8080 (per-network)</div>
-          </div>
-        </div>
-      </div>
-    </section>
 
     <section class="panel">
       <div class="panel-head">
@@ -452,6 +404,54 @@
         {:else}
           <p class="update-note dim">Checking for updates...</p>
         {/if}
+      </div>
+    </section>
+  </div>
+
+  <LicenseModal bind:open={showLicense} />
+
+  <div class="stack">
+    <section class="panel">
+      <div class="panel-head">
+        <h2 class="panel-title">Wireless Interfaces</h2>
+        {#if interfaces.length}<span class="count-pill">{interfaces.length}</span>{/if}
+      </div>
+      <div class="panel-body">
+        {#if interfaces.length}
+          <div class="stack">
+            {#each interfaces as iface}
+              <HardwareCard adapter={iface} />
+            {/each}
+          </div>
+        {:else}
+          <div class="empty-state" style="padding:var(--space-2xl)">
+            <p>No wireless interfaces detected.</p>
+          </div>
+        {/if}
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="panel-head"><h2 class="panel-title">Services</h2></div>
+      <div class="panel-body">
+        <div class="meta-grid">
+          <div class="meta-row">
+            <div class="meta-key">PocketBase</div>
+            <div class="meta-val">:8090 (embedded)</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-key">FreeRADIUS</div>
+            <div class="meta-val">:1812 / :1813</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-key">OpenLDAP</div>
+            <div class="meta-val">127.0.0.1:3389</div>
+          </div>
+          <div class="meta-row">
+            <div class="meta-key">Portal Server</div>
+            <div class="meta-val">:8080 (per-network)</div>
+          </div>
+        </div>
       </div>
     </section>
 

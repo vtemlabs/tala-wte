@@ -220,10 +220,14 @@
     <p class="page-subtitle">Drive a pack of client members from the den leader</p>
   </div>
   <div class="header-actions">
-    <button class="btn" onclick={updateAll} disabled={updating || members.length === 0}>
+    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
+    <button
+      class="btn btn-primary"
+      onclick={updateAll}
+      disabled={updating || members.length === 0}
+    >
       {updating ? 'Updating...' : 'Update all members'}
     </button>
-    <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
   </div>
 </div>
 
@@ -268,6 +272,16 @@
                 Connected to <b>{st.status.ssid}</b> · {st.status.ip} · {st.status.requests ?? 0} requests
               {:else}
                 Reachable · idle
+              {/if}
+              {#if st?.reachable && (st.status?.adapter_names?.length || st.status?.version)}
+                <div class="member-meta">
+                  {#if st.status?.adapter_names?.length}card: {st.status.adapter_names.join(', ')}{/if}{#if st.status?.adapter_names?.length && st.status?.version}
+                    ·
+                  {/if}{#if st.status?.version}v{st.status.version}{/if}
+                </div>
+              {/if}
+              {#if st?.reachable && st.status?.connected && !m.network_id}
+                <div class="member-busy">in use by another pack leader</div>
               {/if}
               {#if st?.reachable && !st.status?.connected && st.status?.last_error}
                 <div class="warn">error: {st.status.last_error}</div>
@@ -367,6 +381,16 @@
   }
   .member-stat .warn {
     color: var(--color-yellow);
+  }
+  .member-meta {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+    margin-top: 2px;
+  }
+  .member-busy {
+    font-size: var(--font-size-xs);
+    color: var(--color-cyan);
+    margin-top: 2px;
   }
   .member-actions {
     display: flex;

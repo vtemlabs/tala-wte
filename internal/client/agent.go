@@ -22,6 +22,7 @@ import (
 	"time"
 
 	"github.com/vtemlabs/tala-wte/internal/iface"
+	"github.com/vtemlabs/tala-wte/internal/version"
 )
 
 // Agent owns the single client-mode session: the Wi-Fi connection, portal
@@ -45,6 +46,7 @@ type Agent struct {
 	adapterCount       int
 	adapterUnsupported int
 	adapterLimits      []string
+	adapterNames       []string
 	adapterAt          time.Time
 }
 
@@ -52,6 +54,21 @@ var agent = &Agent{status: Status{Mode: "client", PortalState: "none"}}
 
 // Get returns the process-wide client agent.
 func Get() *Agent { return agent }
+
+// adapterDisplayName builds a human label like "ALFA AWUS036AXM (MT7921AU)".
+func adapterDisplayName(ad iface.Adapter) string {
+	name := strings.TrimSpace(ad.Manufacturer + " " + ad.DeviceModel)
+	switch {
+	case name != "" && ad.Chipset != "":
+		return name + " (" + ad.Chipset + ")"
+	case name != "":
+		return name
+	case ad.Chipset != "":
+		return ad.Chipset
+	default:
+		return ad.Driver
+	}
+}
 
 func (a *Agent) snapshot() Status {
 	a.mu.Lock()
@@ -61,18 +78,21 @@ func (a *Agent) snapshot() Status {
 	s.Cycling = a.cycling
 	s.Cycles = a.cycles
 	s.Arch = runtime.GOARCH
+	s.Version = version.Version
 	// Refresh cached adapter health on a TTL (DiscoverAdapters scans iw/sysfs and
 	// is too slow to run on every poll).
 	if time.Since(a.adapterAt) > 15*time.Second {
 		adapters := iface.DiscoverAdapters()
 		a.adapterCount = 0
 		a.adapterLimits = nil
+		a.adapterNames = nil
 		seen := map[string]bool{}
 		for i := range adapters {
 			if iface.IsVirtualDriver(adapters[i].Driver) {
 				continue
 			}
 			a.adapterCount++
+			a.adapterNames = append(a.adapterNames, adapterDisplayName(adapters[i]))
 			for _, lim := range adapters[i].Limits {
 				if !seen[lim] {
 					seen[lim] = true
@@ -86,6 +106,7 @@ func (a *Agent) snapshot() Status {
 	s.Adapters = a.adapterCount
 	s.AdaptersUnsupported = a.adapterUnsupported
 	s.AdapterLimits = a.adapterLimits
+	s.AdapterNames = a.adapterNames
 	return s
 }
 
