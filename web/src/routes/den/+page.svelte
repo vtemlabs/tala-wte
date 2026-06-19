@@ -134,6 +134,32 @@
     adding = false;
   }
 
+  // Auto-discovery: find other Tala WTE instances on the LAN over mDNS so members
+  // can be registered without knowing their address up front (handy for fresh
+  // installs and hosts whose DHCP lease changes).
+  let discovered = $state<any[]>([]);
+  let scanning = $state(false);
+
+  async function scanDiscovered() {
+    scanning = true;
+    try {
+      const d = await fetch('/api/wte/den/discovered', { headers: authHeaders() }).then((r) =>
+        r.json()
+      );
+      discovered = d.peers ?? [];
+      if (discovered.length === 0) toast.info('No other Tala WTE instances found on the LAN');
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Discovery failed');
+    }
+    scanning = false;
+  }
+
+  function useDiscovered(p: any) {
+    name = p.name || name;
+    address = p.address || p.host || address;
+    toast.info('Filled the form - paste the member agent key, then Add member');
+  }
+
   async function deploy(m: any) {
     const net = selectedNet[m.id];
     if (!net) {
@@ -339,6 +365,42 @@
       <button class="btn btn-primary" onclick={addMember} disabled={adding}>
         {adding ? 'Adding...' : 'Add member'}
       </button>
+    </div>
+  </div>
+
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Discovered on LAN</span>
+      <button class="btn" onclick={scanDiscovered} disabled={scanning}>
+        {scanning ? 'Scanning...' : 'Scan'}
+      </button>
+    </div>
+    <div class="panel-body stack">
+      {#if discovered.length === 0}
+        <p class="field-desc">
+          Scan to find other Tala WTE instances advertising on this network - handy for fresh
+          installs or members whose DHCP address changes. Pick one to fill the Add Member form,
+          then paste its agent key.
+        </p>
+      {:else}
+        <div class="member-list">
+          {#each discovered as p}
+            <div class="member">
+              <div class="member-top">
+                <div class="member-id">
+                  <span class="member-name">{p.name}</span>
+                  <span class="mono dim">{p.address || p.host}</span>
+                </div>
+                <button class="action-btn" onclick={() => useDiscovered(p)}>Use</button>
+              </div>
+              <div class="member-meta">
+                {p.role || 'unknown'}{#if p.version}
+                  · v{p.version}{/if}
+              </div>
+            </div>
+          {/each}
+        </div>
+      {/if}
     </div>
   </div>
 </div>

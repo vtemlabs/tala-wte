@@ -209,6 +209,7 @@ func main() {
 		se.Router.POST("/api/wte/den/{id}/stop", wrapAuth(denStopHandler(app)))
 		se.Router.GET("/api/wte/den/{id}/status", wrapAuth(denStatusHandler(app)))
 		se.Router.POST("/api/wte/den/update", wrapAuth(denUpdateHandler(app)))
+		se.Router.GET("/api/wte/den/discovered", wrapAuth(denDiscoveredHandler(app)))
 
 		se.Router.GET("/api/wte/enterprise/preflight", wrapAuth(sim.PreflightHandler()))
 		se.Router.POST("/api/wte/enterprise/provision", wrapAuth(sim.ProvisionHandler()))
@@ -263,6 +264,10 @@ func main() {
 		// Restore running state after a reboot/crash: auto-start the networks that
 		// were running (AP) or auto-reconnect to the last network (client).
 		go bootAutoStart(app)
+
+		// Advertise this instance on the LAN over mDNS so a den leader can
+		// discover it without knowing its address.
+		go startMDNSAdvertiser()
 
 		return se.Next()
 	})

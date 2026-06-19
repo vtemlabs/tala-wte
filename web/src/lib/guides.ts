@@ -928,6 +928,10 @@ On the leader's **Den** page, use **Add member**:
 
 Once added, the member appears in the **Members** list with a live **Reachable / unreachable** dot and its current state (idle, or connected to a network with its IP and request count). **Del** removes a member from the den.
 
+## Discovering members
+
+You do not have to know a member's address. Use **Discovered on LAN -> Scan**: the leader browses the network over mDNS for other Tala WTE instances - members and other leaders - including fresh installs and hosts whose DHCP address has changed. Each result shows its name, address, and role. Click **Use** to fill the Add Member form with that name and address, then paste the member's agent key and **Add member**.
+
 ## Deploying
 
 ![Deploy to a member](/guide/den-members.png)
