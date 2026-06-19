@@ -33,9 +33,12 @@
       return {};
     }
   }
+  // Control fields are shown as badges (result, source) or columns, not as raw
+  // key/value rows, so the cards read like real harvested data, not the database.
+  const CONTROL_FIELDS = new Set(['pack_member', 'auth_result', 'auth_user', 'accept', 'redirect']);
   function fields(rec: Record<string, any>): [string, string][] {
     return Object.entries(dataOf(rec))
-      .filter(([k]) => norm(k) !== 'pack_member')
+      .filter(([k]) => !k.startsWith('_') && !CONTROL_FIELDS.has(norm(k)))
       .map(([k, v]) => [k, String(v)]);
   }
 
@@ -254,6 +257,11 @@
           <header class="cap-head">
             <span class="badge badge-info net-badge" title={netName(rec)}>{netName(rec)}</span>
             {#if packMember(rec)}<span class="badge badge-neutral" title="Pack member: {packMember(rec)}">pack member</span>{/if}
+            {#if authResult(rec)}<span
+                class="badge {authResult(rec).toLowerCase() === 'success'
+                  ? 'badge-success'
+                  : 'badge-error'}">{authResult(rec)}</span
+              >{/if}
             <time class="cap-time">{fmtTime(rec.created)}</time>
             <button class="action-btn cap-del" onclick={() => del(rec.id)}>Del</button>
           </header>
