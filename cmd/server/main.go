@@ -260,6 +260,10 @@ func main() {
 
 		se.Router.POST("/api/wte/radius/config", wrapAuth(radiusConfigHandler(app)))
 
+		// Restore running state after a reboot/crash: auto-start the networks that
+		// were running (AP) or auto-reconnect to the last network (client).
+		go bootAutoStart(app)
+
 		return se.Next()
 	})
 
@@ -296,13 +300,14 @@ func main() {
 		log.Println("[shutdown] Shutting down HTTPS/HTTP proxy servers...")
 		shutdownProxies()
 		log.Println("[shutdown] Stopping all running network sessions...")
-		sim.StopAll(app)
+		sim.StopAll()
 		log.Println("[shutdown] Running nuclear teardown to clean all orphaned resources...")
 		sim.NuclearTeardown("shutdown")
 		log.Println("[shutdown] Stopping embedded OpenLDAP...")
 		ldap.Stop()
-		log.Println("[shutdown] Resetting all network statuses to stopped...")
-		resetNetworkStatuses(app)
+		// NOTE: do NOT reset network statuses here. Leaving the live "running" status
+		// on disk lets the boot-time resetNetworkStatuses capture what was running and
+		// hand it to bootAutoStart; the boot-time call still clears stale statuses.
 		log.Println("[shutdown] Graceful shutdown complete")
 		return e.Next()
 	})

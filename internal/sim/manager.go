@@ -800,7 +800,7 @@ func monitorSession(app *pocketbase.PocketBase, id string) {
 }
 
 // StopAll stops all running sessions. Called during graceful shutdown.
-func StopAll(app *pocketbase.PocketBase) {
+func StopAll() {
 	mu.Lock()
 	defer mu.Unlock()
 
@@ -829,13 +829,9 @@ func StopAll(app *pocketbase.PocketBase) {
 			}
 		}
 		delete(running, id)
-
-		record, err := app.FindRecordById("networks", id)
-		if err == nil {
-			record.Set("status", "stopped")
-			if saveErr := app.Save(record); saveErr != nil {
-				log.Printf("[sim][shutdown] failed to persist stopped status for %s: %v", id, saveErr)
-			}
-		}
+		// Deliberately do NOT reset status to "stopped" here. StopAll runs on graceful
+		// shutdown; leaving status="running" lets bootAutoStart restore the network on
+		// the next boot (matching a crash, where status persists too). A deliberate
+		// per-network stop goes through StopHandler, which sets "stopped".
 	}
 }

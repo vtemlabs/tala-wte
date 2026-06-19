@@ -20,6 +20,8 @@ import (
 	"strings"
 	"sync"
 	"time"
+
+	"github.com/vtemlabs/tala-wte/internal/iface"
 )
 
 // Agent owns the single client-mode session: the Wi-Fi connection, portal
@@ -37,6 +39,12 @@ type Agent struct {
 	logLines    []string           // ring buffer of timestamped activity for the client log window
 	wpaProc     *exec.Cmd
 	iface       string
+
+	// Cached wireless-adapter health. DiscoverAdapters scans iw/sysfs and is too
+	// slow to run on every status poll, so snapshot refreshes it on a TTL.
+	adapterCount       int
+	adapterUnsupported int
+	adapterAt          time.Time
 }
 
 var agent = &Agent{status: Status{Mode: "client", PortalState: "none"}}
@@ -52,6 +60,21 @@ func (a *Agent) snapshot() Status {
 	s.Cycling = a.cycling
 	s.Cycles = a.cycles
 	s.Arch = runtime.GOARCH
+	// Refresh cached adapter health on a TTL (DiscoverAdapters scans iw/sysfs and
+	// is too slow to run on every poll).
+	if time.Since(a.adapterAt) > 15*time.Second {
+		adapters := iface.DiscoverAdapters()
+		a.adapterCount = 0
+		for i := range adapters {
+			if !iface.IsVirtualDriver(adapters[i].Driver) {
+				a.adapterCount++
+			}
+		}
+		a.adapterUnsupported = len(iface.UnsupportedAdapters())
+		a.adapterAt = time.Now()
+	}
+	s.Adapters = a.adapterCount
+	s.AdaptersUnsupported = a.adapterUnsupported
 	return s
 }
 

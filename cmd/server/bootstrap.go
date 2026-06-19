@@ -502,6 +502,11 @@ func resetNetworkStatuses(app *pocketbase.PocketBase) {
 	records, err := app.FindRecordsByFilter("networks", "status != 'stopped'", "", 0, 0)
 	if err == nil {
 		for _, r := range records {
+			// A network that was "running" before this boot should be auto-restarted
+			// once the system settles; record it before we reset the live status.
+			if r.GetString("status") == "running" {
+				pendingAutostart = append(pendingAutostart, r.Id)
+			}
 			r.Set("status", "stopped")
 			if err := app.Save(r); err != nil {
 				log.Printf("[bootstrap] failed to reset network status for %s: %v", r.Id, err)

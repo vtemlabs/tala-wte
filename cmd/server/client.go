@@ -43,6 +43,31 @@ func clientMode() bool {
 	return strings.EqualFold(os.Getenv("TALA_MODE"), "client")
 }
 
+// clientAutoconnectFile persists the last client connection so the agent
+// reconnects to it on its own after a reboot or crash, without the den leader
+// re-driving it. Cleared on a deliberate disconnect.
+var clientAutoconnectFile = installDataDir + "/client-autoconnect.json"
+
+func saveAutoconnect(cfg client.Config) {
+	if b, err := json.Marshal(cfg); err == nil {
+		_ = os.WriteFile(clientAutoconnectFile, b, 0o600)
+	}
+}
+
+func clearAutoconnect() { _ = os.Remove(clientAutoconnectFile) }
+
+func loadAutoconnect() (client.Config, bool) {
+	var cfg client.Config
+	b, err := os.ReadFile(clientAutoconnectFile)
+	if err != nil {
+		return cfg, false
+	}
+	if err := json.Unmarshal(b, &cfg); err != nil || cfg.SSID == "" {
+		return cfg, false
+	}
+	return cfg, true
+}
+
 // systemModeSwapHandler flips the instance between AP (server) and client roles:
 // it persists the target role, then (in the background) installs that role's
 // dependencies and restarts the service so it comes back up in the new mode. The
@@ -131,6 +156,7 @@ func clientConnectHandler() func(http.ResponseWriter, *http.Request) {
 		}
 		client.Get().SetReconnect(false, 0, 0) // a new connection clears any prior cycle
 		go func() { _ = client.Get().Connect(cfg) }()
+		saveAutoconnect(cfg) // remember it so the client auto-reconnects after a reboot/crash
 		api.WriteJSON(w, map[string]any{"status": "connecting", "ssid": cfg.SSID})
 	}
 }
@@ -164,6 +190,7 @@ func clientDisconnectHandler() func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		client.Get().SetReconnect(false, 0, 0)
 		client.Get().Stop()
+		clearAutoconnect() // a deliberate disconnect should not auto-reconnect on next boot
 		api.WriteJSON(w, client.Get().Status())
 	}
 }
