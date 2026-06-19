@@ -269,6 +269,12 @@
               {:else}
                 Reachable · idle
               {/if}
+              {#if st?.reachable && !st.status?.connected && st.status?.last_error}
+                <div class="warn">error: {st.status.last_error}</div>
+              {/if}
+              {#if st?.reachable && st.status?.adapter_limits?.length}
+                <div class="warn">card limits: {st.status.adapter_limits.join(', ')}</div>
+              {/if}
             </div>
             <div class="member-actions">
               <select class="input" bind:value={selectedNet[m.id]}>

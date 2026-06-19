@@ -44,6 +44,7 @@ type Agent struct {
 	// slow to run on every status poll, so snapshot refreshes it on a TTL.
 	adapterCount       int
 	adapterUnsupported int
+	adapterLimits      []string
 	adapterAt          time.Time
 }
 
@@ -65,9 +66,18 @@ func (a *Agent) snapshot() Status {
 	if time.Since(a.adapterAt) > 15*time.Second {
 		adapters := iface.DiscoverAdapters()
 		a.adapterCount = 0
+		a.adapterLimits = nil
+		seen := map[string]bool{}
 		for i := range adapters {
-			if !iface.IsVirtualDriver(adapters[i].Driver) {
-				a.adapterCount++
+			if iface.IsVirtualDriver(adapters[i].Driver) {
+				continue
+			}
+			a.adapterCount++
+			for _, lim := range adapters[i].Limits {
+				if !seen[lim] {
+					seen[lim] = true
+					a.adapterLimits = append(a.adapterLimits, lim)
+				}
 			}
 		}
 		a.adapterUnsupported = len(iface.UnsupportedAdapters())
@@ -75,6 +85,7 @@ func (a *Agent) snapshot() Status {
 	}
 	s.Adapters = a.adapterCount
 	s.AdaptersUnsupported = a.adapterUnsupported
+	s.AdapterLimits = a.adapterLimits
 	return s
 }
 

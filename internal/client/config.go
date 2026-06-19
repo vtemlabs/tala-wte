@@ -84,8 +84,9 @@ type Status struct {
 	Arch        string `json:"arch"`    // host CPU arch (amd64/arm64) for leader-pushed updates
 	// Wireless-adapter health. A client with no usable adapter cannot generate
 	// wireless traffic, so it is not "ready" regardless of being reachable.
-	Adapters            int    `json:"adapters"`             // usable (driver-supported, non-virtual) wireless adapters
-	AdaptersUnsupported int    `json:"adapters_unsupported"` // adapters present but without a working driver
-	LastError           string `json:"last_error,omitempty"`
-	LastEvent           string `json:"last_event,omitempty"`
+	Adapters            int      `json:"adapters"`                 // usable (driver-supported, non-virtual) wireless adapters
+	AdaptersUnsupported int      `json:"adapters_unsupported"`     // adapters present but without a working driver
+	AdapterLimits       []string `json:"adapter_limits,omitempty"` // capability limits of the member's adapters, shown on the leader
+	LastError           string   `json:"last_error,omitempty"`
+	LastEvent           string   `json:"last_event,omitempty"`
 }
