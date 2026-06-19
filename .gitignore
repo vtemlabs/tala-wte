@@ -95,3 +95,6 @@ credentials.txt
 
 # Vendored e-terminal (pulled fresh at build time by `make eterminal`)
 internal/eterminal/assets/e-terminal/
+
+# Internal kernel/driver fix bundle - private repo only, never public
+kernel/

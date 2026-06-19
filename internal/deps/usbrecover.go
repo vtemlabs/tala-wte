@@ -95,6 +95,17 @@ const usbWifiRecoverScript = `#!/bin/bash
 # ones (and the virtual mac80211_hwsim radios, which are not USB) are skipped.
 set -u
 
+# mt76 NPU-teardown hard-lock guard (Linux 7.0+). A USB unbind of an NPU-coupled
+# mt76 adapter drives mt76_free_device -> mt76_npu_deinit, which oopses and can
+# hard-lock the host. Skip the heal on an affected, unpatched kernel rather than
+# risk the lock. Clears automatically once mt76 is rebuilt without the NPU
+# (CONFIG_MT76_NPU=n drops the airoha_npu dependency); after applying the source
+# patch with the NPU still on, mark the box safe with the marker file below.
+if modinfo -F depends mt76 2>/dev/null | tr ',' '\n' | grep -qx airoha_npu && [ ! -e /var/lib/tala-wte/mt76-npu-safe ]; then
+    echo "tala-wte-wifi-recover: mt76 is NPU-coupled on this kernel (Linux 7.0 teardown bug); skipping USB unbind/bind to avoid a kernel hard-lock. Apply the mt76 NPU fix and 'touch /var/lib/tala-wte/mt76-npu-safe' to re-enable." >&2
+    exit 0
+fi
+
 # USB Wi-Fi capture drivers Tala WTE supports. A USB interface bound to one of
 # these but with no ieee80211 phy under it is a firmware-init wedge.
 WIFI_DRIVERS=" mt7921u mt76x2u mt76_usb rt2800usb rtl88xxau rtl8812au rtl8814au 8188eus "
