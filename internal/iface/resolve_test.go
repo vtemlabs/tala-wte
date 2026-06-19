@@ -68,6 +68,42 @@ func TestResolveInterfaceFallsBackToVirtualWhenNoReal(t *testing.T) {
 	}
 }
 
+// TestResolveInterfaceFreeMultiNetwork covers running several networks at once:
+// each picks a free real adapter, a request for a busy adapter substitutes a free
+// one, and when every adapter is in use the resolver errors cleanly (no crash).
+func TestResolveInterfaceFreeMultiNetwork(t *testing.T) {
+	adapters := []Adapter{
+		{Interface: "wlan0", Driver: "rt2800usb"},
+		{Interface: "wlan1", Driver: "mt76x2u"},
+	}
+
+	// First network claims its requested free adapter.
+	got, sub, _, err := ResolveInterfaceFree(adapters, "wlan0", map[string]bool{})
+	if err != nil || got != "wlan0" || sub {
+		t.Errorf("free request: got %q sub=%v err=%v, want wlan0/false/nil", got, sub, err)
+	}
+
+	// Second network requests the busy adapter -> auto-substitutes the free one.
+	got, sub, reason, err := ResolveInterfaceFree(adapters, "wlan0", map[string]bool{"wlan0": true})
+	if err != nil || got != "wlan1" || !sub {
+		t.Errorf("busy->free: got %q sub=%v err=%v, want wlan1/true/nil", got, sub, err)
+	}
+	if reason == "" {
+		t.Error("expected a reason when substituting to a free adapter")
+	}
+
+	// Every adapter in use -> clear error, not a crash (the live gotcha result).
+	if _, _, _, err = ResolveInterfaceFree(adapters, "wlan0", map[string]bool{"wlan0": true, "wlan1": true}); err == nil {
+		t.Error("expected an error when every adapter is in use")
+	}
+
+	// Requested adapter free while another is busy -> use the requested one.
+	got, sub, _, err = ResolveInterfaceFree(adapters, "wlan1", map[string]bool{"wlan0": true})
+	if err != nil || got != "wlan1" || sub {
+		t.Errorf("other-busy: got %q sub=%v err=%v, want wlan1/false/nil", got, sub, err)
+	}
+}
+
 func TestIsVirtualDriver(t *testing.T) {
 	for _, d := range []string{"mac80211_hwsim", "virt_wifi"} {
 		if !IsVirtualDriver(d) {
