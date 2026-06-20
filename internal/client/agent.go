@@ -763,14 +763,25 @@ func localSweepTarget(gw string) string {
 	return fmt.Sprintf("%s.%s.%s.%d", parts[0], parts[1], parts[2], 2+rand.Intn(250))
 }
 
+// internetReachable reports whether the client has real internet past a captive
+// portal. It probes over HTTP, not HTTPS: a captive portal can only intercept
+// HTTP, so a clean HTTP 204 is the signal that the portal has actually let us
+// through. An HTTPS probe is the wrong test - a portal cannot redirect it, so it
+// simply times out (and many APs forward only HTTP pre-auth), which reports a
+// false "failed" even when the client has working HTTP internet.
 func internetReachable() bool {
-	c := &http.Client{Timeout: 6 * time.Second}
-	resp, err := c.Get("https://1.1.1.1/")
+	c := &http.Client{
+		Timeout: 6 * time.Second,
+		CheckRedirect: func(*http.Request, []*http.Request) error {
+			return http.ErrUseLastResponse // a redirect means a portal still holds us
+		},
+	}
+	resp, err := c.Get("http://connectivitycheck.gstatic.com/generate_204")
 	if err != nil {
 		return false
 	}
 	resp.Body.Close()
-	return true
+	return resp.StatusCode == http.StatusNoContent
 }
 
 func findWirelessInterface() (string, error) {
