@@ -58,9 +58,6 @@ func ProvisionHandler() func(http.ResponseWriter, *http.Request) {
 // named differently (Parallels = enp0s5), so when the default route is momentarily
 // absent (e.g. DHCP renewing at boot) we discover a real interface instead.
 func resolveUplinkIface() string {
-	if env := os.Getenv("TALA_UPLINK_IFACE"); env != "" {
-		return env
-	}
 	// Pin this lookup to the host network namespace. A worker thread may have been
 	// left in a per-network netns by an earlier operation; reading the routing
 	// table there returns nothing and we would fall through to the eth0 default.
@@ -68,12 +65,21 @@ func resolveUplinkIface() string {
 	defer runtime.UnlockOSThread()
 	if host, err := vnetns.GetFromPid(1); err == nil {
 		defer host.Close()
-		if cur, err := vnetns.Get(); err == nil {
+		if cur, e := vnetns.Get(); e == nil {
 			defer cur.Close()
 			if vnetns.Set(host) == nil {
 				defer vnetns.Set(cur)
 			}
 		}
+	}
+	// An explicit override wins, but only if that interface actually exists here.
+	// A stale setting or a snapshot/hardware change (e.g. a saved "eth0" on an
+	// enp0s5 box) must not silently point NAT at a nonexistent interface.
+	if env := os.Getenv("TALA_UPLINK_IFACE"); env != "" {
+		if ifaceExists(env) {
+			return env
+		}
+		log.Printf("[sim] configured uplink %q does not exist; auto-detecting", env)
 	}
 	if dev := defaultRouteIface(); dev != "" {
 		return dev
@@ -83,6 +89,12 @@ func resolveUplinkIface() string {
 		return dev
 	}
 	return "eth0"
+}
+
+// ifaceExists reports whether a network interface with the given name is present.
+func ifaceExists(name string) bool {
+	_, err := net.InterfaceByName(name)
+	return err == nil
 }
 
 // defaultRouteIface returns the interface of the IPv4 default route, or "".
