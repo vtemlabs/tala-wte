@@ -203,16 +203,6 @@
     }
   }
 
-  async function deleteGroup(cn: string) {
-    if (!confirm(`Delete group "${cn}"?`)) return;
-    try {
-      await ldap.deleteGroup(cn);
-      groups = groups.filter((g) => g.cn !== cn);
-    } catch (e: any) {
-      toast.err(e?.message ?? 'Delete failed');
-    }
-  }
-
   let testUID = $state('');
   let testPass = $state('');
   let testResult = $state<TestAuthResult | null>(null);
@@ -240,13 +230,7 @@
     if (!newUID || !newCN || !newPass) return;
     addingUser = true;
     try {
-      await ldap.createUser({
-        uid: newUID,
-        cn: newCN,
-        sn: newSN,
-        mail: newMail,
-        password: newPass
-      });
+      await ldap.createUser({ uid: newUID, cn: newCN, sn: newSN, mail: newMail, password: newPass });
       newUID = newCN = newSN = newMail = newPass = '';
       await loadAll();
     } catch (e: any) {
@@ -276,6 +260,16 @@
       error = e?.message ?? 'Failed to create group';
     }
     addingGroup = false;
+  }
+
+  async function deleteGroup(cn: string) {
+    if (!confirm(`Delete group "${cn}"?`)) return;
+    try {
+      await ldap.deleteGroup(cn);
+      groups = groups.filter((g) => g.cn !== cn);
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Delete failed');
+    }
   }
 
   async function testAuth() {
@@ -322,14 +316,10 @@
           <span class="k">Base DN</span><span class="v mono dn-v">{ldapStatus.base_dn}</span>
         </div>
         <div class="stat-cell">
-          <span class="k">Bind DN</span><span class="v mono dn-v"
-            >cn=admin,{ldapStatus.base_dn}</span
-          >
+          <span class="k">Bind DN</span><span class="v mono dn-v">cn=admin,{ldapStatus.base_dn}</span>
         </div>
         <div class="stat-cell"><span class="k">Port</span><span class="v mono">3389</span></div>
-        <div class="stat-cell">
-          <span class="k">Users</span><span class="v">{users.length}</span>
-        </div>
+        <div class="stat-cell"><span class="k">Users</span><span class="v">{users.length}</span></div>
       </div>
     </div>
   {/if}
@@ -344,10 +334,8 @@
         <button class="btn btn-primary" onclick={provisionRandom} disabled={provisioning}>
           {provisioning ? 'Provisioning...' : 'Generate Random Company'}
         </button>
-        <button
-          class="btn"
-          class:active={showProvision}
-          onclick={() => (showProvision = !showProvision)}>Custom</button
+        <button class="btn" class:active={showProvision} onclick={() => (showProvision = !showProvision)}
+          >Custom</button
         >
       </div>
     </div>
@@ -361,47 +349,25 @@
           <div class="prov-grid">
             <div class="field">
               <label class="field-label" for="pCompany">Company Name</label>
-              <input
-                class="input"
-                id="pCompany"
-                bind:value={customCompany}
-                placeholder="e.g. Contoso Ltd"
-              />
+              <input class="input" id="pCompany" bind:value={customCompany} placeholder="e.g. Contoso Ltd" />
             </div>
             <div class="field">
               <label class="field-label" for="pDomain">Email Domain</label>
-              <input
-                class="input"
-                id="pDomain"
-                bind:value={customDomain}
-                placeholder="e.g. contoso.local"
-              />
+              <input class="input" id="pDomain" bind:value={customDomain} placeholder="e.g. contoso.local" />
             </div>
             <div class="field">
               <label class="field-label" for="pCount">Users</label>
-              <input
-                class="input"
-                id="pCount"
-                type="number"
-                bind:value={customCount}
-                min="1"
-                max="50"
-                style="width:80px"
-              />
+              <input class="input" id="pCount" type="number" bind:value={customCount} min="1" max="50" style="width:80px" />
             </div>
             <button
               class="btn btn-primary"
               onclick={provisionCustom}
-              disabled={provisioning || !customCompany.trim() || !customDomain.trim()}
+              disabled={provisioning || !customCompany.trim() || !customDomain.trim()}>Provision</button
             >
-              Provision
-            </button>
           </div>
           <div class="toggle-field" style="margin-top:var(--space-md)">
             <div>
-              <div style="font-size:var(--font-size-sm);font-weight:500">
-                All Strong Random Passwords
-              </div>
+              <div style="font-size:var(--font-size-sm);font-weight:500">All Strong Random Passwords</div>
               <div class="field-desc">
                 On: every user gets a unique 12-char random password. Off (recommended): realistic
                 corporate mix - ~40% weak (Password1!, Welcome123, etc), ~30% semi-personal
@@ -446,164 +412,107 @@
       <button class="tab" class:active={tab === 'groups'} onclick={() => (tab = 'groups')}>
         Groups <span class="count-pill">{groups.length}</span>
       </button>
-      <button class="tab" class:active={tab === 'test'} onclick={() => (tab = 'test')}
-        >Test Auth</button
-      >
+      <button class="tab" class:active={tab === 'test'} onclick={() => (tab = 'test')}>Test Auth</button>
     </div>
 
     {#if tab === 'users'}
       <div class="panel-body">
-        <div class="create-bar">
-          <div class="user-form">
-            <div class="field">
-              <label class="field-label" for="newUID">UID *</label>
-              <input class="input" id="newUID" bind:value={newUID} placeholder="jdoe" />
-            </div>
-            <div class="field">
-              <label class="field-label" for="newCN">CN (Full Name) *</label>
-              <input class="input" id="newCN" bind:value={newCN} placeholder="John Doe" />
-            </div>
-            <div class="field">
-              <label class="field-label" for="newSN">SN (Last Name)</label>
-              <input class="input" id="newSN" bind:value={newSN} placeholder="Doe" />
-            </div>
-            <div class="field">
-              <label class="field-label" for="newMail">Email</label>
-              <input
-                class="input"
-                id="newMail"
-                type="email"
-                bind:value={newMail}
-                placeholder="jdoe@tala.wte"
-              />
-            </div>
-            <div class="field">
-              <label class="field-label" for="newPass">Password *</label>
-              <input
-                class="input"
-                id="newPass"
-                type="password"
-                bind:value={newPass}
-                placeholder="••••••••"
-              />
-            </div>
-            <button
-              class="btn btn-primary"
-              onclick={createUser}
-              disabled={addingUser || !newUID || !newCN || !newPass}
-            >
-              {addingUser ? '…' : 'Add User'}
-            </button>
-          </div>
+        <div class="add-row">
+          <input class="input" placeholder="UID *" aria-label="UID" bind:value={newUID} />
+          <input class="input" placeholder="Full name *" aria-label="Full name" bind:value={newCN} />
+          <input class="input" placeholder="Last name" aria-label="Last name" bind:value={newSN} />
+          <input class="input" type="email" placeholder="Email" aria-label="Email" bind:value={newMail} />
+          <input class="input" type="password" placeholder="Password *" aria-label="Password" bind:value={newPass} />
+          <button
+            class="btn btn-primary"
+            onclick={createUser}
+            disabled={addingUser || !newUID || !newCN || !newPass}>{addingUser ? '…' : 'Add User'}</button
+          >
         </div>
-      </div>
 
-      {#if loading}
-        <div class="empty-state"><p>Loading users…</p></div>
-      {:else if users.length === 0}
-        <div class="empty-state"><p>No users in directory</p></div>
-      {:else}
-        <div class="list-controls">
-          <input
-            class="input filter-field"
-            bind:value={userFilter}
-            placeholder="Filter by name, uid, title, department…"
-          />
-          <span class="count-pill">{shownUsers.length} / {users.length}</span>
-        </div>
-        <div class="table-wrap">
-          <table class="table">
-            <thead>
-              <tr>
-                <th class="sortable" onclick={() => sortUsersBy('uid')}>
-                  UID{#if userSort === 'uid'}<span class="sort-arrow"
-                      >{userSortDir === 'asc' ? '▲' : '▼'}</span
-                    >{/if}
-                </th>
-                <th class="sortable" onclick={() => sortUsersBy('cn')}>
-                  Name{#if userSort === 'cn'}<span class="sort-arrow"
-                      >{userSortDir === 'asc' ? '▲' : '▼'}</span
-                    >{/if}
-                </th>
-                <th class="sortable" onclick={() => sortUsersBy('title')}>
-                  Title{#if userSort === 'title'}<span class="sort-arrow"
-                      >{userSortDir === 'asc' ? '▲' : '▼'}</span
-                    >{/if}
-                </th>
-                <th class="sortable" onclick={() => sortUsersBy('department')}>
-                  Department{#if userSort === 'department'}<span class="sort-arrow"
-                      >{userSortDir === 'asc' ? '▲' : '▼'}</span
-                    >{/if}
-                </th>
-                <th>Email</th><th>Password</th><th class="actions-col"></th>
-              </tr>
-            </thead>
-            <tbody>
-              {#each shownUsers as u}
-                {@const pw = passwordCell(u.password, u.uid)}
+        {#if loading}
+          <div class="empty-state"><p>Loading users…</p></div>
+        {:else if users.length === 0}
+          <div class="empty-state"><p>No users in directory</p></div>
+        {:else}
+          <div class="toolbar">
+            <input
+              class="input filter-field"
+              bind:value={userFilter}
+              placeholder="Filter by name, uid, title, department…"
+            />
+            <span class="count-pill">{shownUsers.length} / {users.length}</span>
+          </div>
+          <div class="table-wrap">
+            <table class="table">
+              <thead>
                 <tr>
-                  <td data-label="UID" class="mono">{u.uid}</td>
-                  <td data-label="Name">{u.cn}</td>
-                  <td data-label="Title" class="dim">{u.title || '-'}</td>
-                  <td data-label="Department" class="dim">{u.department || '-'}</td>
-                  <td data-label="Email" class="dim">{u.mail || '-'}</td>
-                  <td data-label="Password">
-                    <span class="mono pw-cell"
-                      >{revealedPasswords[u.uid] ? pw.revealed : pw.hidden}</span
-                    >
-                    {#if pw.copyable}
-                      <button
-                        class="action-btn pw-action"
-                        onclick={() => togglePassword(u.uid)}
-                        title={revealedPasswords[u.uid] ? 'Hide' : 'Show'}
-                      >
-                        {revealedPasswords[u.uid] ? 'Hide' : 'Show'}
-                      </button>
-                      <button
-                        class="action-btn pw-action"
-                        onclick={() => copyPassword(pw.revealed)}
-                        title="Copy to clipboard"
-                      >
-                        Copy
-                      </button>
-                    {/if}
-                  </td>
-                  <td data-label="" class="actions-col">
-                    <button class="action-btn del-btn" onclick={() => deleteUser(u.uid)}>Del</button>
-                  </td>
+                  <th class="sortable" onclick={() => sortUsersBy('uid')}>
+                    UID{#if userSort === 'uid'}<span class="sort-arrow">{userSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                  </th>
+                  <th class="sortable" onclick={() => sortUsersBy('cn')}>
+                    Name{#if userSort === 'cn'}<span class="sort-arrow">{userSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                  </th>
+                  <th class="sortable" onclick={() => sortUsersBy('title')}>
+                    Title{#if userSort === 'title'}<span class="sort-arrow">{userSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                  </th>
+                  <th class="sortable" onclick={() => sortUsersBy('department')}>
+                    Department{#if userSort === 'department'}<span class="sort-arrow">{userSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                  </th>
+                  <th>Email</th>
+                  <th>Password</th>
+                  <th class="actions-col"></th>
                 </tr>
-              {/each}
-            </tbody>
-          </table>
-        </div>
-      {/if}
+              </thead>
+              <tbody>
+                {#each shownUsers as u}
+                  {@const pw = passwordCell(u.password, u.uid)}
+                  <tr>
+                    <td data-label="UID" class="mono">{u.uid}</td>
+                    <td data-label="Name">{u.cn}</td>
+                    <td data-label="Title" class="dim">{u.title || '-'}</td>
+                    <td data-label="Department" class="dim">{u.department || '-'}</td>
+                    <td data-label="Email" class="dim">{u.mail || '-'}</td>
+                    <td data-label="Password">
+                      <span class="mono pw-cell">{revealedPasswords[u.uid] ? pw.revealed : pw.hidden}</span>
+                      {#if pw.copyable}
+                        <button
+                          class="action-btn pw-action"
+                          onclick={() => togglePassword(u.uid)}
+                          title={revealedPasswords[u.uid] ? 'Hide' : 'Show'}
+                          >{revealedPasswords[u.uid] ? 'Hide' : 'Show'}</button
+                        >
+                        <button class="action-btn pw-action" onclick={() => copyPassword(pw.revealed)} title="Copy to clipboard">Copy</button>
+                      {/if}
+                    </td>
+                    <td data-label="" class="actions-col">
+                      <button class="action-btn del-btn" onclick={() => deleteUser(u.uid)}>Del</button>
+                    </td>
+                  </tr>
+                {/each}
+              </tbody>
+            </table>
+          </div>
+        {/if}
+      </div>
     {:else if tab === 'groups'}
       <div class="panel-body">
-        <div class="create-bar">
-          <div class="group-form">
-            <div class="field">
-              <label class="field-label" for="newGroupCN">Group CN</label>
-              <input
-                class="input"
-                id="newGroupCN"
-                bind:value={newGroupCN}
-                placeholder="e.g. wifi-users"
-              />
-            </div>
-            <button
-              class="btn btn-primary"
-              onclick={createGroup}
-              disabled={addingGroup || !newGroupCN}
-            >
-              {addingGroup ? '…' : 'Create Group'}
-            </button>
-          </div>
+        <div class="add-row">
+          <input
+            class="input"
+            placeholder="New group CN (e.g. wifi-users)"
+            aria-label="Group CN"
+            bind:value={newGroupCN}
+          />
+          <button class="btn btn-primary" onclick={createGroup} disabled={addingGroup || !newGroupCN}
+            >{addingGroup ? '…' : 'Create Group'}</button
+          >
         </div>
 
         {#if groups.length === 0}
           <div class="empty-state"><p>No groups in directory</p></div>
         {:else}
-          <div class="list-controls">
+          <div class="toolbar">
             <input
               class="input filter-field"
               bind:value={groupFilter}
@@ -616,14 +525,10 @@
               <thead>
                 <tr>
                   <th class="sortable" onclick={() => sortGroupsBy('name')}>
-                    Group{#if groupSort === 'name'}<span class="sort-arrow"
-                        >{groupSortDir === 'asc' ? '▲' : '▼'}</span
-                      >{/if}
+                    Group{#if groupSort === 'name'}<span class="sort-arrow">{groupSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
                   </th>
                   <th class="sortable num-col" onclick={() => sortGroupsBy('members')}>
-                    Members{#if groupSort === 'members'}<span class="sort-arrow"
-                        >{groupSortDir === 'asc' ? '▲' : '▼'}</span
-                      >{/if}
+                    Members{#if groupSort === 'members'}<span class="sort-arrow">{groupSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
                   </th>
                   <th>Membership</th>
                   <th class="actions-col"></th>
@@ -633,18 +538,14 @@
                 {#each shownGroups as g (g.cn)}
                   <tr>
                     <td data-label="Group" class="mono">{g.cn}</td>
-                    <td data-label="Members" class="num-col"
-                      ><span class="count-pill">{g.uids.length}</span></td
-                    >
+                    <td data-label="Members" class="num-col"><span class="count-pill">{g.uids.length}</span></td>
                     <td data-label="Membership">
                       {#if g.uids.length}
                         <span class="mono member-list">{g.uids.join(', ')}</span>
                       {:else}<span class="dim">empty</span>{/if}
                     </td>
                     <td data-label="" class="actions-col">
-                      <button class="action-btn del-btn" onclick={() => deleteGroup(g.cn)}
-                        >Del</button
-                      >
+                      <button class="action-btn del-btn" onclick={() => deleteGroup(g.cn)}>Del</button>
                     </td>
                   </tr>
                 {/each}
@@ -653,7 +554,7 @@
           </div>
         {/if}
       </div>
-    {:else if tab === 'test'}
+    {:else}
       <div class="panel-body">
         <div class="test-form">
           <div class="field" style="margin-bottom:var(--space-md)">
@@ -662,22 +563,14 @@
           </div>
           <div class="field" style="margin-bottom:var(--space-lg)">
             <label class="field-label" for="testPass">Password</label>
-            <input
-              class="input"
-              id="testPass"
-              type="password"
-              bind:value={testPass}
-              placeholder="••••••••"
-            />
+            <input class="input" id="testPass" type="password" bind:value={testPass} placeholder="••••••••" />
           </div>
           <button
             class="btn btn-primary"
             onclick={testAuth}
             disabled={testing || !testUID || !testPass}
-            style="width:100%"
+            style="width:100%">{testing ? 'Testing…' : 'Test Authentication'}</button
           >
-            {testing ? 'Testing…' : 'Test Authentication'}
-          </button>
 
           {#if testResult}
             <div class="test-result" class:ok={testResult.success} class:fail={!testResult.success}>
@@ -685,17 +578,10 @@
                 {testResult.success ? '✓ Authentication Successful' : '✗ Authentication Failed'}
               </div>
               {#if testResult.dn}
-                <div
-                  class="mono dim"
-                  style="font-size:var(--font-size-xs);margin-top:var(--space-xs)"
-                >
-                  {testResult.dn}
-                </div>
+                <div class="mono dim test-detail">{testResult.dn}</div>
               {/if}
               {#if testResult.message && !testResult.success}
-                <div class="dim" style="font-size:var(--font-size-xs);margin-top:var(--space-xs)">
-                  {testResult.message}
-                </div>
+                <div class="dim test-detail">{testResult.message}</div>
               {/if}
             </div>
           {/if}
@@ -743,41 +629,33 @@
   .tab-bar-pad {
     padding: 0 var(--space-xl);
   }
-  /* Override the global boxed .create-bar locally so both tabs share one clean,
-     borderless create row with a separator before the list - the 1-field group
-     form and the 5-field user form then look identical instead of one being a
-     mostly-empty box. */
-  .create-bar {
-    background: transparent;
-    border: none;
-    border-radius: 0;
-    border-bottom: 1px solid var(--border-primary);
-    padding: 0 0 var(--space-lg);
+
+  /* Compact single-line add bar, identical in both tabs. */
+  .add-row {
+    display: flex;
+    gap: var(--space-sm);
+    align-items: center;
     margin-bottom: var(--space-lg);
   }
-  .user-form,
-  .group-form {
-    display: grid;
-    gap: var(--space-md);
-    align-items: end;
+  .add-row .input {
+    flex: 1 1 0;
+    min-width: 0;
   }
-  .user-form {
-    grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+  .add-row .btn {
+    flex: 0 0 auto;
   }
-  .group-form {
-    grid-template-columns: 1fr auto;
-  }
-  .list-controls {
+
+  .toolbar {
     display: flex;
     align-items: center;
     justify-content: space-between;
     gap: var(--space-md);
-    flex-wrap: wrap;
     margin-bottom: var(--space-md);
   }
   .filter-field {
     max-width: 340px;
   }
+
   th.sortable {
     cursor: pointer;
     user-select: none;
@@ -812,6 +690,23 @@
     border-color: transparent;
   }
 
+  .pw-cell {
+    display: inline-block;
+    min-width: 140px;
+    font-size: var(--font-size-xs);
+    color: var(--text-primary);
+    letter-spacing: 0.02em;
+  }
+  .pw-action {
+    margin-left: var(--space-xs);
+    font-size: var(--font-size-2xs);
+    padding: 2px 6px;
+    color: var(--text-dim);
+  }
+  .pw-action:hover {
+    color: var(--text-primary);
+  }
+
   .test-form {
     max-width: 400px;
   }
@@ -838,33 +733,20 @@
   .test-result.fail .test-result-head {
     color: var(--status-error);
   }
-
-  .pw-cell {
-    display: inline-block;
-    min-width: 140px;
+  .test-detail {
     font-size: var(--font-size-xs);
-    color: var(--text-primary);
-    letter-spacing: 0.02em;
-  }
-  .pw-action {
-    margin-left: var(--space-xs);
-    font-size: var(--font-size-2xs);
-    padding: 2px 6px;
-    color: var(--text-dim);
-  }
-  .pw-action:hover {
-    color: var(--text-primary);
+    margin-top: var(--space-xs);
   }
 
   @media (max-width: 820px) {
     .prov-grid {
       grid-template-columns: 1fr 1fr;
     }
-    .user-form {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+    .add-row {
+      flex-wrap: wrap;
     }
-    .user-form > .btn {
-      grid-column: 1 / -1;
+    .add-row .input {
+      flex: 1 1 140px;
     }
   }
 </style>
