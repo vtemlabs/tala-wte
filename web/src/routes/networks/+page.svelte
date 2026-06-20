@@ -26,13 +26,29 @@
 
   const enterpriseProtocols = ['wpa2_enterprise', 'wpa3_enterprise'];
 
-  const filtered = $derived(
-    filter
+  let sortKey = $state('ssid');
+  let sortDir = $state<'asc' | 'desc'>('asc');
+  function sortNetBy(k: string) {
+    if (sortKey === k) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else {
+      sortKey = k;
+      sortDir = 'asc';
+    }
+  }
+  const filtered = $derived.by(() => {
+    const q = filter.toLowerCase();
+    const out = q
       ? list.filter(
-          (n) => n.ssid.toLowerCase().includes(filter.toLowerCase()) || n.protocol.includes(filter)
+          (n) => n.ssid.toLowerCase().includes(q) || (n.protocol || '').toLowerCase().includes(q)
         )
-      : list
-  );
+      : list;
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...out].sort((a, b) =>
+      sortKey === 'channel'
+        ? ((a.channel || 0) - (b.channel || 0)) * dir
+        : String(a[sortKey] || '').localeCompare(String(b[sortKey] || '')) * dir
+    );
+  });
 
   onMount(async () => {
     try {
@@ -174,12 +190,22 @@
       <table class="table net-table">
         <thead>
           <tr>
-            <th>SSID</th>
-            <th>Protocol</th>
-            <th>Band</th>
-            <th>Channel</th>
+            <th class="sortable" onclick={() => sortNetBy('ssid')}>
+              SSID{#if sortKey === 'ssid'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+            </th>
+            <th class="sortable" onclick={() => sortNetBy('protocol')}>
+              Protocol{#if sortKey === 'protocol'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+            </th>
+            <th class="sortable" onclick={() => sortNetBy('band')}>
+              Band{#if sortKey === 'band'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+            </th>
+            <th class="sortable" onclick={() => sortNetBy('channel')}>
+              Channel{#if sortKey === 'channel'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+            </th>
             <th>Interface</th>
-            <th>Status</th>
+            <th class="sortable" onclick={() => sortNetBy('status')}>
+              Status{#if sortKey === 'status'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+            </th>
             <th class="actions-col">Actions</th>
           </tr>
         </thead>

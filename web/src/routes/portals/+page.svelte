@@ -26,15 +26,25 @@
   let search = $state('');
   let source = $state((browser && localStorage.getItem('portals:source')) || 'all');
   let sortBy = $state((browser && localStorage.getItem('portals:sort')) || 'name');
+  let sortDir = $state((browser && localStorage.getItem('portals:dir')) || 'asc');
   let view = $state((browser && localStorage.getItem('portals:view')) || 'card');
   let hoverPortal = $state<Record<string, any> | null>(null);
   $effect(() => {
     if (browser) {
       localStorage.setItem('portals:source', source);
       localStorage.setItem('portals:sort', sortBy);
+      localStorage.setItem('portals:dir', sortDir);
       localStorage.setItem('portals:view', view);
     }
   });
+
+  function sortPortalsBy(key: string) {
+    if (sortBy === key) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else {
+      sortBy = key;
+      sortDir = 'asc';
+    }
+  }
 
   let showUpload = $state(false);
   let uploadName = $state('');
@@ -84,11 +94,12 @@
       if (q && !(`${p.name} ${p.description ?? ''}`.toLowerCase().includes(q))) return false;
       return true;
     });
+    const dir = sortDir === 'asc' ? 1 : -1;
     out = [...out].sort((a, b) => {
       if (sortBy === 'category')
-        return catLabel(a.category || 'custom').localeCompare(catLabel(b.category || 'custom'));
-      if (sortBy === 'type') return (a.type || '').localeCompare(b.type || '');
-      return (a.name || '').localeCompare(b.name || '');
+        return catLabel(a.category || 'custom').localeCompare(catLabel(b.category || 'custom')) * dir;
+      if (sortBy === 'type') return (a.type || '').localeCompare(b.type || '') * dir;
+      return (a.name || '').localeCompare(b.name || '') * dir;
     });
     return out;
   });
@@ -258,11 +269,13 @@
     <button class="chip" class:active={source === 'custom'} onclick={() => (source = 'custom')}
       >Custom ({customCount})</button
     >
-    <select class="input sort-select" bind:value={sortBy} aria-label="Sort by">
-      <option value="name">Sort: Name</option>
-      <option value="category">Sort: Category</option>
-      <option value="type">Sort: Source</option>
-    </select>
+    {#if view === 'card'}
+      <select class="input sort-select" bind:value={sortBy} aria-label="Sort by">
+        <option value="name">Sort: Name</option>
+        <option value="category">Sort: Category</option>
+        <option value="type">Sort: Source</option>
+      </select>
+    {/if}
     <button class="chip" class:active={view === 'card'} onclick={() => (view = 'card')}>Cards</button>
     <button class="chip" class:active={view === 'list'} onclick={() => (view = 'list')}>List</button>
     <span class="count-pill">{filtered.length}</span>
@@ -342,7 +355,18 @@
     <div class="table-wrap">
       <table class="table">
         <thead>
-          <tr><th>Name</th><th>Category</th><th>Source</th><th class="actions-col"></th></tr>
+          <tr>
+            <th class="sortable" onclick={() => sortPortalsBy('name')}>
+              Name{#if sortBy === 'name'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+            </th>
+            <th class="sortable" onclick={() => sortPortalsBy('category')}>
+              Category{#if sortBy === 'category'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+            </th>
+            <th class="sortable" onclick={() => sortPortalsBy('type')}>
+              Source{#if sortBy === 'type'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+            </th>
+            <th class="actions-col"></th>
+          </tr>
         </thead>
         <tbody>
           {#each filtered as portal (portal.id)}

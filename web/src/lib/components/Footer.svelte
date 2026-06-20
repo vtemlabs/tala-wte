@@ -21,10 +21,10 @@
     gap: var(--space-md);
     flex-wrap: wrap;
     padding: var(--space-lg) var(--space-xl);
-    /* margin-top:auto pins it to the bottom; the negative left/right/bottom
-       cancel the .content padding so it sits flush against the bottom edge and
-       spans the full width. */
-    margin: auto calc(-1 * var(--space-2xl)) calc(-1 * var(--space-2xl));
+    /* Top margin gaps it off the page content (.page-area pins it to the bottom);
+       the negative left/right/bottom cancel the .content padding so it spans the
+       full width and sits flush against the bottom edge. */
+    margin: var(--space-2xl) calc(-1 * var(--space-2xl)) calc(-1 * var(--space-2xl));
     border-top: 1px solid var(--border-primary);
     color: var(--text-dim);
     font-size: var(--font-size-xs);

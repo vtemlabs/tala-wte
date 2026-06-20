@@ -15,10 +15,21 @@
   let loading = $state(true);
   let unsub: (() => void) | null = null;
 
-  let sortKey = $state((browser && localStorage.getItem('sort:captured')) || 'newest');
+  let sortKey = $state((browser && localStorage.getItem('cap:sortkey')) || 'created');
+  let sortDir = $state((browser && localStorage.getItem('cap:sortdir')) || 'desc');
   $effect(() => {
-    if (browser) localStorage.setItem('sort:captured', sortKey);
+    if (browser) {
+      localStorage.setItem('cap:sortkey', sortKey);
+      localStorage.setItem('cap:sortdir', sortDir);
+    }
   });
+  function sortCapBy(k: string) {
+    if (sortKey === k) sortDir = sortDir === 'asc' ? 'desc' : 'asc';
+    else {
+      sortKey = k;
+      sortDir = k === 'created' ? 'desc' : 'asc';
+    }
+  }
 
   function dataOf(rec: Record<string, any>): Record<string, any> {
     try {
@@ -61,19 +72,19 @@
   const ts = (r: Record<string, any>) => (r.created ? new Date(r.created).getTime() : 0);
 
   const sorted = $derived.by(() => {
-    const arr = [...list];
-    switch (sortKey) {
-      case 'oldest':
-        return arr.sort((a, b) => ts(a) - ts(b));
-      case 'network':
-        return arr.sort((a, b) => netName(a).localeCompare(netName(b)));
-      case 'user':
-        return arr.sort((a, b) => primaryUser(a).localeCompare(primaryUser(b)));
-      case 'result':
-        return arr.sort((a, b) => authResult(a).localeCompare(authResult(b)));
-      default:
-        return arr.sort((a, b) => ts(b) - ts(a));
-    }
+    const dir = sortDir === 'asc' ? 1 : -1;
+    return [...list].sort((a, b) => {
+      switch (sortKey) {
+        case 'network':
+          return netName(a).localeCompare(netName(b)) * dir;
+        case 'user':
+          return primaryUser(a).localeCompare(primaryUser(b)) * dir;
+        case 'result':
+          return authResult(a).localeCompare(authResult(b)) * dir;
+        default:
+          return (ts(a) - ts(b)) * dir;
+      }
+    });
   });
 
   async function load() {
@@ -174,26 +185,33 @@
     </p>
   </div>
 {:else}
-  <div class="cap-controls">
-    <label class="sort-wrap">
-      <span class="sort-lbl">Sort</span>
-      <select class="input sort-select" bind:value={sortKey}>
-        <option value="newest">Newest first</option>
-        <option value="oldest">Oldest first</option>
-        <option value="network">Network</option>
-        <option value="user">Username</option>
-        <option value="result">Result</option>
-      </select>
-    </label>
-  </div>
-
   <div class="panel">
     <div class="table-wrap">
       <table class="table cap-list">
         <thead>
           <tr>
-            <th>Network</th><th>Captured</th><th>Username</th><th>Password</th>
-            <th>Result</th><th>Source</th><th>MAC</th><th>IP</th><th class="act"></th>
+            <th class="sortable" onclick={() => sortCapBy('network')}
+              >Network{#if sortKey === 'network'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}</th
+            >
+            <th class="sortable" onclick={() => sortCapBy('created')}
+              >Captured{#if sortKey === 'created'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}</th
+            >
+            <th class="sortable" onclick={() => sortCapBy('user')}
+              >Username{#if sortKey === 'user'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}</th
+            >
+            <th>Password</th>
+            <th class="sortable" onclick={() => sortCapBy('result')}
+              >Result{#if sortKey === 'result'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}</th
+            >
+            <th>Source</th><th>MAC</th><th>IP</th><th class="act"></th>
           </tr>
         </thead>
         <tbody>
@@ -243,31 +261,6 @@
   .cap-strip .v.latest {
     font-size: var(--font-size-md);
     font-family: var(--font-mono);
-  }
-
-  .cap-controls {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    flex-wrap: wrap;
-    gap: var(--space-md);
-    margin-bottom: var(--space-lg);
-  }
-  .sort-wrap {
-    display: inline-flex;
-    align-items: center;
-    gap: var(--space-sm);
-  }
-  .sort-lbl {
-    font-size: var(--font-size-2xs);
-    font-weight: 700;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: var(--text-muted);
-  }
-  .sort-select {
-    width: auto;
-    min-width: 150px;
   }
 
   .cap-list td.secret {

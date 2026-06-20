@@ -312,7 +312,9 @@
     </nav>
 
     <main class="content">
-      {@render children()}
+      <div class="page-area">
+        {@render children()}
+      </div>
       <Footer />
     </main>
     <ToastContainer />
@@ -522,6 +524,14 @@
     min-height: 100dvh;
     min-width: 0;
     transition: margin-left 0.16s ease;
+  }
+  /* Grows to fill short pages so the footer pins to the bottom, while leaving a
+     gap above the footer on tall pages. */
+  .page-area {
+    flex: 1 0 auto;
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
   }
 
   /* Collapsed icon rail (desktop only). */
