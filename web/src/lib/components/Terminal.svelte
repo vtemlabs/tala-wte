@@ -338,6 +338,7 @@
     role="dialog"
     aria-label="Terminal"
   >
+    <!-- svelte-ignore a11y_click_events_have_key_events -->
     <div
       class="tw-title"
       onmousedown={(e) => start(e, 'drag')}
@@ -386,6 +387,7 @@
                 onclick={(e) => e.stopPropagation()}
               />
             {:else}
+              <!-- svelte-ignore a11y_no_static_element_interactions -->
               <span
                 class="tw-label"
                 ondblclick={(e) => {
@@ -423,21 +425,21 @@
       <div
         class="rz rz-e"
         onmousedown={(e) => start(e, 'e')}
-        role="separator"
+        role="button"
         tabindex="-1"
         aria-label="Resize width"
       ></div>
       <div
         class="rz rz-s"
         onmousedown={(e) => start(e, 's')}
-        role="separator"
+        role="button"
         tabindex="-1"
         aria-label="Resize height"
       ></div>
       <div
         class="rz rz-se"
         onmousedown={(e) => start(e, 'se')}
-        role="separator"
+        role="button"
         tabindex="-1"
         aria-label="Resize"
       ></div>

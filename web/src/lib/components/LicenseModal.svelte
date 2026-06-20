@@ -39,7 +39,9 @@
 {#if open}
   <div
     class="lic-overlay"
-    onclick={() => (open = false)}
+    onclick={(e) => {
+      if (e.target === e.currentTarget) open = false;
+    }}
     onkeydown={(e) => {
       if (e.key === 'Escape') open = false;
     }}
@@ -47,7 +49,6 @@
   >
     <div
       class="lic-modal"
-      onclick={(e) => e.stopPropagation()}
       role="dialog"
       aria-modal="true"
       aria-label="Tala WTE License"
