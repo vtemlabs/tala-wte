@@ -89,6 +89,7 @@ type Status struct {
 	AdaptersUnsupported int      `json:"adapters_unsupported"`     // adapters present but without a working driver
 	AdapterNames        []string `json:"adapter_names,omitempty"`  // model + chipset of each usable adapter, shown on the leader
 	AdapterLimits       []string `json:"adapter_limits,omitempty"` // capability limits of the member's adapters, shown on the leader
+	RadioWedged         bool     `json:"radio_wedged,omitempty"`   // radio stopped answering nl80211 (driver wedge); needs a power-cycle/replug
 	LastError           string   `json:"last_error,omitempty"`
 	LastEvent           string   `json:"last_event,omitempty"`
 }

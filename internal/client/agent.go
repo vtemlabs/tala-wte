@@ -41,12 +41,17 @@ type Agent struct {
 	wpaProc     *exec.Cmd
 	iface       string
 
-	// Cached wireless-adapter health. DiscoverAdapters scans iw/sysfs and is too
-	// slow to run on every status poll, so snapshot refreshes it on a TTL.
+	// Cached wireless-adapter health. DiscoverAdapters shells out to iw/sysfs,
+	// which blocks indefinitely when a radio wedges (e.g. an mt76 driver Oops
+	// leaves the netdev unresponsive). Running it on the status path would freeze
+	// the whole agent and take the management plane down with the radio, so a
+	// background goroutine refreshes these fields and snapshot only reads them.
+	refreshOnce        sync.Once
 	adapterCount       int
 	adapterUnsupported int
 	adapterLimits      []string
 	adapterNames       []string
+	radioWedged        bool
 	adapterAt          time.Time
 }
 
@@ -71,6 +76,7 @@ func adapterDisplayName(ad iface.Adapter) string {
 }
 
 func (a *Agent) snapshot() Status {
+	a.startAdapterRefresh()
 	a.mu.Lock()
 	defer a.mu.Unlock()
 	s := a.status
@@ -79,35 +85,67 @@ func (a *Agent) snapshot() Status {
 	s.Cycles = a.cycles
 	s.Arch = runtime.GOARCH
 	s.Version = version.Version
-	// Refresh cached adapter health on a TTL (DiscoverAdapters scans iw/sysfs and
-	// is too slow to run on every poll).
-	if time.Since(a.adapterAt) > 15*time.Second {
-		adapters := iface.DiscoverAdapters()
-		a.adapterCount = 0
-		a.adapterLimits = nil
-		a.adapterNames = nil
-		seen := map[string]bool{}
-		for i := range adapters {
-			if iface.IsVirtualDriver(adapters[i].Driver) {
-				continue
-			}
-			a.adapterCount++
-			a.adapterNames = append(a.adapterNames, adapterDisplayName(adapters[i]))
-			for _, lim := range adapters[i].Limits {
-				if !seen[lim] {
-					seen[lim] = true
-					a.adapterLimits = append(a.adapterLimits, lim)
-				}
-			}
-		}
-		a.adapterUnsupported = len(iface.UnsupportedAdapters())
-		a.adapterAt = time.Now()
-	}
+	// Adapter health is read straight from cache; the refresher goroutine owns the
+	// slow iw/sysfs scan so a wedged radio never blocks this poll.
 	s.Adapters = a.adapterCount
 	s.AdaptersUnsupported = a.adapterUnsupported
 	s.AdapterLimits = a.adapterLimits
 	s.AdapterNames = a.adapterNames
+	s.RadioWedged = a.radioWedged
 	return s
+}
+
+// startAdapterRefresh launches the background adapter-health refresher once, on
+// the first status poll. It keeps DiscoverAdapters (which can block on a wedged
+// radio) off the lock and off the status path entirely.
+func (a *Agent) startAdapterRefresh() {
+	a.refreshOnce.Do(func() {
+		go func() {
+			for {
+				a.refreshAdapters()
+				time.Sleep(15 * time.Second)
+			}
+		}()
+	})
+}
+
+// refreshAdapters runs the slow iw/sysfs scan and stores the result. It holds the
+// lock only to store, never during the scan, so even a fully hung scan leaves the
+// management plane serving (slightly stale) cached health.
+func (a *Agent) refreshAdapters() {
+	start := time.Now()
+	adapters := iface.DiscoverAdapters()
+	unsupported := len(iface.UnsupportedAdapters())
+	// A healthy scan returns well under a second. If it ran long, an iw call hit
+	// its timeout, which means the radio stopped answering nl80211 - surface it as
+	// wedged so the leader sees the real state instead of a silent stall.
+	wedged := time.Since(start) > 4*time.Second
+
+	count := 0
+	var limits, names []string
+	seen := map[string]bool{}
+	for i := range adapters {
+		if iface.IsVirtualDriver(adapters[i].Driver) {
+			continue
+		}
+		count++
+		names = append(names, adapterDisplayName(adapters[i]))
+		for _, lim := range adapters[i].Limits {
+			if !seen[lim] {
+				seen[lim] = true
+				limits = append(limits, lim)
+			}
+		}
+	}
+
+	a.mu.Lock()
+	a.adapterCount = count
+	a.adapterUnsupported = unsupported
+	a.adapterLimits = limits
+	a.adapterNames = names
+	a.radioWedged = wedged
+	a.adapterAt = time.Now()
+	a.mu.Unlock()
 }
 
 // SetReconnect enables or disables reconnect cycling: while enabled, the agent

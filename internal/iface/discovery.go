@@ -8,12 +8,14 @@ package iface
 
 import (
 	"bufio"
+	"context"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"strconv"
 	"strings"
+	"time"
 )
 
 // Adapter represents a wireless network interface with its hardware and state.
@@ -418,13 +420,21 @@ func parseIwPhySupportedModesFromOutput(out string) []string {
 	return modes
 }
 
+// execCapture runs a command with a hard timeout. A wedged radio makes iw block
+// indefinitely in the kernel; the timeout lets the scan fail and move on instead
+// of hanging the caller forever.
 func execCapture(name string, args ...string) (string, error) {
-	cmd := exec.Command(name, args...)
+	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+	cmd := exec.CommandContext(ctx, name, args...)
+	// WaitDelay force-closes the I/O pipes shortly after the context kills the
+	// process, so Wait cannot hang if a stuck child inherited the pipe - the
+	// timeout is then a hard bound regardless of how the command wedged.
+	cmd.WaitDelay = 3 * time.Second
 	var stdout, stderr strings.Builder
 	cmd.Stdout = &stdout
 	cmd.Stderr = &stderr
-	err := cmd.Run()
-	if err != nil {
+	if err := cmd.Run(); err != nil {
 		return "", fmt.Errorf("command %s failed: %w, stderr: %s", name, err, stderr.String())
 	}
 	return stdout.String(), nil

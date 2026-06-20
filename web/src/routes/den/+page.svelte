@@ -355,6 +355,8 @@
                   <span class="badge badge-neutral">checking</span>
                 {:else if !st.reachable}
                   <span class="badge badge-error">unreachable</span>
+                {:else if st.status?.radio_wedged}
+                  <span class="badge badge-error">radio wedged</span>
                 {:else if (st.status?.adapters ?? 0) === 0}
                   <span class="badge badge-warning">no adapter</span>
                 {:else if st.status?.connected}
@@ -373,6 +375,10 @@
                 Checking the member…
               {:else if !st.reachable}
                 <span class="member-err">{st.error || 'not reachable'}</span>
+              {:else if st.status?.radio_wedged}
+                <span class="member-err"
+                  >Radio stopped responding (driver wedge). Power-cycle or replug the adapter.</span
+                >
               {:else if st.status?.connected}
                 Connected to <b>{st.status.ssid}</b> · {st.status.ip} · {st.status.requests ?? 0} requests
               {:else if st.status?.adapter_names?.length}
