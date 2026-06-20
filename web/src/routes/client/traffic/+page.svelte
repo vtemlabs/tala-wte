@@ -81,6 +81,15 @@
   let urlsText = $state('');
   let domainsText = $state('');
   let ipsText = $state('');
+  let datasets = $state<any[]>([]);
+  let datasetSel = $state('');
+  function applyDataset() {
+    const d = datasets.find((x) => x.id === datasetSel);
+    if (!d) return;
+    urlsText = d.urls || '';
+    domainsText = d.domains || '';
+    ipsText = d.ips || '';
+  }
   let credsList = $state<{ url: string; username: string; password: string }[]>([]);
 
   const lines = (t: string): string[] =>
@@ -136,6 +145,11 @@
       savedConfigs = await pb.collection('client_configs').getFullList({ sort: '-created' });
     } catch {
       /* collection empty or unavailable */
+    }
+    try {
+      datasets = await pb.collection('traffic_datasets').getFullList({ sort: 'name' });
+    } catch {
+      /* none */
     }
   }
   // Uploading a config saves it as a reusable network rather than connecting now.
@@ -596,6 +610,20 @@
 <div class="panel section">
   <div class="panel-head"><span class="panel-title">Targets &amp; Credentials</span></div>
   <div class="panel-body stack">
+    <div class="form-group">
+      <label class="field-label" for="dataset">Apply a traffic dataset</label>
+      <select
+        class="input"
+        id="dataset"
+        bind:value={datasetSel}
+        onchange={applyDataset}
+        disabled={datasets.length === 0}
+      >
+        <option value="">{datasets.length ? 'Choose a dataset to fill the targets…' : 'No datasets'}</option>
+        {#each datasets as d}<option value={d.id}>{d.name}</option>{/each}
+      </select>
+      <span class="field-desc">Fills the fields below from a saved dataset; edit them after if you like.</span>
+    </div>
     <div class="grid3">
       <div class="form-group">
         <label class="field-label" for="urls">URLs to browse</label>
