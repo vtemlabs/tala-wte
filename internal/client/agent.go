@@ -185,6 +185,7 @@ func (a *Agent) Status() Status {
 		a.status.Connected = false
 		a.status.IP = ""
 		a.status.PortalState = "none"
+		a.status.LastError = ""
 		a.mu.Unlock()
 		if dropped {
 			a.setEvent("lost connection: access point no longer reachable")
@@ -355,6 +356,7 @@ func (a *Agent) Connect(cfg Config) error {
 	a.status.Connected = true
 	a.status.IP = ip
 	a.status.Gateway = gw
+	a.status.LastError = ""
 	a.mu.Unlock()
 	a.setEvent("connected: ip=%s gw=%s", ip, gw)
 
@@ -518,6 +520,7 @@ func (a *Agent) Stop() {
 	a.status.Connected = false
 	a.status.Generating = false
 	a.status.PortalState = "none"
+	a.status.LastError = ""
 	a.mu.Unlock()
 }
 

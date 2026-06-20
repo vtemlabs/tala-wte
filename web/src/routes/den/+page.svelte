@@ -279,58 +279,69 @@
               <div class="member-id">
                 <span class="status-dot" class:active={online} class:inactive={!online}></span>
                 <span class="member-name">{m.name}</span>
-                <span class="mono dim">{m.address}</span>
+                <span class="mono dim member-addr">{m.address}</span>
               </div>
-              <button
-                class="action-btn del-btn"
-                onclick={() => remove(m)}
-                aria-label="Remove member">Del</button
-              >
+              <div class="member-top-right">
+                {#if !st}
+                  <span class="badge badge-neutral">checking</span>
+                {:else if !st.reachable}
+                  <span class="badge badge-error">unreachable</span>
+                {:else if (st.status?.adapters ?? 0) === 0}
+                  <span class="badge badge-warning">no adapter</span>
+                {:else if st.status?.connected}
+                  <span class="badge badge-success">connected</span>
+                {:else}
+                  <span class="badge badge-neutral">idle</span>
+                {/if}
+                <button class="action-btn del-btn" onclick={() => remove(m)} aria-label="Remove member"
+                  >Del</button
+                >
+              </div>
             </div>
-            <div class="member-stat">
+
+            <div class="member-detail">
               {#if !st}
-                Checking...
+                Checking the member…
               {:else if !st.reachable}
-                <span class="warn">unreachable{st.error ? ` (${st.error})` : ''}</span>
-              {:else if (st.status?.adapters ?? 0) === 0}
-                <span class="warn">no wireless adapter</span>
+                <span class="member-err">{st.error || 'not reachable'}</span>
               {:else if st.status?.connected}
                 Connected to <b>{st.status.ssid}</b> · {st.status.ip} · {st.status.requests ?? 0} requests
+              {:else if st.status?.adapter_names?.length}
+                <span class="mono">{st.status.adapter_names.join(', ')}</span>{#if st.status?.version}<span
+                    class="dim"
+                  >
+                    · v{st.status.version}</span
+                  >{/if}
               {:else}
-                Reachable · idle
-              {/if}
-              {#if st?.reachable && (st.status?.adapter_names?.length || st.status?.version)}
-                <div class="member-meta">
-                  {#if st.status?.adapter_names?.length}card: {st.status.adapter_names.join(', ')}{/if}{#if st.status?.adapter_names?.length && st.status?.version}
-                    ·
-                  {/if}{#if st.status?.version}v{st.status.version}{/if}
-                </div>
-              {/if}
-              {#if st?.reachable && st.status?.connected && !m.network_id}
-                <div class="member-busy">in use by another pack leader</div>
-              {/if}
-              {#if st?.reachable && !st.status?.connected && st.status?.last_error}
-                <div class="warn">error: {st.status.last_error}</div>
-              {/if}
-              {#if st?.reachable && st.status?.adapter_limits?.length}
-                <div class="warn">card limits: {st.status.adapter_limits.join(', ')}</div>
+                Reachable, idle
               {/if}
             </div>
+
+            {#if st?.reachable && st.status?.adapter_limits?.length}
+              <div class="member-limits">
+                <span class="lim-label">Limits</span>
+                {st.status.adapter_limits.join('; ')}
+              </div>
+            {/if}
+            {#if st?.reachable && st.status?.connected && !m.network_id}
+              <div class="member-note">In use by another pack leader</div>
+            {/if}
+            {#if st?.reachable && !st.status?.connected && st.status?.last_error}
+              <div class="member-err">{st.status.last_error}</div>
+            {/if}
+
             <div class="member-actions">
               <select class="input" bind:value={selectedNet[m.id]}>
                 <option value="">Select network...</option>
                 {#each networkList as n}<option value={n.id}>{n.ssid}</option>{/each}
               </select>
               <select class="input" bind:value={selectedProfile[m.id]}>
-                {#each Object.entries(PROFILES) as [key, p]}<option value={key}>{p.label}</option
-                  >{/each}
+                {#each Object.entries(PROFILES) as [key, p]}<option value={key}>{p.label}</option>{/each}
               </select>
-              <button
-                class="action-btn btn-success"
-                onclick={() => deploy(m)}
-                disabled={busy === m.id}>Deploy</button
+              <button class="btn btn-sm btn-success" onclick={() => deploy(m)} disabled={busy === m.id}
+                >Deploy</button
               >
-              <button class="action-btn btn-danger" onclick={() => stop(m)} disabled={busy === m.id}
+              <button class="btn btn-sm btn-danger" onclick={() => stop(m)} disabled={busy === m.id}
                 >Stop</button
               >
             </div>
@@ -416,10 +427,10 @@
     display: flex;
     flex-direction: column;
     gap: var(--space-sm);
-    padding: var(--space-md);
+    padding: var(--space-md) var(--space-lg);
     border: 1px solid var(--border-primary);
-    border-radius: var(--radius-sm);
-    background: var(--bg-input);
+    border-radius: var(--radius-md);
+    background: var(--bg-tertiary);
   }
   .member-top {
     display: flex;
@@ -437,21 +448,44 @@
     color: var(--text-primary);
     font-weight: 600;
   }
-  .member-stat {
+  .member-addr {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .member-top-right {
+    display: flex;
+    align-items: center;
+    gap: var(--space-sm);
+    flex-shrink: 0;
+  }
+  .member-detail {
     font-size: var(--font-size-sm);
     color: var(--text-secondary);
   }
-  .member-stat .warn {
-    color: var(--color-yellow);
+  .member-limits {
+    font-size: var(--font-size-xs);
+    color: var(--text-muted);
+  }
+  .lim-label {
+    font-size: var(--font-size-2xs);
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--text-dim);
+    margin-right: var(--space-xs);
+  }
+  .member-err {
+    font-size: var(--font-size-xs);
+    color: var(--color-red);
+  }
+  .member-note {
+    font-size: var(--font-size-xs);
+    color: var(--color-cyan);
   }
   .member-meta {
     font-size: var(--font-size-xs);
     color: var(--text-muted);
-    margin-top: 2px;
-  }
-  .member-busy {
-    font-size: var(--font-size-xs);
-    color: var(--color-cyan);
     margin-top: 2px;
   }
   .member-actions {
@@ -459,6 +493,7 @@
     align-items: center;
     flex-wrap: wrap;
     gap: var(--space-sm);
+    margin-top: var(--space-xs);
   }
   .member-actions .input {
     flex: 1;
