@@ -107,6 +107,18 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 			},
 		},
 		{
+			name: "traffic_datasets",
+			fields: []core.Field{
+				&core.TextField{Name: "name", Required: true},
+				&core.TextField{Name: "slug"},
+				&core.TextField{Name: "description"},
+				&core.TextField{Name: "urls", Max: 20000},
+				&core.TextField{Name: "domains", Max: 20000},
+				&core.TextField{Name: "ips", Max: 20000},
+				&core.SelectField{Name: "type", Values: []string{"builtin", "custom"}},
+			},
+		},
+		{
 			name: "clients",
 			fields: []core.Field{
 				&core.RelationField{Name: "network_id", CollectionId: "networks", CascadeDelete: true},
@@ -225,6 +237,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 	reconcilePortalCategories(app)
 
 	seedPortalTemplates(app)
+	seedTrafficDatasets(app)
 
 	// Kill rogue hostapd/dnsmasq/socat and purge wte-* namespaces.
 	sim.NuclearTeardown("boot")
@@ -439,9 +452,72 @@ func seedPortalTemplates(app *pocketbase.PocketBase) (seeded, resynced int) {
 	return seeded, resynced
 }
 
+// seedTrafficDatasets upserts the built-in traffic-target datasets (created once,
+// keyed by slug; user edits and custom datasets are never touched). They default
+// to public endpoints that are designed for automated/connectivity probes.
+func seedTrafficDatasets(app *pocketbase.PocketBase) {
+	col, err := app.FindCollectionByNameOrId("traffic_datasets")
+	if err != nil || col == nil {
+		return
+	}
+	builtins := []struct{ Slug, Name, Description, URLs, Domains, IPs string }{
+		{
+			"connectivity-checks", "Connectivity & captive checks",
+			"OS connectivity and captive-portal endpoints, designed for automated probes.",
+			"http://captive.apple.com/\nhttp://connectivitycheck.gstatic.com/generate_204\nhttp://detectportal.firefox.com/canonical.html\nhttp://neverssl.com/",
+			"captive.apple.com\nconnectivitycheck.gstatic.com\ndetectportal.firefox.com",
+			"1.1.1.1\n8.8.8.8",
+		},
+		{
+			"general-browsing", "General browsing (safe)",
+			"Public endpoints intended for testing automated HTTP traffic.",
+			"http://example.com/\nhttp://example.org/\nhttps://httpbin.org/get\nhttp://neverssl.com/",
+			"example.com\nexample.org\nhttpbin.org",
+			"",
+		},
+		{
+			"local-intranet", "Local / intranet",
+			"Traffic kept on the lab network: the gateway and an intranet host.",
+			"http://10.0.0.1/\nhttp://intranet.local/",
+			"intranet.local",
+			"10.0.0.1",
+		},
+		{
+			"dns-chatter", "DNS chatter",
+			"A domain set for steady DNS resolution traffic.",
+			"",
+			"example.com\nexample.org\nneverssl.com\nhttpbin.org\ncaptive.apple.com\nconnectivitycheck.gstatic.com",
+			"",
+		},
+	}
+	seeded := 0
+	for _, d := range builtins {
+		existing, _ := app.FindFirstRecordByFilter("traffic_datasets", "slug = {:slug}", map[string]any{"slug": d.Slug})
+		if existing != nil {
+			continue
+		}
+		rec := core.NewRecord(col)
+		rec.Set("name", d.Name)
+		rec.Set("slug", d.Slug)
+		rec.Set("description", d.Description)
+		rec.Set("urls", d.URLs)
+		rec.Set("domains", d.Domains)
+		rec.Set("ips", d.IPs)
+		rec.Set("type", "builtin")
+		if err := app.Save(rec); err != nil {
+			log.Printf("[bootstrap] failed to seed traffic dataset %s: %v", d.Slug, err)
+			continue
+		}
+		seeded++
+	}
+	if seeded > 0 {
+		log.Printf("[bootstrap] seeded %d built-in traffic datasets", seeded)
+	}
+}
+
 // reconcileCollectionRules locks the managed collections to superusers only (nil rules); PocketBase treats "" as PUBLIC.
 func reconcileCollectionRules(app *pocketbase.PocketBase) {
-	managed := []string{"portals", "networks", "settings", "certificates", "captures", "clients", "radius_config", "portal_submissions", "den_members", "client_configs"}
+	managed := []string{"portals", "networks", "settings", "certificates", "captures", "clients", "radius_config", "portal_submissions", "den_members", "client_configs", "traffic_datasets"}
 	for _, name := range managed {
 		col, err := app.FindCollectionByNameOrId(name)
 		if err != nil || col == nil {

@@ -16,6 +16,8 @@
   let statuses = $state<Record<string, any>>({});
   let selectedNet = $state<Record<string, string>>({});
   let selectedProfile = $state<Record<string, string>>({});
+  let selectedDataset = $state<Record<string, string>>({});
+  let datasets = $state<any[]>([]);
 
   // Deploy profiles bundle the full traffic config (and optional reconnect cycling)
   // the leader pushes to a member, the same settings you'd set on a client by hand.
@@ -86,6 +88,69 @@
   async function loadNetworks() {
     networkList = await pb.collection('networks').getFullList({ sort: 'ssid' });
   }
+  async function loadDatasets() {
+    datasets = await pb.collection('traffic_datasets').getFullList({ sort: 'name' });
+  }
+  const lines = (s: string): string[] =>
+    (s || '')
+      .split('\n')
+      .map((x) => x.trim())
+      .filter(Boolean);
+
+  let dsName = $state('');
+  let dsDesc = $state('');
+  let dsUrls = $state('');
+  let dsDomains = $state('');
+  let dsIps = $state('');
+  let dsEditId = $state('');
+  let dsSaving = $state(false);
+
+  function editDataset(d: any) {
+    dsEditId = d.id;
+    dsName = d.name;
+    dsDesc = d.description || '';
+    dsUrls = d.urls || '';
+    dsDomains = d.domains || '';
+    dsIps = d.ips || '';
+  }
+  function resetDsForm() {
+    dsEditId = '';
+    dsName = dsDesc = dsUrls = dsDomains = dsIps = '';
+  }
+  async function saveDataset() {
+    if (!dsName.trim()) {
+      toast.err('Dataset name is required');
+      return;
+    }
+    dsSaving = true;
+    try {
+      const data = {
+        name: dsName.trim(),
+        description: dsDesc.trim(),
+        urls: dsUrls,
+        domains: dsDomains,
+        ips: dsIps
+      };
+      if (dsEditId) await pb.collection('traffic_datasets').update(dsEditId, data);
+      else await pb.collection('traffic_datasets').create({ ...data, type: 'custom' });
+      resetDsForm();
+      await loadDatasets();
+      toast.success('Dataset saved');
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to save dataset');
+    }
+    dsSaving = false;
+  }
+  async function deleteDataset(d: any) {
+    if (!confirm(`Delete dataset "${d.name}"?`)) return;
+    try {
+      await pb.collection('traffic_datasets').delete(d.id);
+      if (dsEditId === d.id) resetDsForm();
+      await loadDatasets();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to delete dataset');
+    }
+  }
   async function refreshStatuses() {
     for (const m of members) {
       try {
@@ -101,7 +166,7 @@
 
   onMount(async () => {
     try {
-      await Promise.all([loadMembers(), loadNetworks()]);
+      await Promise.all([loadMembers(), loadNetworks(), loadDatasets()]);
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to load den');
     }
@@ -168,14 +233,18 @@
     }
     busy = m.id;
     try {
+      const profile = PROFILES[selectedProfile[m.id] || 'standard'];
+      const ds = datasets.find((d) => d.id === selectedDataset[m.id]);
+      const traffic: Record<string, any> = { ...profile.traffic };
+      if (ds) {
+        traffic.urls = lines(ds.urls);
+        traffic.domains = lines(ds.domains);
+        traffic.ips = lines(ds.ips);
+      }
       const r = await fetch(`/api/wte/den/${m.id}/deploy`, {
         method: 'POST',
         headers: authHeaders({ 'Content-Type': 'application/json' }),
-        body: JSON.stringify({
-          network_id: net,
-          traffic: PROFILES[selectedProfile[m.id] || 'standard'].traffic,
-          reconnect: PROFILES[selectedProfile[m.id] || 'standard'].reconnect
-        })
+        body: JSON.stringify({ network_id: net, traffic, reconnect: profile.reconnect })
       });
       if (!r.ok) throw new Error((await r.json())?.error ?? 'deploy failed');
       toast.success(`Deploying ${m.name} to ${netName(net)}`);
@@ -338,6 +407,10 @@
               <select class="input" bind:value={selectedProfile[m.id]}>
                 {#each Object.entries(PROFILES) as [key, p]}<option value={key}>{p.label}</option>{/each}
               </select>
+              <select class="input" bind:value={selectedDataset[m.id]} title="Traffic dataset (targets)">
+                <option value="">Default targets</option>
+                {#each datasets as d}<option value={d.id}>{d.name}</option>{/each}
+              </select>
               <button class="btn btn-sm btn-success" onclick={() => deploy(m)} disabled={busy === m.id}
                 >Deploy</button
               >
@@ -412,6 +485,91 @@
           {/each}
         </div>
       {/if}
+    </div>
+  </div>
+</div>
+
+<div class="panel ds-panel">
+  <div class="panel-head">
+    <span class="panel-title">Traffic Datasets</span>
+    <span class="count-pill">{datasets.length}</span>
+  </div>
+  <div class="panel-body">
+    <p class="field-desc" style="margin-bottom:var(--space-md)">
+      Reusable target lists a member's traffic generators browse, resolve, and ping. Pick one per
+      member in the deploy row above; leave a member on "Default targets" to use the built-in safe
+      pool.
+    </p>
+    {#if datasets.length}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr><th>Name</th><th>Targets</th><th>Type</th><th class="actions-col"></th></tr>
+          </thead>
+          <tbody>
+            {#each datasets as d}
+              <tr>
+                <td>
+                  <div class="ds-name">{d.name}</div>
+                  {#if d.description}<div class="dim ds-desc">{d.description}</div>{/if}
+                </td>
+                <td class="dim"
+                  >{lines(d.urls).length} URLs · {lines(d.domains).length} domains · {lines(d.ips)
+                    .length} IPs</td
+                >
+                <td>
+                  <span class="badge {d.type === 'builtin' ? 'badge-info' : 'badge-neutral'}"
+                    >{d.type || 'custom'}</span
+                  >
+                </td>
+                <td class="actions-col">
+                  <div class="row-actions">
+                    <button class="action-btn" onclick={() => editDataset(d)}>Edit</button>
+                    <button class="action-btn del-btn" onclick={() => deleteDataset(d)}>Del</button>
+                  </div>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {/if}
+
+    <div class="ds-form">
+      <div class="ds-form-head">{dsEditId ? 'Edit dataset' : 'New dataset'}</div>
+      <div class="ds-top">
+        <div class="form-group">
+          <label class="field-label" for="dsName">Name</label>
+          <input class="input" id="dsName" bind:value={dsName} placeholder="e.g. Marketing team" />
+        </div>
+        <div class="form-group">
+          <label class="field-label" for="dsDesc">Description</label>
+          <input class="input" id="dsDesc" bind:value={dsDesc} placeholder="What this profile simulates" />
+        </div>
+      </div>
+      <div class="ds-grid">
+        <div class="form-group">
+          <label class="field-label" for="dsUrls">URLs to browse</label>
+          <textarea class="input ds-area" id="dsUrls" bind:value={dsUrls} placeholder="one per line"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label class="field-label" for="dsDomains">Domains to resolve</label>
+          <textarea class="input ds-area" id="dsDomains" bind:value={dsDomains} placeholder="one per line"
+          ></textarea>
+        </div>
+        <div class="form-group">
+          <label class="field-label" for="dsIps">IPs to ping</label>
+          <textarea class="input ds-area" id="dsIps" bind:value={dsIps} placeholder="one per line"
+          ></textarea>
+        </div>
+      </div>
+      <div class="ds-actions">
+        <button class="btn btn-primary" onclick={saveDataset} disabled={dsSaving || !dsName}
+          >{dsSaving ? 'Saving...' : dsEditId ? 'Update dataset' : 'Add dataset'}</button
+        >
+        {#if dsEditId}<button class="btn" onclick={resetDsForm}>Cancel</button>{/if}
+      </div>
     </div>
   </div>
 </div>
@@ -498,5 +656,54 @@
   .member-actions .input {
     flex: 1;
     min-width: 140px;
+  }
+
+  .ds-panel {
+    margin-top: var(--space-xl);
+  }
+  .ds-name {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
+  .ds-desc {
+    font-size: var(--font-size-xs);
+    margin-top: 2px;
+  }
+  .ds-form {
+    margin-top: var(--space-lg);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-primary);
+  }
+  .ds-form-head {
+    font-weight: 600;
+    color: var(--text-secondary);
+    margin-bottom: var(--space-md);
+  }
+  .ds-top {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: var(--space-md);
+    margin-bottom: var(--space-md);
+  }
+  .ds-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    gap: var(--space-md);
+  }
+  .ds-area {
+    min-height: 96px;
+    font-family: var(--font-mono);
+    resize: vertical;
+  }
+  .ds-actions {
+    display: flex;
+    gap: var(--space-sm);
+    margin-top: var(--space-md);
+  }
+  @media (max-width: 820px) {
+    .ds-top,
+    .ds-grid {
+      grid-template-columns: 1fr;
+    }
   }
 </style>

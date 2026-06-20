@@ -533,14 +533,19 @@ func (a *Agent) inc(reqs, bytes int64) {
 
 // ---- traffic generators -------------------------------------------------------
 
+// browseSites is the built-in fallback web pool: real public endpoints that are
+// designed to be hit by automated/connectivity traffic, so the default mix has no
+// scraping or rate-abuse concerns. Operators add their own targets via datasets.
 var browseSites = []string{
-	"http://example.com/", "https://www.wikipedia.org/", "https://www.bing.com/",
-	"https://www.cloudflare.com/", "https://news.ycombinator.com/", "https://www.debian.org/",
+	"http://example.com/", "http://example.org/", "http://neverssl.com/",
+	"https://httpbin.org/get", "http://captive.apple.com/",
+	"http://connectivitycheck.gstatic.com/generate_204",
+	"http://detectportal.firefox.com/canonical.html",
 }
 
 var lookupDomains = []string{
-	"example.com", "wikipedia.org", "cloudflare.com", "github.com", "debian.org",
-	"ubuntu.com", "google.com", "mozilla.org",
+	"example.com", "example.org", "neverssl.com", "httpbin.org",
+	"captive.apple.com", "connectivitycheck.gstatic.com", "detectportal.firefox.com",
 }
 
 func (a *Agent) httpClient() *http.Client { return &http.Client{Timeout: 10 * time.Second} }
