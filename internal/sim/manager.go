@@ -12,6 +12,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"log"
+	"net"
 	"net/http"
 	"os"
 	"os/exec"
@@ -48,21 +49,65 @@ func ProvisionHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-// resolveUplinkIface determines the uplink interface: TALA_UPLINK_IFACE, then default route, then eth0.
+// resolveUplinkIface determines the uplink interface used for client NAT:
+// TALA_UPLINK_IFACE, then the default route, then the first real wired uplink.
+// The old hardcoded "eth0" fallback silently broke NAT on any box whose uplink is
+// named differently (Parallels = enp0s5), so when the default route is momentarily
+// absent (e.g. DHCP renewing at boot) we discover a real interface instead.
 func resolveUplinkIface() string {
 	if env := os.Getenv("TALA_UPLINK_IFACE"); env != "" {
 		return env
 	}
+	if dev := defaultRouteIface(); dev != "" {
+		return dev
+	}
+	if dev := firstWiredUplink(); dev != "" {
+		log.Printf("[sim] no default route; using discovered uplink %s", dev)
+		return dev
+	}
+	return "eth0"
+}
+
+// defaultRouteIface returns the interface of the IPv4 default route, or "".
+func defaultRouteIface() string {
 	out, err := exec.Command("ip", "route", "show", "default").Output()
-	if err == nil {
-		fields := strings.Fields(strings.TrimSpace(string(out)))
-		for i, f := range fields {
-			if f == "dev" && i+1 < len(fields) {
-				return fields[i+1]
+	if err != nil {
+		return ""
+	}
+	fields := strings.Fields(strings.TrimSpace(string(out)))
+	for i, f := range fields {
+		if f == "dev" && i+1 < len(fields) {
+			return fields[i+1]
+		}
+	}
+	return ""
+}
+
+// firstWiredUplink returns the first up, non-loopback wired interface that has a
+// routable IPv4 address, skipping wireless, veth, and bridge interfaces.
+func firstWiredUplink() string {
+	ifaces, err := net.Interfaces()
+	if err != nil {
+		return ""
+	}
+	for _, ifc := range ifaces {
+		if ifc.Flags&net.FlagUp == 0 || ifc.Flags&net.FlagLoopback != 0 {
+			continue
+		}
+		n := ifc.Name
+		if strings.HasPrefix(n, "wl") || strings.HasPrefix(n, "vth-") || strings.HasPrefix(n, "veth") ||
+			strings.HasPrefix(n, "br") || strings.HasPrefix(n, "docker") {
+			continue
+		}
+		addrs, _ := ifc.Addrs()
+		for _, a := range addrs {
+			if ipn, ok := a.(*net.IPNet); ok && ipn.IP.To4() != nil &&
+				!ipn.IP.IsLoopback() && !ipn.IP.IsLinkLocalUnicast() {
+				return n
 			}
 		}
 	}
-	return "eth0"
+	return ""
 }
 
 type Session struct {
