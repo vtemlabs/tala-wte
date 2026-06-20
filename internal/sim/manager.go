@@ -16,11 +16,14 @@ import (
 	"net/http"
 	"os"
 	"os/exec"
+	"runtime"
 	"slices"
 	"strconv"
 	"strings"
 	"sync"
 	"time"
+
+	vnetns "github.com/vishvananda/netns"
 
 	"github.com/pocketbase/pocketbase"
 	"github.com/pocketbase/pocketbase/core"
@@ -57,6 +60,20 @@ func ProvisionHandler() func(http.ResponseWriter, *http.Request) {
 func resolveUplinkIface() string {
 	if env := os.Getenv("TALA_UPLINK_IFACE"); env != "" {
 		return env
+	}
+	// Pin this lookup to the host network namespace. A worker thread may have been
+	// left in a per-network netns by an earlier operation; reading the routing
+	// table there returns nothing and we would fall through to the eth0 default.
+	runtime.LockOSThread()
+	defer runtime.UnlockOSThread()
+	if host, err := vnetns.GetFromPid(1); err == nil {
+		defer host.Close()
+		if cur, err := vnetns.Get(); err == nil {
+			defer cur.Close()
+			if vnetns.Set(host) == nil {
+				defer vnetns.Set(cur)
+			}
+		}
 	}
 	if dev := defaultRouteIface(); dev != "" {
 		return dev
