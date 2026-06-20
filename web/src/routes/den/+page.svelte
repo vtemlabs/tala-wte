@@ -328,7 +328,7 @@
 
 <GuideModal bind:open={guideOpen} title={GUIDES.den.title} doc={GUIDES.den.doc} />
 
-<div class="split-main">
+<div class="stack">
   <div class="panel">
     <div class="panel-head">
       <span class="panel-title">Members</span>
@@ -424,8 +424,9 @@
     {/if}
   </div>
 
-  <div class="panel">
-    <div class="panel-head"><span class="panel-title">Add Member</span></div>
+  <div class="grid grid-2">
+    <div class="panel">
+      <div class="panel-head"><span class="panel-title">Add Member</span></div>
     <div class="panel-body stack">
       <div class="form-group">
         <label class="field-label" for="mname">Name</label>
@@ -489,82 +490,93 @@
   </div>
 </div>
 
-<div class="panel ds-panel">
-  <div class="panel-head">
-    <span class="panel-title">Traffic Datasets</span>
-    <span class="count-pill">{datasets.length}</span>
-  </div>
-  <div class="panel-body">
-    <p class="field-desc" style="margin-bottom:var(--space-md)">
-      Reusable target lists a member's traffic generators browse, resolve, and ping. Pick one per
-      member in the deploy row above; leave a member on "Default targets" to use the built-in safe
-      pool.
-    </p>
-    {#if datasets.length}
-      <div class="table-wrap">
-        <table class="table">
-          <thead>
-            <tr><th>Name</th><th>Targets</th><th>Type</th><th class="actions-col"></th></tr>
-          </thead>
-          <tbody>
-            {#each datasets as d}
-              <tr>
-                <td>
-                  <div class="ds-name">{d.name}</div>
-                  {#if d.description}<div class="dim ds-desc">{d.description}</div>{/if}
-                </td>
-                <td class="dim"
-                  >{lines(d.urls).length} URLs · {lines(d.domains).length} domains · {lines(d.ips)
-                    .length} IPs</td
-                >
-                <td>
-                  <span class="badge {d.type === 'builtin' ? 'badge-info' : 'badge-neutral'}"
-                    >{d.type || 'custom'}</span
+  <div class="panel">
+    <div class="panel-head">
+      <span class="panel-title">Traffic Datasets</span>
+      <span class="count-pill">{datasets.length}</span>
+    </div>
+    <div class="panel-body">
+      <p class="section-desc">
+        Reusable target lists a member's traffic generators browse, resolve, and ping. Pick one per
+        member in the deploy row above; leave a member on "Default targets" to use the built-in safe
+        pool.
+      </p>
+      {#if datasets.length}
+        <div class="table-wrap">
+          <table class="table">
+            <thead>
+              <tr><th>Name</th><th>Targets</th><th>Type</th><th class="actions-col"></th></tr>
+            </thead>
+            <tbody>
+              {#each datasets as d}
+                <tr>
+                  <td>
+                    {d.name}
+                    {#if d.description}<div class="field-desc">{d.description}</div>{/if}
+                  </td>
+                  <td class="dim"
+                    >{lines(d.urls).length} URLs · {lines(d.domains).length} domains · {lines(d.ips)
+                      .length} IPs</td
                   >
-                </td>
-                <td class="actions-col">
-                  <div class="row-actions">
-                    <button class="action-btn" onclick={() => editDataset(d)}>Edit</button>
-                    <button class="action-btn del-btn" onclick={() => deleteDataset(d)}>Del</button>
-                  </div>
-                </td>
-              </tr>
-            {/each}
-          </tbody>
-        </table>
-      </div>
-    {/if}
+                  <td>
+                    <span class="badge {d.type === 'builtin' ? 'badge-info' : 'badge-neutral'}"
+                      >{d.type || 'custom'}</span
+                    >
+                  </td>
+                  <td class="actions-col">
+                    <div class="row-actions">
+                      <button class="action-btn" onclick={() => editDataset(d)}>Edit</button>
+                      <button class="action-btn del-btn" onclick={() => deleteDataset(d)}>Del</button>
+                    </div>
+                  </td>
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      {/if}
 
-    <div class="ds-form">
-      <div class="ds-form-head">{dsEditId ? 'Edit dataset' : 'New dataset'}</div>
-      <div class="ds-top">
+      <div class="section-title" style="margin-top:var(--space-xl)">
+        {dsEditId ? 'Edit dataset' : 'New dataset'}
+      </div>
+      <div class="grid grid-2">
         <div class="form-group">
           <label class="field-label" for="dsName">Name</label>
           <input class="input" id="dsName" bind:value={dsName} placeholder="e.g. Marketing team" />
         </div>
         <div class="form-group">
           <label class="field-label" for="dsDesc">Description</label>
-          <input class="input" id="dsDesc" bind:value={dsDesc} placeholder="What this profile simulates" />
+          <input
+            class="input"
+            id="dsDesc"
+            bind:value={dsDesc}
+            placeholder="What this profile simulates"
+          />
         </div>
       </div>
-      <div class="ds-grid">
+      <div class="grid grid-3" style="margin-top:var(--space-md)">
         <div class="form-group">
           <label class="field-label" for="dsUrls">URLs to browse</label>
-          <textarea class="input ds-area" id="dsUrls" bind:value={dsUrls} placeholder="one per line"
+          <textarea class="input" id="dsUrls" rows="4" bind:value={dsUrls} placeholder="one per line"
           ></textarea>
         </div>
         <div class="form-group">
           <label class="field-label" for="dsDomains">Domains to resolve</label>
-          <textarea class="input ds-area" id="dsDomains" bind:value={dsDomains} placeholder="one per line"
+          <textarea
+            class="input"
+            id="dsDomains"
+            rows="4"
+            bind:value={dsDomains}
+            placeholder="one per line"
           ></textarea>
         </div>
         <div class="form-group">
           <label class="field-label" for="dsIps">IPs to ping</label>
-          <textarea class="input ds-area" id="dsIps" bind:value={dsIps} placeholder="one per line"
+          <textarea class="input" id="dsIps" rows="4" bind:value={dsIps} placeholder="one per line"
           ></textarea>
         </div>
       </div>
-      <div class="ds-actions">
+      <div class="header-actions" style="margin-top:var(--space-md)">
         <button class="btn btn-primary" onclick={saveDataset} disabled={dsSaving || !dsName}
           >{dsSaving ? 'Saving...' : dsEditId ? 'Update dataset' : 'Add dataset'}</button
         >
@@ -658,52 +670,4 @@
     min-width: 140px;
   }
 
-  .ds-panel {
-    margin-top: var(--space-xl);
-  }
-  .ds-name {
-    font-weight: 600;
-    color: var(--text-primary);
-  }
-  .ds-desc {
-    font-size: var(--font-size-xs);
-    margin-top: 2px;
-  }
-  .ds-form {
-    margin-top: var(--space-lg);
-    padding-top: var(--space-lg);
-    border-top: 1px solid var(--border-primary);
-  }
-  .ds-form-head {
-    font-weight: 600;
-    color: var(--text-secondary);
-    margin-bottom: var(--space-md);
-  }
-  .ds-top {
-    display: grid;
-    grid-template-columns: 1fr 2fr;
-    gap: var(--space-md);
-    margin-bottom: var(--space-md);
-  }
-  .ds-grid {
-    display: grid;
-    grid-template-columns: 1fr 1fr 1fr;
-    gap: var(--space-md);
-  }
-  .ds-area {
-    min-height: 96px;
-    font-family: var(--font-mono);
-    resize: vertical;
-  }
-  .ds-actions {
-    display: flex;
-    gap: var(--space-sm);
-    margin-top: var(--space-md);
-  }
-  @media (max-width: 820px) {
-    .ds-top,
-    .ds-grid {
-      grid-template-columns: 1fr;
-    }
-  }
 </style>
