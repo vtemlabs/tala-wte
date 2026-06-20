@@ -97,6 +97,59 @@ func ifaceExists(name string) bool {
 	return err == nil
 }
 
+// portalAuthType resolves the captive-portal auth type for a network: the assigned
+// portal's auth_type, falling back to the legacy portal_auth bool (username/password
+// when set, click-through otherwise) so existing portals keep working.
+func portalAuthType(app *pocketbase.PocketBase, record *core.Record) portal.AuthType {
+	if pid := record.GetString("portal_id"); pid != "" {
+		if pr, err := app.FindRecordById("portals", pid); err == nil {
+			if at := strings.TrimSpace(pr.GetString("auth_type")); at != "" {
+				return portal.AuthType(at)
+			}
+		}
+	}
+	if record.GetBool("portal_auth") {
+		return portal.AuthUserPassword
+	}
+	return portal.AuthClickThrough
+}
+
+// buildPortalValidator returns the function the portal engine uses to decide
+// whether a submission grants access. Non-validating types return nil (grant on
+// submit). Validating types match the submitted fields against the network's
+// assigned credential set, or fall back to the directory for username/password.
+func buildPortalValidator(app *pocketbase.PocketBase, record *core.Record, authType portal.AuthType) func(map[string]string) bool {
+	if !portal.Spec(authType).Validates {
+		return nil
+	}
+	var entries []map[string]string
+	if setID := record.GetString("credential_set_id"); setID != "" {
+		if set, err := app.FindRecordById("portal_credentials", setID); err == nil {
+			_ = json.Unmarshal([]byte(set.GetString("entries")), &entries)
+		}
+	}
+	if len(entries) > 0 {
+		return func(fields map[string]string) bool {
+			for _, e := range entries {
+				if portal.MatchEntry(authType, fields, e) {
+					return true
+				}
+			}
+			return false
+		}
+	}
+	if authType == portal.AuthUserPassword {
+		// No credential set assigned: validate against the embedded directory.
+		return func(fields map[string]string) bool {
+			u := strings.TrimSpace(fields["username"])
+			p := fields["password"]
+			return u != "" && p != "" && ldap.Authenticate(u, p)
+		}
+	}
+	// A validating type with no credential set cannot grant anyone.
+	return func(map[string]string) bool { return false }
+}
+
 // defaultRouteIface returns the interface of the IPv4 default route, or "".
 func defaultRouteIface() string {
 	out, err := exec.Command("ip", "route", "show", "default").Output()
@@ -671,9 +724,12 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 			log.Printf("[sim][start] Portal enabled, starting portal engine")
 			p := portal.New(id, ifName, gwIP, dhcpStart, dhcpEnd, record.GetString("portal_html"), nsName)
 			p.NetworkSSID = ssid
-			// Auth portals validate credentials against the embedded directory (same store as the 802.1X path).
-			p.RequireAuth = record.GetBool("portal_auth")
-			p.Authenticate = ldap.Authenticate
+			// The portal's auth type shapes the form and decides whether submissions
+			// are validated; the validator checks them against the assigned credential
+			// set (or the directory for username/password).
+			authType := portalAuthType(app, record)
+			p.AuthType = string(authType)
+			p.Validate = buildPortalValidator(app, record, authType)
 			// Persist every harvested submission so it surfaces in the UI as captured credentials/PII.
 			p.OnSubmit = func(sub portal.Submission) {
 				col, cErr := app.FindCollectionByNameOrId("portal_submissions")

@@ -31,6 +31,13 @@ var portalCategories = []string{
 	"generic", "custom",
 }
 
+// portalAuthTypes are the captive-portal authentication types a portal can conform
+// to (mirrors internal/portal/authtype.go).
+var portalAuthTypes = []string{
+	"click_through", "email", "info_form", "username_password",
+	"email_password", "hotel", "voucher", "membership",
+}
+
 // bootstrapCollections ensures required PocketBase collections exist.
 func bootstrapCollections(app *pocketbase.PocketBase) {
 	collections := []struct {
@@ -46,6 +53,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.TextField{Name: "slug"},
 				&core.SelectField{Name: "category", Values: portalCategories},
 				&core.TextField{Name: "description"},
+				&core.SelectField{Name: "auth_type", Values: portalAuthTypes},
 			},
 		},
 		{
@@ -72,6 +80,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.BoolField{Name: "portal_auth"},
 				&core.BoolField{Name: "hidden"},
 				&core.TextField{Name: "subnet"},
+				&core.TextField{Name: "credential_set_id"}, // portal_credentials record validated against
 			},
 		},
 		{
@@ -115,6 +124,16 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.TextField{Name: "urls", Max: 20000},
 				&core.TextField{Name: "domains", Max: 20000},
 				&core.TextField{Name: "ips", Max: 20000},
+				&core.SelectField{Name: "type", Values: []string{"builtin", "custom"}},
+			},
+		},
+		{
+			name: "portal_credentials",
+			fields: []core.Field{
+				&core.TextField{Name: "name", Required: true},
+				&core.SelectField{Name: "auth_type", Values: portalAuthTypes},
+				&core.TextField{Name: "description"},
+				&core.TextField{Name: "entries", Max: 200000}, // JSON array of credential entries
 				&core.SelectField{Name: "type", Values: []string{"builtin", "custom"}},
 			},
 		},
@@ -228,6 +247,8 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 	removeDefaultUsersCollection(app)
 	reconcilePortalFields(app)
 	reconcileNetworkPortalAuth(app)
+	reconcilePortalAuthType(app)
+	reconcileNetworkCredentialSet(app)
 	reconcileNetworkHidden(app)
 	reconcileNetworkSubnet(app)
 	reconcileSubmissionTimestamps(app)
@@ -321,6 +342,40 @@ func reconcileNetworkPortalAuth(app *pocketbase.PocketBase) {
 		log.Printf("[bootstrap] failed to add networks.portal_auth field: %v", err)
 	} else {
 		log.Printf("[bootstrap] added networks.portal_auth field")
+	}
+}
+
+// reconcilePortalAuthType adds the portals.auth_type field to databases that predate it.
+func reconcilePortalAuthType(app *pocketbase.PocketBase) {
+	col, err := app.FindCollectionByNameOrId("portals")
+	if err != nil || col == nil {
+		return
+	}
+	if col.Fields.GetByName("auth_type") != nil {
+		return
+	}
+	col.Fields.Add(&core.SelectField{Name: "auth_type", Values: portalAuthTypes})
+	if err := app.Save(col); err != nil {
+		log.Printf("[bootstrap] failed to add portals.auth_type field: %v", err)
+	} else {
+		log.Printf("[bootstrap] added portals.auth_type field")
+	}
+}
+
+// reconcileNetworkCredentialSet adds the networks.credential_set_id field to databases that predate it.
+func reconcileNetworkCredentialSet(app *pocketbase.PocketBase) {
+	col, err := app.FindCollectionByNameOrId("networks")
+	if err != nil || col == nil {
+		return
+	}
+	if col.Fields.GetByName("credential_set_id") != nil {
+		return
+	}
+	col.Fields.Add(&core.TextField{Name: "credential_set_id"})
+	if err := app.Save(col); err != nil {
+		log.Printf("[bootstrap] failed to add networks.credential_set_id field: %v", err)
+	} else {
+		log.Printf("[bootstrap] added networks.credential_set_id field")
 	}
 }
 
@@ -517,7 +572,7 @@ func seedTrafficDatasets(app *pocketbase.PocketBase) {
 
 // reconcileCollectionRules locks the managed collections to superusers only (nil rules); PocketBase treats "" as PUBLIC.
 func reconcileCollectionRules(app *pocketbase.PocketBase) {
-	managed := []string{"portals", "networks", "settings", "certificates", "captures", "clients", "radius_config", "portal_submissions", "den_members", "client_configs", "traffic_datasets"}
+	managed := []string{"portals", "networks", "settings", "certificates", "captures", "clients", "radius_config", "portal_submissions", "den_members", "client_configs", "traffic_datasets", "portal_credentials"}
 	for _, name := range managed {
 		col, err := app.FindCollectionByNameOrId(name)
 		if err != nil || col == nil {

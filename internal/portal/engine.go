@@ -57,11 +57,13 @@ type Engine struct {
 	// OnSubmit, if set, is invoked with every portal form submission so the caller can persist harvested fields.
 	OnSubmit func(Submission)
 
-	// RequireAuth makes the portal validate submitted credentials before granting access.
-	RequireAuth bool
+	// AuthType is the portal's captive-portal auth type (see authtype.go): it
+	// shapes the form and decides whether submissions are validated.
+	AuthType string
 
-	// Authenticate validates a username/password and returns true if accepted.
-	Authenticate func(username, password string) bool
+	// Validate, if non-nil, checks the full submitted form and returns true to
+	// grant access. nil grants on submit (click-through / info capture).
+	Validate func(fields map[string]string) bool
 
 	mu        sync.RWMutex
 	allowed   map[string]bool // MAC -> allowed
@@ -216,9 +218,21 @@ func (e *Engine) startHTTPServer() error {
 		clientIP := strings.Split(r.RemoteAddr, ":")[0]
 		mac := e.getMACFromIP(clientIP)
 
-		// Harvest the submitted form, tag pack-member traffic, and (for auth
-		// portals) validate the credentials.
-		fields, authPassed := submissionFields(r, e.RequireAuth, e.Authenticate)
+		// Harvest every submitted field and tag pack-member traffic.
+		fields := submissionFields(r)
+		// Validate against the credential set when the auth type requires it.
+		valid := true
+		if e.Validate != nil {
+			valid = e.Validate(fields)
+			if u, _ := extractCreds(r.PostForm); u != "" {
+				fields["_auth_user"] = u
+			}
+			if valid {
+				fields["_auth_result"] = "success"
+			} else {
+				fields["_auth_result"] = "fail"
+			}
+		}
 
 		if e.OnSubmit != nil && len(fields) > 0 {
 			e.OnSubmit(Submission{
@@ -232,11 +246,11 @@ func (e *Engine) startHTTPServer() error {
 			})
 		}
 
-		// Reject failed logins: re-serve the portal with an error banner and do not punch the firewall hole.
-		if e.RequireAuth && !authPassed {
+		// Reject failed validation: re-serve the portal with an error and do not grant.
+		if e.Validate != nil && !valid {
 			w.Header().Set("Content-Type", "text/html; charset=utf-8")
 			w.WriteHeader(http.StatusUnauthorized)
-			e.servePortalBody(w, "Authentication failed. Check your username and password and try again.")
+			e.servePortalBody(w, "Sign-in failed. Check your details and try again.")
 			return
 		}
 
@@ -277,7 +291,7 @@ func (e *Engine) startHTTPServer() error {
 		if e.PortalHTML != "" {
 			fmt.Fprint(w, e.PortalHTML)
 		} else {
-			renderDefaultPortal(w, e.RequireAuth)
+			renderDefaultPortal(w, e.AuthType)
 		}
 	})
 
@@ -343,15 +357,16 @@ func (e *Engine) startHTTPServer() error {
 	return nil
 }
 
-func renderDefaultPortal(w http.ResponseWriter, requireAuth bool) {
-	tmpl := template.Must(template.New("portal").Parse(defaultPortal(requireAuth)))
+func renderDefaultPortal(w http.ResponseWriter, authType string) {
+	tmpl := template.Must(template.New("portal").Parse(defaultPortal(authType)))
 	_ = tmpl.Execute(w, nil)
 }
 
-// defaultPortal returns the built-in portal: a login form when the network
-// requires authentication, otherwise the accept-only splash.
-func defaultPortal(requireAuth bool) string {
-	if requireAuth {
+// defaultPortal returns the built-in portal: a login form for auth types that
+// validate credentials, otherwise the accept-only splash. Only used when a portal
+// has no HTML of its own.
+func defaultPortal(authType string) string {
+	if Spec(AuthType(authType)).Validates {
 		return defaultPortalAuthHTML
 	}
 	return defaultPortalHTML
@@ -395,11 +410,10 @@ func extractCreds(form url.Values) (user, pass string) {
 	return user, pass
 }
 
-// submissionFields harvests the posted form (dropping control fields), tags
-// pack-member traffic from the X-Tala-Member header, and - for auth portals -
-// validates the credentials. It returns the recorded fields and whether auth
-// passed (always true when auth is not required).
-func submissionFields(r *http.Request, requireAuth bool, authenticate func(string, string) bool) (map[string]string, bool) {
+// submissionFields harvests the posted form (dropping control fields) and tags
+// pack-member traffic from the X-Tala-Member header. Validation is applied by the
+// caller via Engine.Validate, so every field type a portal collects is recorded.
+func submissionFields(r *http.Request) map[string]string {
 	_ = r.ParseForm()
 	fields := make(map[string]string)
 	for k, vals := range r.PostForm {
@@ -414,21 +428,7 @@ func submissionFields(r *http.Request, requireAuth bool, authenticate func(strin
 	if m := r.Header.Get("X-Tala-Member"); m != "" {
 		fields["_pack_member"] = m
 	}
-
-	authPassed := true
-	if requireAuth {
-		user, pass := extractCreds(r.PostForm)
-		authPassed = user != "" && pass != "" && authenticate != nil && authenticate(user, pass)
-		if user != "" {
-			fields["_auth_user"] = user
-		}
-		if authPassed {
-			fields["_auth_result"] = "success"
-		} else {
-			fields["_auth_result"] = "fail"
-		}
-	}
-	return fields, authPassed
+	return fields
 }
 
 // servePortalBody renders the configured portal page, optionally with an error banner injected at the top.
@@ -444,7 +444,7 @@ func (e *Engine) servePortalBody(w http.ResponseWriter, errMsg string) {
 		html = e.PortalHTML
 	}
 	if html == "" {
-		html = defaultPortal(e.RequireAuth)
+		html = defaultPortal(e.AuthType)
 	}
 	if errMsg != "" {
 		html = injectError(html, errMsg)

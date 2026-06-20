@@ -14,12 +14,12 @@ import (
 // TestDefaultPortalAuth verifies the built-in portal renders a login form when
 // the network requires authentication, and the accept-only splash otherwise.
 func TestDefaultPortalAuth(t *testing.T) {
-	auth := defaultPortal(true)
+	auth := defaultPortal(string(AuthUserPassword))
 	if !strings.Contains(auth, `name="username"`) || !strings.Contains(auth, `name="password"`) {
 		t.Errorf("auth default portal must have username + password fields, got:\n%s", auth)
 	}
 
-	open := defaultPortal(false)
+	open := defaultPortal(string(AuthClickThrough))
 	if strings.Contains(open, `name="password"`) {
 		t.Error("non-auth default portal must not have a password field")
 	}
@@ -42,7 +42,7 @@ func TestSubmissionFieldsPackMember(t *testing.T) {
 	req := httptest.NewRequest("POST", "/portal/accept", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("X-Tala-Member", "lab-client-1")
-	fields, _ := submissionFields(req, false, nil)
+	fields := submissionFields(req)
 	if fields["_pack_member"] != "lab-client-1" {
 		t.Errorf("_pack_member = %q, want lab-client-1", fields["_pack_member"])
 	}
@@ -56,7 +56,7 @@ func TestSubmissionFieldsPackMember(t *testing.T) {
 	// No header -> untagged (a real target).
 	req2 := httptest.NewRequest("POST", "/portal/accept", strings.NewReader(form.Encode()))
 	req2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
-	f2, _ := submissionFields(req2, false, nil)
+	f2 := submissionFields(req2)
 	if _, ok := f2["_pack_member"]; ok {
 		t.Error("a target submission should not be tagged pack member")
 	}

@@ -218,6 +218,8 @@ func main() {
 		se.Router.GET("/api/wte/enterprise/preflight", wrapAuth(sim.PreflightHandler()))
 		se.Router.POST("/api/wte/enterprise/provision", wrapAuth(sim.ProvisionHandler()))
 
+		se.Router.GET("/api/wte/portals/auth-types", wrapAuth(portalAuthTypesHandler()))
+		se.Router.POST("/api/wte/portals/credentials/generate", wrapAuth(portalCredentialsGenerateHandler(app)))
 		se.Router.GET("/api/wte/portals/templates", wrapAuth(portalTemplatesHandler()))
 		se.Router.POST("/api/wte/portals/restore", wrapAuth(portalRestoreHandler(app)))
 		se.Router.POST("/api/wte/portals/upload", wrapAuth(portalUploadHandler(app)))
