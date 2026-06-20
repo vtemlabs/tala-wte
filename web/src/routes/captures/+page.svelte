@@ -36,6 +36,24 @@
     { label: 'Clear', bpf: '' }
   ];
 
+  let capSort = $state('ssid');
+  let capDir = $state<'asc' | 'desc'>('asc');
+  function sortCap(k: string) {
+    if (capSort === k) capDir = capDir === 'asc' ? 'desc' : 'asc';
+    else {
+      capSort = k;
+      capDir = 'asc';
+    }
+  }
+  const sortedCaptures = $derived.by(() => {
+    const dir = capDir === 'asc' ? 1 : -1;
+    return [...captureList].sort((a, b) => {
+      if (capSort === 'packets') return ((a.packet_count || 0) - (b.packet_count || 0)) * dir;
+      if (capSort === 'ssid') return ssidFor(a).localeCompare(ssidFor(b)) * dir;
+      return String(a[capSort] || '').localeCompare(String(b[capSort] || '')) * dir;
+    });
+  });
+
   onMount(async () => {
     try {
       [captureList, networkList, { interfaces }] = await Promise.all([
@@ -187,12 +205,36 @@
         <table class="table">
           <thead>
             <tr>
-              <th>SSID</th><th>Layer</th><th>Interface</th>
-              <th class="num">Packets</th><th>Status</th><th class="act"></th>
+              <th class="sortable" onclick={() => sortCap('ssid')}
+                >SSID{#if capSort === 'ssid'}<span class="sort-arrow"
+                    >{capDir === 'asc' ? '▲' : '▼'}</span
+                  >{/if}</th
+              >
+              <th class="sortable" onclick={() => sortCap('layer')}
+                >Layer{#if capSort === 'layer'}<span class="sort-arrow"
+                    >{capDir === 'asc' ? '▲' : '▼'}</span
+                  >{/if}</th
+              >
+              <th class="sortable" onclick={() => sortCap('interface')}
+                >Interface{#if capSort === 'interface'}<span class="sort-arrow"
+                    >{capDir === 'asc' ? '▲' : '▼'}</span
+                  >{/if}</th
+              >
+              <th class="sortable num" onclick={() => sortCap('packets')}
+                >Packets{#if capSort === 'packets'}<span class="sort-arrow"
+                    >{capDir === 'asc' ? '▲' : '▼'}</span
+                  >{/if}</th
+              >
+              <th class="sortable" onclick={() => sortCap('status')}
+                >Status{#if capSort === 'status'}<span class="sort-arrow"
+                    >{capDir === 'asc' ? '▲' : '▼'}</span
+                  >{/if}</th
+              >
+              <th class="actions-col"></th>
             </tr>
           </thead>
           <tbody>
-            {#each captureList as c}
+            {#each sortedCaptures as c}
               <tr>
                 <td data-label="SSID" class="mono">{ssidFor(c)}</td>
                 <td data-label="Layer"><span class="badge badge-neutral">{c.layer}</span></td>
@@ -208,14 +250,14 @@
                     {c.status}
                   </span>
                 </td>
-                <td data-label="" class="act">
+                <td data-label="" class="actions-col">
                   <div class="row-actions">
                     {#if c.status === 'running'}
-                      <button class="action-btn btn-danger" onclick={() => stop(c.id)}>Stop</button>
+                      <button class="action-btn del-btn" onclick={() => stop(c.id)}>Stop</button>
                     {:else}
                       <a href={`/captures/${c.id}`} class="action-btn">View</a>
                       <a href={captures.downloadURL(c.id)} class="action-btn" download>Download</a>
-                      <button class="action-btn btn-danger" onclick={() => remove(c.id)}>Del</button
+                      <button class="action-btn del-btn" onclick={() => remove(c.id)}>Del</button
                       >
                     {/if}
                   </div>
@@ -250,20 +292,6 @@
   .table .num {
     text-align: right;
     font-variant-numeric: tabular-nums;
-  }
-  .table th.act,
-  .table td.act {
-    text-align: right;
-  }
-  .btn-danger.action-btn {
-    color: var(--color-red);
-    border-color: rgba(244, 63, 94, 0.4);
-    background: rgba(244, 63, 94, 0.08);
-  }
-  .btn-danger.action-btn:hover {
-    background: var(--color-red);
-    color: #fff;
-    border-color: transparent;
   }
 
   .presets {

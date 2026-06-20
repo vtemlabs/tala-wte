@@ -15,6 +15,22 @@
   let guideOpen = $state(false);
   let certs = $state<Record<string, any>[]>([]);
   let loading = $state(true);
+
+  let certSort = $state('name');
+  let certDir = $state<'asc' | 'desc'>('asc');
+  function sortCert(k: string) {
+    if (certSort === k) certDir = certDir === 'asc' ? 'desc' : 'asc';
+    else {
+      certSort = k;
+      certDir = 'asc';
+    }
+  }
+  const sortedCerts = $derived.by(() => {
+    const dir = certDir === 'asc' ? 1 : -1;
+    return [...certs].sort(
+      (a, b) => String(a[certSort] || '').localeCompare(String(b[certSort] || '')) * dir
+    );
+  });
   let creating = $state(false);
   let error = $state('');
   let newName = $state('');
@@ -184,10 +200,31 @@
     <div class="table-wrap">
       <table class="table">
         <thead>
-          <tr><th>Name</th><th>Type</th><th>Network</th><th>Expires</th></tr>
+          <tr>
+            <th class="sortable" onclick={() => sortCert('name')}
+              >Name{#if certSort === 'name'}<span class="sort-arrow"
+                  >{certDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}</th
+            >
+            <th class="sortable" onclick={() => sortCert('type')}
+              >Type{#if certSort === 'type'}<span class="sort-arrow"
+                  >{certDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}</th
+            >
+            <th class="sortable" onclick={() => sortCert('network_id')}
+              >Network{#if certSort === 'network_id'}<span class="sort-arrow"
+                  >{certDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}</th
+            >
+            <th class="sortable" onclick={() => sortCert('expires_at')}
+              >Expires{#if certSort === 'expires_at'}<span class="sort-arrow"
+                  >{certDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}</th
+            >
+          </tr>
         </thead>
         <tbody>
-          {#each certs as c}
+          {#each sortedCerts as c}
             <tr>
               <td data-label="Name" class="mono">{c.name}</td>
               <td data-label="Type"><span class="badge badge-neutral">{c.type}</span></td>

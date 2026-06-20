@@ -638,6 +638,13 @@
     transform: scale(0.8);
     transform-origin: top left;
   }
+  /* The hover preview is a desktop affordance; hide it where it would cover a
+     small screen (touch devices don't hover anyway). */
+  @media (max-width: 900px) {
+    .hover-preview {
+      display: none;
+    }
+  }
 
   .portal-controls {
     display: flex;
