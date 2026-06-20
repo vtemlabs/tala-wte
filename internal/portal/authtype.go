@@ -129,6 +129,30 @@ var fieldAliases = map[string][]string{
 	"email":       {"email", "email_address"},
 }
 
+// canonicalByAlias reverses fieldAliases: every alias (and canonical) maps to its
+// canonical key field, so a form field name can be resolved to a credential field.
+var canonicalByAlias = func() map[string]string {
+	m := map[string]string{}
+	for canon, aliases := range fieldAliases {
+		m[canon] = canon
+		for _, a := range aliases {
+			m[a] = canon
+		}
+	}
+	return m
+}()
+
+// CanonicalField maps a form field name to its canonical credential field
+// (stateroom -> room_number, voucher -> code, account -> username, ...), or
+// returns the lowercased name unchanged when it is not a known credential field.
+func CanonicalField(name string) string {
+	n := strings.ToLower(strings.TrimSpace(name))
+	if c, ok := canonicalByAlias[n]; ok {
+		return c
+	}
+	return n
+}
+
 // submittedValue returns the value for a canonical key field from a submission,
 // trying the canonical name first, then its known aliases.
 func submittedValue(submitted map[string]string, canonical string) string {

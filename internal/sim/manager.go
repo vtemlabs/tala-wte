@@ -97,10 +97,10 @@ func ifaceExists(name string) bool {
 	return err == nil
 }
 
-// portalAuthType resolves the captive-portal auth type for a network: the assigned
+// PortalAuthType resolves the captive-portal auth type for a network: the assigned
 // portal's auth_type, falling back to the legacy portal_auth bool (username/password
 // when set, click-through otherwise) so existing portals keep working.
-func portalAuthType(app *pocketbase.PocketBase, record *core.Record) portal.AuthType {
+func PortalAuthType(app *pocketbase.PocketBase, record *core.Record) portal.AuthType {
 	if pid := record.GetString("portal_id"); pid != "" {
 		if pr, err := app.FindRecordById("portals", pid); err == nil {
 			if at := strings.TrimSpace(pr.GetString("auth_type")); at != "" {
@@ -727,7 +727,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 			// The portal's auth type shapes the form and decides whether submissions
 			// are validated; the validator checks them against the assigned credential
 			// set (or the directory for username/password).
-			authType := portalAuthType(app, record)
+			authType := PortalAuthType(app, record)
 			p.AuthType = string(authType)
 			p.Validate = buildPortalValidator(app, record, authType)
 			// Persist every harvested submission so it surfaces in the UI as captured credentials/PII.

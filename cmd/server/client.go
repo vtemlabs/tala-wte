@@ -118,17 +118,7 @@ func clientConfigExportHandler(app *pocketbase.PocketBase) func(http.ResponseWri
 			api.WriteErr(w, http.StatusNotFound, "network not found")
 			return
 		}
-		cfg := client.Config{
-			SSID:        rec.GetString("ssid"),
-			Protocol:    rec.GetString("protocol"),
-			Passphrase:  rec.GetString("passphrase"),
-			Band:        rec.GetString("band"),
-			Channel:     rec.GetInt("channel"),
-			Hidden:      rec.GetBool("hidden"),
-			Identity:    rec.GetString("identity"),
-			EAPPassword: rec.GetString("eap_password"),
-		}
-		cfg.Portal.Enabled = rec.GetBool("portal_enabled")
+		cfg := clientConfigFromNetwork(app, rec)
 
 		name := filenameSafe.ReplaceAllString(rec.GetString("ssid"), "_")
 		if name == "" {

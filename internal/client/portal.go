@@ -12,6 +12,8 @@ import (
 	"strings"
 
 	"golang.org/x/net/html"
+
+	"github.com/vtemlabs/tala-wte/internal/portal"
 )
 
 // portalIdentity is a coherent fake person used to fill a captive-portal form so
@@ -80,7 +82,7 @@ func buildPortalSubmission(pageHTML string, pc PortalConfig) (action string, val
 		if n.Type == html.ElementNode {
 			switch n.Data {
 			case "input":
-				fillInput(values, n, id, radioSeen, dataDefaults)
+				fillInput(values, n, id, radioSeen, dataDefaults, pc.Fields)
 			case "select":
 				if name := getNodeAttr(n, "name"); name != "" {
 					values.Set(name, firstOptionValue(n))
@@ -104,13 +106,25 @@ func buildPortalSubmission(pageHTML string, pc PortalConfig) (action string, val
 	return action, values
 }
 
-func fillInput(values url.Values, n *html.Node, id portalIdentity, radioSeen map[string]bool, dataDefaults map[string]string) {
+func fillInput(values url.Values, n *html.Node, id portalIdentity, radioSeen map[string]bool, dataDefaults, creds map[string]string) {
 	name := getNodeAttr(n, "name")
 	if name == "" {
 		return
 	}
 	typ := strings.ToLower(getNodeAttr(n, "type"))
 	val := getNodeAttr(n, "value")
+	// A pushed credential (canonical field) wins for the matching data input, so a
+	// deployed member submits a valid typed credential (hotel room+name, voucher,
+	// login, etc.) instead of a guessed value.
+	switch typ {
+	case "checkbox", "radio", "submit", "button", "reset", "image", "file":
+		// not a credential text field; fall through to the normal handling below
+	default:
+		if v := creds[portal.CanonicalField(name)]; v != "" {
+			values.Set(name, v)
+			return
+		}
+	}
 	switch typ {
 	case "hidden":
 		// A JS-populated hidden field (set by clicking an option) arrives empty;

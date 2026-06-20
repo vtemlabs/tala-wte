@@ -23,6 +23,7 @@ import (
 	"fmt"
 	"io"
 	"log"
+	mrand "math/rand"
 	"net/http"
 	"os"
 	"strings"
@@ -33,6 +34,7 @@ import (
 
 	"github.com/vtemlabs/tala-wte/internal/api"
 	"github.com/vtemlabs/tala-wte/internal/client"
+	"github.com/vtemlabs/tala-wte/internal/sim"
 	"github.com/vtemlabs/tala-wte/internal/updater"
 )
 
@@ -179,8 +181,11 @@ func memberCall(app *pocketbase.PocketBase, member *core.Record, method, path st
 	return resp, nil
 }
 
-// clientConfigFromNetwork builds a client connection profile from a network record.
-func clientConfigFromNetwork(rec *core.Record) client.Config {
+// clientConfigFromNetwork builds a client connection profile from a network
+// record. For a captive-portal network it also carries the portal's auth type and
+// a valid credential drawn from the assigned set, so a deployed member passes a
+// typed portal (hotel room+name, voucher, login, ...) instead of guessing.
+func clientConfigFromNetwork(app *pocketbase.PocketBase, rec *core.Record) client.Config {
 	cfg := client.Config{
 		SSID:        rec.GetString("ssid"),
 		Protocol:    rec.GetString("protocol"),
@@ -192,6 +197,17 @@ func clientConfigFromNetwork(rec *core.Record) client.Config {
 		EAPPassword: rec.GetString("eap_password"),
 	}
 	cfg.Portal.Enabled = rec.GetBool("portal_enabled")
+	if cfg.Portal.Enabled {
+		cfg.Portal.AuthType = string(sim.PortalAuthType(app, rec))
+		if setID := rec.GetString("credential_set_id"); setID != "" {
+			if set, err := app.FindRecordById("portal_credentials", setID); err == nil {
+				var entries []map[string]string
+				if json.Unmarshal([]byte(set.GetString("entries")), &entries) == nil && len(entries) > 0 {
+					cfg.Portal.Fields = entries[mrand.Intn(len(entries))]
+				}
+			}
+		}
+	}
 	return cfg
 }
 
@@ -218,7 +234,7 @@ func denDeployHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 		}
 		base := memberBaseURL(member.GetString("address"))
 		key := member.GetString("agent_key")
-		resp, err := memberCall(app, member, http.MethodPost, "/api/wte/client/connect", clientConfigFromNetwork(net))
+		resp, err := memberCall(app, member, http.MethodPost, "/api/wte/client/connect", clientConfigFromNetwork(app, net))
 		if err != nil {
 			api.WriteErr(w, http.StatusBadGateway, "could not reach member: "+err.Error())
 			return

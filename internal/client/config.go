@@ -31,6 +31,11 @@ type PortalConfig struct {
 	Enabled  bool   `json:"enabled"`
 	Username string `json:"username,omitempty"`
 	Password string `json:"password,omitempty"`
+	// AuthType is the portal's auth type; Fields carries a valid credential for it
+	// (canonical field names, e.g. {"last_name":"Smith","room_number":"227"}) so a
+	// deployed member passes a typed portal instead of guessing.
+	AuthType string            `json:"auth_type,omitempty"`
+	Fields   map[string]string `json:"fields,omitempty"`
 }
 
 // TrafficOptions are the runtime toggles chosen in the client console: which
