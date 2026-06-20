@@ -255,9 +255,6 @@
   .table td.act {
     text-align: right;
   }
-  .row-actions {
-    justify-content: flex-end;
-  }
   .btn-danger.action-btn {
     color: var(--color-red);
     border-color: rgba(244, 63, 94, 0.4);

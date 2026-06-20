@@ -242,10 +242,6 @@
   .net-head {
     gap: var(--space-md);
   }
-  .filter-field {
-    max-width: 340px;
-  }
-
   .empty-icon {
     margin-bottom: var(--space-lg);
     color: var(--text-dim);
@@ -259,12 +255,6 @@
     font-weight: 600;
   }
 
-  .net-table th.actions-col,
-  .net-table td.actions-col {
-    text-align: right;
-    white-space: nowrap;
-  }
-
   .net-status {
     display: inline-flex;
     align-items: center;
@@ -272,17 +262,4 @@
     white-space: nowrap;
   }
 
-  .row-actions {
-    display: flex;
-    gap: 4px;
-    justify-content: flex-end;
-  }
-  .del-btn {
-    color: var(--color-red);
-  }
-  .del-btn:hover {
-    color: #fff;
-    background: var(--color-red);
-    border-color: transparent;
-  }
 </style>

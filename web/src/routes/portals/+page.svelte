@@ -27,6 +27,7 @@
   let source = $state((browser && localStorage.getItem('portals:source')) || 'all');
   let sortBy = $state((browser && localStorage.getItem('portals:sort')) || 'name');
   let view = $state((browser && localStorage.getItem('portals:view')) || 'card');
+  let hoverPortal = $state<Record<string, any> | null>(null);
   $effect(() => {
     if (browser) {
       localStorage.setItem('portals:source', source);
@@ -337,49 +338,74 @@
     {/each}
   </div>
 {:else}
-  <div class="table-wrap">
-    <table class="table">
-      <thead>
-        <tr><th>Name</th><th>Category</th><th>Source</th><th></th></tr>
-      </thead>
-      <tbody>
-        {#each filtered as portal (portal.id)}
-          <tr>
-            <td data-label="Name">{portal.name}</td>
-            <td data-label="Category" class="dim">{catLabel(portal.category || 'custom')}</td>
-            <td data-label="Source">
-              <span class="badge {portal.type === 'builtin' ? 'badge-info' : 'badge-neutral'}"
-                >{portal.type}</span
-              >
-            </td>
-            <td>
-              <div class="portal-actions">
-                <a
-                  href="/portals/{portal.id}"
-                  class="action-btn"
-                  title={portal.type === 'builtin'
-                    ? 'Built-in templates are read-only; saving creates an editable copy'
-                    : 'Edit this portal'}>{portal.type === 'builtin' ? 'Customize' : 'Edit'}</a
+  <div class="panel">
+    <div class="table-wrap">
+      <table class="table">
+        <thead>
+          <tr><th>Name</th><th>Category</th><th>Source</th><th class="actions-col"></th></tr>
+        </thead>
+        <tbody>
+          {#each filtered as portal (portal.id)}
+            <tr
+              onmouseenter={() => (hoverPortal = portal)}
+              onmouseleave={() => (hoverPortal = null)}
+            >
+              <td data-label="Name">{portal.name}</td>
+              <td data-label="Category" class="dim">{catLabel(portal.category || 'custom')}</td>
+              <td data-label="Source">
+                <span class="badge {portal.type === 'builtin' ? 'badge-info' : 'badge-neutral'}"
+                  >{portal.type}</span
                 >
-                <a
-                  href={portals.previewURL(portal.id)}
-                  target="_blank"
-                  rel="noopener"
-                  class="action-btn">Preview</a
-                >
-                {#if !portal.html?.startsWith('fs:')}
-                  <button class="action-btn" onclick={() => clone(portal)}>Clone</button>
-                {/if}
-                <button
-                  class="action-btn danger"
-                  onclick={() => deletePortal(portal.id, portal.name)}>Delete</button
-                >
-              </div>
-            </td>
-          </tr>
-        {/each}
-      </tbody>
-    </table>
+              </td>
+              <td class="actions-col">
+                <div class="row-actions">
+                  <a
+                    href="/portals/{portal.id}"
+                    class="action-btn"
+                    title={portal.type === 'builtin'
+                      ? 'Built-in templates are read-only; saving creates an editable copy'
+                      : 'Edit this portal'}>{portal.type === 'builtin' ? 'Customize' : 'Edit'}</a
+                  >
+                  <a
+                    href={portals.previewURL(portal.id)}
+                    target="_blank"
+                    rel="noopener"
+                    class="action-btn">Preview</a
+                  >
+                  {#if !portal.html?.startsWith('fs:')}
+                    <button class="action-btn" onclick={() => clone(portal)}>Clone</button>
+                  {/if}
+                  <button
+                    class="action-btn danger"
+                    onclick={() => deletePortal(portal.id, portal.name)}>Delete</button
+                  >
+                </div>
+              </td>
+            </tr>
+          {/each}
+        </tbody>
+      </table>
+    </div>
+  </div>
+{/if}
+
+{#if hoverPortal}
+  <div class="hover-preview" aria-hidden="true">
+    <div class="hover-phone">
+      {#if hoverPortal.html?.startsWith('fs:')}
+        <iframe
+          src={portals.previewURL(hoverPortal.id)}
+          title="Mobile preview"
+          sandbox="allow-scripts allow-forms"
+        ></iframe>
+      {:else}
+        <iframe
+          srcdoc={hoverPortal.html}
+          title="Mobile preview"
+          sandbox="allow-scripts allow-forms"
+        ></iframe>
+      {/if}
+    </div>
   </div>
 {/if}
 
@@ -561,6 +587,32 @@
     color: var(--color-green);
     background: rgba(34, 197, 94, 0.14);
     border-color: rgba(34, 197, 94, 0.35);
+  }
+
+  .hover-preview {
+    position: fixed;
+    top: 50%;
+    right: var(--space-xl);
+    transform: translateY(-50%);
+    z-index: 60;
+    pointer-events: none;
+  }
+  .hover-phone {
+    width: 300px;
+    height: 600px;
+    overflow: hidden;
+    border: 1px solid var(--border-secondary);
+    border-radius: var(--radius-lg);
+    background: #000;
+    box-shadow: 0 16px 48px rgba(0, 0, 0, 0.6);
+  }
+  .hover-phone iframe {
+    width: 375px;
+    height: 750px;
+    border: 0;
+    background: #fff;
+    transform: scale(0.8);
+    transform-origin: top left;
   }
 
   .portal-controls {

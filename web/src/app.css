@@ -506,6 +506,36 @@ textarea.input {
 .row-actions {
 	display: flex;
 	gap: 4px;
+	align-items: center;
+	justify-content: flex-end;
+	flex-wrap: wrap;
+}
+
+/* Shared table helpers - every list table uses these, no per-page variants. */
+.table th.sortable {
+	cursor: pointer;
+	user-select: none;
+	white-space: nowrap;
+}
+.table th.sortable:hover {
+	color: var(--accent-hover);
+}
+.sort-arrow {
+	margin-left: 4px;
+	color: var(--accent);
+}
+.table th.num-col,
+.table td.num-col {
+	text-align: center;
+	white-space: nowrap;
+}
+.table th.actions-col,
+.table td.actions-col {
+	text-align: right;
+	white-space: nowrap;
+}
+.filter-field {
+	max-width: 340px;
 }
 
 .action-btn {
@@ -523,6 +553,16 @@ textarea.input {
 	border-color: var(--border-secondary);
 	color: var(--text-primary);
 	background: var(--bg-hover);
+}
+.action-btn.del-btn,
+.action-btn.danger {
+	color: var(--color-red);
+}
+.action-btn.del-btn:hover,
+.action-btn.danger:hover {
+	background: var(--color-red);
+	color: #fff;
+	border-color: transparent;
 }
 
 .create-bar {

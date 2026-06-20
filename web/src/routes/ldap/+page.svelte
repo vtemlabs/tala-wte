@@ -652,44 +652,9 @@
     gap: var(--space-md);
     margin-bottom: var(--space-md);
   }
-  .filter-field {
-    max-width: 340px;
-  }
-
-  th.sortable {
-    cursor: pointer;
-    user-select: none;
-    white-space: nowrap;
-  }
-  th.sortable:hover {
-    color: var(--accent-hover);
-  }
-  .sort-arrow {
-    margin-left: 4px;
-    color: var(--accent);
-  }
-  th.num-col,
-  td.num-col {
-    text-align: center;
-    white-space: nowrap;
-  }
-  th.actions-col,
-  td.actions-col {
-    text-align: right;
-    white-space: nowrap;
-  }
   .member-list {
     color: var(--text-dim);
   }
-  .del-btn {
-    color: var(--color-red);
-  }
-  .del-btn:hover {
-    background: var(--color-red);
-    color: #fff;
-    border-color: transparent;
-  }
-
   .pw-cell {
     display: inline-block;
     min-width: 140px;
