@@ -158,56 +158,33 @@ func shortBand(label string) string {
 	}
 }
 
-// buildSwapProposal describes a proposed adapter substitution for a network whose saved
-// radio is gone, including whether the candidate can host the saved band as an AP and,
-// if not, which band it will fall back to.
-func buildSwapProposal(missing string, cand *iface.Adapter, band string) map[string]any {
+// bestBandForAdapter returns the band a substitute adapter should host. If the
+// adapter can host the wanted band as an AP it returns "" (keep the configured
+// band); otherwise it returns the most compatible band it does support, preferring
+// 2.4 GHz. Returns "" when capability is unknown, so the configured band is kept.
+func bestBandForAdapter(cand *iface.Adapter, band string) string {
 	if band == "" {
 		band = "2.4"
 	}
-	label := cand.Interface
-	switch {
-	case cand.Manufacturer != "" && cand.DeviceModel != "":
-		label = fmt.Sprintf("%s %s", cand.Manufacturer, cand.DeviceModel)
-	case cand.Driver != "":
-		label = cand.Driver
-	}
-
 	apBands := cand.APBands
 	if len(apBands) == 0 {
 		apBands = cand.Bands
 	}
+	if len(apBands) == 0 {
+		return ""
+	}
 	wanted := bandLabel(band)
-	bandOK := false
 	for _, b := range apBands {
 		if b == wanted {
-			bandOK = true
-			break
+			return ""
 		}
 	}
-	suggested := band
-	reason := ""
-	if !bandOK && len(apBands) > 0 {
-		suggested = shortBand(apBands[0])
-		for _, b := range apBands {
-			if b == "2.4 GHz" { // prefer the most compatible band
-				suggested = "2.4"
-				break
-			}
+	for _, b := range apBands {
+		if b == "2.4 GHz" {
+			return "2.4"
 		}
-		reason = fmt.Sprintf("%s cannot host a %s access point; the network will switch to %s", cand.Interface, wanted, bandLabel(suggested))
 	}
-
-	return map[string]any{
-		"needs_adapter_choice": true,
-		"error":                fmt.Sprintf("configured adapter %q is not connected", missing),
-		"missing":              missing,
-		"proposed":             map[string]any{"interface": cand.Interface, "label": label},
-		"current_band":         band,
-		"band_ok":              bandOK,
-		"suggested_band":       suggested,
-		"band_reason":          reason,
-	}
+	return shortBand(apBands[0])
 }
 
 // buildConfig constructs the hostapd.Config from a network record. ifName is the resolved adapter (the allocation

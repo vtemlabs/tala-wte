@@ -372,24 +372,23 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 			}
 		}
 
-		// Radio management: if the saved adapter is physically gone and the operator
-		// has not confirmed a substitute, ask before silently switching radios.
+		// Radio management: if the saved adapter is physically gone (replugged,
+		// swapped, removed), auto-claim the best free real adapter instead of
+		// refusing - the operator should not have to re-pick a radio every time the
+		// hardware changes. An explicit body.Interface still overrides. Only when no
+		// adapter is free at all do we fall through to ResolveInterfaceFree's error.
 		if body.Interface == "" && configuredIface != "" && iface.FindByInterface(adapters, configuredIface) == nil {
-			cand := iface.BestFreeRealAdapter(adapters, inUse)
-			mu.Unlock()
-			w.Header().Set("Content-Type", "application/json")
-			w.WriteHeader(http.StatusConflict)
-			if cand == nil {
-				api.WriteJSON(w, map[string]any{
-					"error": fmt.Sprintf("configured adapter %q is not connected and no other wireless adapter is available", configuredIface),
-				})
-			} else {
-				api.WriteJSON(w, buildSwapProposal(configuredIface, cand, record.GetString("band")))
+			if cand := iface.BestFreeRealAdapter(adapters, inUse); cand != nil {
+				body.Interface = cand.Interface
+				if b := bestBandForAdapter(cand, record.GetString("band")); b != "" {
+					body.Band = b
+				}
+				log.Printf("[sim][start] saved adapter %q gone; auto-claiming free adapter %s (band %s)", configuredIface, cand.Interface, body.Band)
 			}
-			return
 		}
 
-		// Operator confirmed a substitute adapter (and optionally a band change): persist it.
+		// Persist the substitute adapter (auto-claimed above or operator-confirmed)
+		// and any band change it requires.
 		if body.Interface != "" {
 			record.Set("interface", body.Interface)
 			configuredIface = body.Interface
