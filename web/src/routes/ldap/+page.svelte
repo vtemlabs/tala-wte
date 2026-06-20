@@ -588,7 +588,6 @@
                 id="newGroupCN"
                 bind:value={newGroupCN}
                 placeholder="e.g. wifi-users"
-                style="width:250px"
               />
             </div>
             <button
@@ -744,21 +743,29 @@
   .tab-bar-pad {
     padding: 0 var(--space-xl);
   }
+  /* Override the global boxed .create-bar locally so both tabs share one clean,
+     borderless create row with a separator before the list - the 1-field group
+     form and the 5-field user form then look identical instead of one being a
+     mostly-empty box. */
   .create-bar {
-    margin-bottom: 0;
+    background: transparent;
+    border: none;
+    border-radius: 0;
+    border-bottom: 1px solid var(--border-primary);
+    padding: 0 0 var(--space-lg);
+    margin-bottom: var(--space-lg);
   }
-
-  .user-form {
+  .user-form,
+  .group-form {
     display: grid;
-    grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
-    gap: var(--space-sm);
+    gap: var(--space-md);
     align-items: end;
   }
+  .user-form {
+    grid-template-columns: repeat(5, minmax(0, 1fr)) auto;
+  }
   .group-form {
-    display: flex;
-    gap: var(--space-sm);
-    align-items: flex-end;
-    flex-wrap: wrap;
+    grid-template-columns: 1fr auto;
   }
   .list-controls {
     display: flex;
