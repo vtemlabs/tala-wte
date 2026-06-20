@@ -16,6 +16,20 @@ Free for personal and non-profit use, and the open counterpart to [**TALA**](#ba
 
 ---
 
+> [!WARNING]
+> **Tala WTE is a vulnerable-by-design training range.** It deliberately runs
+> insecure networks and weak credentials for you to practice against, so it is
+> not hardened. Run it only in an isolated lab, never on a production or
+> internet-facing network.
+
+## Deployment
+
+Run Tala WTE on a dedicated, isolated lab network rather than a production or
+corporate LAN. It needs an outbound internet uplink for client traffic generation
+and updates, but its web console (HTTPS on 8443) and services should not be
+exposed to inbound connections from the internet or untrusted networks. Only
+transmit on Wi-Fi channels and a regulatory domain you are authorized to use.
+
 ## Overview
 
 Tala WTE turns a single Linux host with a Wi-Fi adapter into a complete wireless lab. You stand up the target networks, captive portals, and enterprise authentication, then practice wireless penetration testing against them. It also serves as a development sandbox for TALA (see Background), covering only 802.11, which is a small subset of TALA's full scope.
