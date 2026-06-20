@@ -25,6 +25,57 @@ type Template struct {
 	file        string
 }
 
+// templateAuthType maps each built-in template slug to its captive-portal auth
+// type, derived from the template's actual form fields. Built-ins cannot be edited
+// in the UI, so this is their authoritative auth type.
+var templateAuthType = map[string]AuthType{
+	"airport-summit":       AuthEmail,
+	"automotive-tripstop":  AuthEmail,
+	"automotive-voltway":   AuthEmail,
+	"coffee-driftwood":     AuthInfoForm,
+	"coffee-sunrise":       AuthClickThrough,
+	"corp-aruba":           AuthInfoForm,
+	"corp-azuread":         AuthUserPassword,
+	"corp-fortinet":        AuthUserPassword,
+	"corp-meraki":          AuthClickThrough,
+	"corp-selfreg":         AuthInfoForm,
+	"corp-unifi":           AuthVoucher,
+	"cruise-azure":         AuthHotel,
+	"cruise-ferry":         AuthEmail,
+	"education-k12":        AuthInfoForm,
+	"education-university": AuthUserPassword,
+	"event-arena":          AuthEmail,
+	"event-expo":           AuthVoucher,
+	"fitness-pulse":        AuthMembership,
+	"generic-tos":          AuthClickThrough,
+	"healthcare-cedar":     AuthEmail,
+	"hotel-aria":           AuthHotel,
+	"hotel-collective":     AuthEmail,
+	"hotel-resteasy":       AuthHotel,
+	"hotel-wexley":         AuthHotel,
+	"inflight-altius":      AuthUserPassword,
+	"isp-beacon":           AuthUserPassword,
+	"isp-fibernet":         AuthEmailPassword,
+	"library-riverside":    AuthInfoForm,
+	"restaurant-harvest":   AuthInfoForm,
+	"restaurant-quickbite": AuthClickThrough,
+	"retail-bigbox":        AuthEmail,
+	"retail-marketplace":   AuthEmail,
+	"social-cityconnect":   AuthEmail,
+	"telecom-optimax":      AuthUserPassword,
+	"transit-metro":        AuthEmail,
+	"transit-rail":         AuthInfoForm,
+}
+
+// AuthTypeForSlug returns the auth type for a built-in template slug, defaulting
+// to click-through for any not explicitly mapped.
+func AuthTypeForSlug(slug string) AuthType {
+	if t, ok := templateAuthType[slug]; ok {
+		return t
+	}
+	return AuthClickThrough
+}
+
 // catalog is the ordered manifest of built-in templates, each mapping to a file under templates/.
 var catalog = []Template{
 	{

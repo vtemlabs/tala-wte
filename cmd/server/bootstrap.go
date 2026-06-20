@@ -472,15 +472,26 @@ func seedPortalTemplates(app *pocketbase.PocketBase) (seeded, resynced int) {
 		existing, _ := app.FindFirstRecordByFilter("portals", "slug = {:slug}", map[string]any{"slug": t.Slug})
 		if existing != nil {
 			// Keep managed built-ins in sync with the embedded source; user clones carry a different slug and are never touched.
-			if existing.GetString("type") == "builtin" && existing.GetString("html") != t.HTML {
-				existing.Set("html", t.HTML)
-				existing.Set("name", t.Name)
-				existing.Set("category", t.Category)
-				existing.Set("description", t.Description)
-				if err := app.Save(existing); err != nil {
-					log.Printf("[bootstrap] failed to update built-in portal %s: %v", t.Slug, err)
-				} else {
-					resynced++
+			if existing.GetString("type") == "builtin" {
+				changed := false
+				if existing.GetString("html") != t.HTML {
+					existing.Set("html", t.HTML)
+					existing.Set("name", t.Name)
+					existing.Set("category", t.Category)
+					existing.Set("description", t.Description)
+					changed = true
+				}
+				// Backfill the auth type onto built-ins seeded before this feature.
+				if existing.GetString("auth_type") == "" {
+					existing.Set("auth_type", string(portal.AuthTypeForSlug(t.Slug)))
+					changed = true
+				}
+				if changed {
+					if err := app.Save(existing); err != nil {
+						log.Printf("[bootstrap] failed to update built-in portal %s: %v", t.Slug, err)
+					} else {
+						resynced++
+					}
 				}
 			}
 			continue
@@ -492,6 +503,7 @@ func seedPortalTemplates(app *pocketbase.PocketBase) (seeded, resynced int) {
 		rec.Set("slug", t.Slug)
 		rec.Set("category", t.Category)
 		rec.Set("description", t.Description)
+		rec.Set("auth_type", string(portal.AuthTypeForSlug(t.Slug)))
 		if err := app.Save(rec); err != nil {
 			log.Printf("[bootstrap] failed to seed portal template %s: %v", t.Slug, err)
 			continue

@@ -114,16 +114,47 @@ func (s AuthTypeSpec) KeyFields() []string {
 	return keys
 }
 
+// fieldAliases maps a canonical key field to the alternate form-field names real
+// portal templates use for the same credential, so one credential set validates
+// across template variants (a hotel set works whether the form field is named
+// room_number or stateroom).
+var fieldAliases = map[string][]string{
+	"room_number": {"room_number", "room", "stateroom", "unit"},
+	"last_name":   {"last_name", "lastname", "surname"},
+	"code":        {"code", "voucher", "access_code", "survey_code", "ticket_number", "bed_code", "promo_code"},
+	"username":    {"username", "account", "login", "user", "userid"},
+	"password":    {"password", "passcode", "passphrase"},
+	"member_id":   {"member_id", "rewards_number", "loyalty_id", "card_number", "membership_id", "account_number"},
+	"pin":         {"pin"},
+	"email":       {"email", "email_address"},
+}
+
+// submittedValue returns the value for a canonical key field from a submission,
+// trying the canonical name first, then its known aliases.
+func submittedValue(submitted map[string]string, canonical string) string {
+	if v := strings.TrimSpace(submitted[canonical]); v != "" {
+		return v
+	}
+	for _, a := range fieldAliases[canonical] {
+		if v := strings.TrimSpace(submitted[a]); v != "" {
+			return v
+		}
+	}
+	return ""
+}
+
 // MatchEntry reports whether a submitted form satisfies a credential-set entry:
 // every key field must match (case-insensitive for non-secret fields, exact for
-// password/pin). Empty submitted key fields never match.
+// password/pin). Submitted field names are resolved through fieldAliases so a
+// canonical credential set matches a template's own field names. Empty submitted
+// key fields never match.
 func MatchEntry(t AuthType, submitted, entry map[string]string) bool {
 	keys := Spec(t).KeyFields()
 	if len(keys) == 0 {
 		return false
 	}
 	for _, k := range keys {
-		got, want := strings.TrimSpace(submitted[k]), strings.TrimSpace(entry[k])
+		got, want := submittedValue(submitted, k), strings.TrimSpace(entry[k])
 		if got == "" {
 			return false
 		}
