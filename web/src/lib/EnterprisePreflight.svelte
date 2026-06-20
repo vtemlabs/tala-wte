@@ -239,7 +239,7 @@
   .close-btn {
     background: none;
     border: none;
-    font-size: 1.5rem;
+    font-size: var(--font-size-xl);
     color: var(--text-dim);
     cursor: pointer;
     line-height: 1;
@@ -312,7 +312,7 @@
   .status-tag {
     display: inline-block;
     margin-left: var(--space-sm);
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     padding: 1px 6px;
     border-radius: 3px;
     background: var(--bg-hover);

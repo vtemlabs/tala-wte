@@ -228,7 +228,7 @@
     display: inline-flex;
     align-items: center;
     gap: 8px;
-    font-size: 12px;
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
     font-family: var(--font-mono, monospace);
   }
@@ -253,7 +253,7 @@
     border: none;
     cursor: pointer;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: var(--font-size-base);
     line-height: 1;
     border-radius: 4px;
   }

@@ -259,7 +259,7 @@
     gap: var(--space-sm);
   }
   .sort-lbl {
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.08em;

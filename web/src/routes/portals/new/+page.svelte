@@ -119,7 +119,7 @@ button{background:#2563eb;color:#fff;border:none;padding:.75rem 2rem;border-radi
     <div class="section-title">HTML Source</div>
     <textarea
       class="input"
-      style="min-height:460px;font-family:var(--font-mono);font-size:0.75rem;resize:vertical"
+      style="min-height:460px;font-family:var(--font-mono);font-size:var(--font-size-xs);resize:vertical"
       bind:value={html}
       placeholder={defaultHTML}
     ></textarea>

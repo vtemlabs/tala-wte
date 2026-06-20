@@ -413,7 +413,7 @@
         <div style="display:flex;flex-wrap:wrap;gap:0.4rem">
           {#each guide.tools as tool}
             <code
-              style="font-size:0.7rem;padding:2px 6px;background:var(--bg-card);border:1px solid var(--border-primary);border-radius:4px"
+              style="font-size:var(--font-size-xs);padding:2px 6px;background:var(--bg-card);border:1px solid var(--border-primary);border-radius:4px"
               >{tool}</code
             >
           {/each}

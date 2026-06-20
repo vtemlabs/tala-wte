@@ -206,7 +206,7 @@
     flex-shrink: 0;
   }
   .gw-name {
-    font-size: 12px;
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -222,7 +222,7 @@
     border: none;
     cursor: pointer;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: var(--font-size-base);
     line-height: 1;
     border-radius: 4px;
   }

@@ -120,7 +120,7 @@
   .hw-chip {
     flex-shrink: 0;
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--accent-hover);
     background: var(--accent-soft);
@@ -148,7 +148,7 @@
     min-width: 0;
   }
   .hw-spec span {
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     color: var(--text-dim);
     text-transform: uppercase;
@@ -168,7 +168,7 @@
   }
   .hw-tag {
     font-family: var(--font-mono);
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     font-weight: 600;
     background: var(--bg-elevated);
     border: 1px solid var(--border-primary);
@@ -219,7 +219,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.05em;
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
   }
   .hw-notes p {
     margin-top: var(--space-sm);

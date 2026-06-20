@@ -96,7 +96,7 @@
   .close-btn {
     background: none;
     border: none;
-    font-size: 1.4rem;
+    font-size: var(--font-size-xl);
     line-height: 1;
     color: var(--text-dim);
     cursor: pointer;

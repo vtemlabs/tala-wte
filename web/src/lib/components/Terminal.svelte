@@ -499,7 +499,7 @@
     flex-shrink: 0;
   }
   .tw-name {
-    font-size: 12px;
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
     font-family: var(--font-mono, monospace);
   }
@@ -514,7 +514,7 @@
     border: none;
     cursor: pointer;
     color: var(--text-muted);
-    font-size: 14px;
+    font-size: var(--font-size-base);
     line-height: 1;
     border-radius: 4px;
   }
@@ -542,7 +542,7 @@
     align-items: center;
     gap: 6px;
     padding: 5px 10px;
-    font-size: 11px;
+    font-size: var(--font-size-xs);
     color: var(--text-muted);
     cursor: pointer;
     border-radius: 6px 6px 0 0;
@@ -575,7 +575,7 @@
     padding: 0 2px;
     line-height: 1;
     opacity: 0.5;
-    font-size: 13px;
+    font-size: var(--font-size-sm);
   }
   .tw-x:hover {
     opacity: 1;
@@ -584,7 +584,7 @@
     background: var(--bg-hover);
     border: 1px solid var(--accent);
     color: var(--text-primary);
-    font-size: 11px;
+    font-size: var(--font-size-xs);
     padding: 1px 4px;
     width: 84px;
     border-radius: 3px;
@@ -594,7 +594,7 @@
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: 15px;
+    font-size: var(--font-size-base);
     cursor: pointer;
     padding: 2px 9px;
     border-radius: 4px;
@@ -630,7 +630,7 @@
     border-color: var(--accent);
   }
   .tw-fs {
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     color: var(--text-muted);
     min-width: 30px;
     text-align: center;

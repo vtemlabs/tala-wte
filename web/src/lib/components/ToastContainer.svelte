@@ -81,7 +81,7 @@
     min-width: 300px;
     max-width: 450px;
     font-family: var(--font-mono, monospace);
-    font-size: 0.85rem;
+    font-size: var(--font-size-base);
   }
 
   .toast.err {

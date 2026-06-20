@@ -278,7 +278,7 @@
     min-height: 100%;
     background: transparent;
     font-family: var(--font-mono);
-    font-size: 0.75rem;
+    font-size: var(--font-size-xs);
     line-height: 1.55;
   }
   .src-area:focus {

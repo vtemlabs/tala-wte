@@ -290,7 +290,7 @@
     background: var(--border-secondary);
   }
   .brand-wte {
-    font-size: 13px;
+    font-size: var(--font-size-sm);
     font-weight: 800;
     letter-spacing: 0.18em;
     color: var(--accent-hover);

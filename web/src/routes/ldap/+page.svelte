@@ -841,7 +841,7 @@
   }
   .pw-action {
     margin-left: var(--space-xs);
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     padding: 2px 6px;
     color: var(--text-dim);
   }

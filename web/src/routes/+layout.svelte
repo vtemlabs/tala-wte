@@ -404,7 +404,7 @@
     border: 1px solid var(--border-primary);
   }
   .sidebar-sub {
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     color: var(--text-dim);
     letter-spacing: 0.04em;
     text-transform: uppercase;
@@ -418,7 +418,7 @@
 
   .nav-group-label {
     padding: var(--space-md) var(--space-md) var(--space-xs);
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     font-weight: 700;
     color: var(--text-dim);
     text-transform: uppercase;
@@ -490,7 +490,7 @@
   }
   .version {
     display: block;
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     color: var(--text-dim);
     font-family: var(--font-mono);
     margin-top: var(--space-sm);

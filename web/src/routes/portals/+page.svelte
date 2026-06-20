@@ -583,7 +583,7 @@
     min-width: 0;
   }
   .portal-cat {
-    font-size: 10px;
+    font-size: var(--font-size-2xs);
     text-transform: uppercase;
     letter-spacing: 0.08em;
     color: var(--text-dim);

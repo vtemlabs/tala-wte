@@ -110,7 +110,7 @@
     background: none;
     border: none;
     color: var(--text-muted);
-    font-size: 22px;
+    font-size: var(--font-size-xl);
     line-height: 1;
     cursor: pointer;
     padding: 0 var(--space-xs);
