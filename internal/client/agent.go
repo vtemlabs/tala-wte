@@ -556,7 +556,15 @@ func (a *Agent) genWeb(ctx context.Context, opts TrafficOptions, gw string) {
 		pool = append(pool, browseSites...)
 	}
 	if opts.Local && gw != "" {
-		pool = append(pool, "http://"+gw+"/")
+		// The gateway serves HTTP only behind a captive portal; on a plain network
+		// the port is silent and a GET would hang to the client timeout. Probe once
+		// and include it only if it answers, so a portal-less network doesn't
+		// produce repeated "context deadline exceeded" errors.
+		probe := &http.Client{Timeout: 3 * time.Second}
+		if resp, err := probe.Get("http://" + gw + "/"); err == nil {
+			resp.Body.Close()
+			pool = append(pool, "http://"+gw+"/")
+		}
 	}
 	for {
 		if ctx.Err() != nil {
