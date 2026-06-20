@@ -168,6 +168,10 @@ func main() {
 	})
 
 	app.OnServe().BindFunc(func(se *core.ServeEvent) error {
+		// Mirror any existing on-disk PKI into the certificates collection so the
+		// UI reflects a CA/certs created before this build (or by enterprise auto-provision).
+		reconcileCerts(app)
+
 		// Serve the SvelteKit static build (catches / and all sub-routes).
 		se.Router.GET("/{path...}", wrap(staticHandler()))
 
@@ -229,9 +233,9 @@ func main() {
 		se.Router.GET("/api/wte/captures/{id}/packets", wrapAuth(capturePacketsHandler(app)))
 		se.Router.GET("/api/wte/captures/{id}/packet/{n}", wrapAuth(capturePacketDetailHandler(app)))
 
-		se.Router.POST("/api/wte/certs/ca", wrapAuth(certs.CreateCAHandler(app)))
-		se.Router.POST("/api/wte/certs/server", wrapAuth(certs.CreateServerCertHandler(app)))
-		se.Router.POST("/api/wte/certs/client", wrapAuth(certs.CreateClientCertHandler(app)))
+		se.Router.POST("/api/wte/certs/ca", wrapAuth(certReconcileAfter(app, certs.CreateCAHandler(app))))
+		se.Router.POST("/api/wte/certs/server", wrapAuth(certReconcileAfter(app, certs.CreateServerCertHandler(app))))
+		se.Router.POST("/api/wte/certs/client", wrapAuth(certReconcileAfter(app, certs.CreateClientCertHandler(app))))
 
 		se.Router.GET("/api/wte/ldap/users", wrapAuth(ldap.ListUsersHandler(app)))
 		se.Router.POST("/api/wte/ldap/users", wrapAuth(ldap.CreateUserHandler(app)))
