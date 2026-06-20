@@ -26,10 +26,12 @@
   let search = $state('');
   let source = $state((browser && localStorage.getItem('portals:source')) || 'all');
   let sortBy = $state((browser && localStorage.getItem('portals:sort')) || 'name');
+  let view = $state((browser && localStorage.getItem('portals:view')) || 'card');
   $effect(() => {
     if (browser) {
       localStorage.setItem('portals:source', source);
       localStorage.setItem('portals:sort', sortBy);
+      localStorage.setItem('portals:view', view);
     }
   });
 
@@ -260,6 +262,8 @@
       <option value="category">Sort: Category</option>
       <option value="type">Sort: Source</option>
     </select>
+    <button class="chip" class:active={view === 'card'} onclick={() => (view = 'card')}>Cards</button>
+    <button class="chip" class:active={view === 'list'} onclick={() => (view = 'list')}>List</button>
     <span class="count-pill">{filtered.length}</span>
   </div>
   <div class="filter-row">
@@ -280,7 +284,7 @@
       >Create Portal</a
     >
   </div>
-{:else}
+{:else if view === 'card'}
   <div class="grid grid-3 gallery">
     {#each filtered as portal (portal.id)}
       <article class="card portal-card">
@@ -332,13 +336,58 @@
       </article>
     {/each}
   </div>
+{:else}
+  <div class="table-wrap">
+    <table class="table">
+      <thead>
+        <tr><th>Name</th><th>Category</th><th>Source</th><th></th></tr>
+      </thead>
+      <tbody>
+        {#each filtered as portal (portal.id)}
+          <tr>
+            <td data-label="Name">{portal.name}</td>
+            <td data-label="Category" class="dim">{catLabel(portal.category || 'custom')}</td>
+            <td data-label="Source">
+              <span class="badge {portal.type === 'builtin' ? 'badge-info' : 'badge-neutral'}"
+                >{portal.type}</span
+              >
+            </td>
+            <td>
+              <div class="portal-actions">
+                <a
+                  href="/portals/{portal.id}"
+                  class="action-btn"
+                  title={portal.type === 'builtin'
+                    ? 'Built-in templates are read-only; saving creates an editable copy'
+                    : 'Edit this portal'}>{portal.type === 'builtin' ? 'Customize' : 'Edit'}</a
+                >
+                <a
+                  href={portals.previewURL(portal.id)}
+                  target="_blank"
+                  rel="noopener"
+                  class="action-btn">Preview</a
+                >
+                {#if !portal.html?.startsWith('fs:')}
+                  <button class="action-btn" onclick={() => clone(portal)}>Clone</button>
+                {/if}
+                <button
+                  class="action-btn danger"
+                  onclick={() => deletePortal(portal.id, portal.name)}>Delete</button
+                >
+              </div>
+            </td>
+          </tr>
+        {/each}
+      </tbody>
+    </table>
+  </div>
 {/if}
 
 {#if showScrape}
   <div
     class="overlay"
-    onclick={() => {
-      if (!scraping) showScrape = false;
+    onclick={(e) => {
+      if (e.target === e.currentTarget && !scraping) showScrape = false;
     }}
     onkeydown={(e) => {
       if (e.key === 'Escape' && !scraping) showScrape = false;
@@ -347,7 +396,6 @@
   >
     <div
       class="upload-modal"
-      onclick={(e) => e.stopPropagation()}
       role="dialog"
       aria-modal="true"
       tabindex="-1"
@@ -406,8 +454,8 @@
 {#if showUpload}
   <div
     class="overlay"
-    onclick={() => {
-      if (!uploading) showUpload = false;
+    onclick={(e) => {
+      if (e.target === e.currentTarget && !uploading) showUpload = false;
     }}
     onkeydown={(e) => {
       if (e.key === 'Escape' && !uploading) showUpload = false;
@@ -416,7 +464,6 @@
   >
     <div
       class="upload-modal"
-      onclick={(e) => e.stopPropagation()}
       role="dialog"
       aria-modal="true"
       tabindex="-1"
