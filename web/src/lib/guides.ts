@@ -369,13 +369,13 @@ Use portals to demonstrate how convincingly a rogue access point harvests creden
 
 ## The portal library
 
-The **Captive Portals** page is your template library. Each card is a portal you can preview, edit, clone, or assign to a network.
+The **Captive Portals** page is your template library. Each portal can be previewed, edited, cloned, deleted, or assigned to a network.
 
 ![The portal library](/guide/gallery.png)
 
-- **Built-in** templates ship with Tala WTE and model realistic venues: coffee shops, hotels, corporate guest pages, airports, in-flight, and ISP hotspots. They are managed by the app and kept current automatically.
-- **Custom** templates are ones you create, upload, or clone. Editing a built-in clones it first, so the originals stay intact.
-- Use the **category chips** to filter the library, and the **Captured Data** link at the top to jump to everything harvested so far.
+- **Built-in** templates ship with Tala WTE and model realistic venues: coffee shops, hotels, corporate guest pages, airports, in-flight, and ISP hotspots. You cannot edit a built-in in place - editing clones it first, so the originals stay intact - but you can delete ones you do not want. **Restore Templates** at the top re-seeds any missing built-ins and resets edited ones to their original, so the built-in set is always one click from pristine.
+- **Custom** templates are ones you create, upload, or clone.
+- **Search** by name, filter with the **All / Built-in / Custom** chips, and **Sort** by name, category, or source. Switch between **Cards** and **List** with the view toggle - your choice is remembered across visits, and in card view hovering a portal shows a live mobile preview. The **Captured Data** link at the top jumps to everything harvested so far.
 
 ## Creating a portal
 
@@ -884,6 +884,7 @@ Choose which generators run, set the target scope, then **Start traffic**. The g
 
 Make the traffic hit hosts you control instead of the built-in defaults:
 
+- **Apply a traffic dataset** - pick a saved dataset to fill the target fields below in one step, then edit them if you like. Datasets are the same reusable target lists managed on the Den page, so a set you build once (a list of intranet URLs, say) is available both here and when deploying a pack.
 - **URLs to browse**, **Domains to resolve**, and **IPs to reach** - one entry per line, fed to the web, DNS/domain, and ping generators respectively.
 - **Login credentials** - URL, username, and password rows the client replays. These are sent in **cleartext on purpose**: capturing and decrypting them on the access point is the whole point of the exercise.
 
@@ -936,11 +937,13 @@ You do not have to know a member's address. Use **Discovered on LAN -> Scan**: t
 
 ![Deploy to a member](/guide/den-members.png)
 
-For each member pick a **network** and a **profile**, then **Deploy**. The profiles bundle the full traffic configuration the leader pushes:
+For each member pick a **network**, a **profile**, and optionally a **traffic dataset**, then **Deploy**. The profiles bundle the full traffic configuration the leader pushes:
 
 - **Standard traffic** - web, DNS, and ping over local and internet scope.
 - **Full traffic** - every generator, including credential logins and responder bait.
 - **Handshake capture** - traffic plus reconnect cycling, so the member produces a fresh WPA handshake on a schedule.
+
+The **traffic dataset** dropdown sets *where* that traffic goes. Leave it on **Default targets** to use the built-in target pool, or pick a saved dataset to make the member's web, DNS, and ping generators hit a specific list of URLs, domains, and IPs. Manage these in the **Traffic Datasets** panel below the member list: it ships with built-in sets (connectivity checks, general browsing, local intranet, DNS chatter) and you can **Add**, **Edit**, or **Del** your own custom sets.
 
 Deploy pushes the network's client config to the member, waits for it to associate, then starts the chosen traffic (and reconnect cycling for the handshake profile). The member's row then shows it connected and generating. **Stop** disconnects the member and clears its assignment.
 
@@ -958,6 +961,7 @@ It also surfaces a member's problems on the leader side, so you do not have to o
 
 - **card** - the model and chipset of each wireless adapter the member reports (for example **Panda Wireless PAU09 (RT5572)**), so you can see what each member can do without opening it.
 - **version** - the member's Tala WTE software version, so you can spot a member running behind the leader before pushing work to it.
+- **radio wedged** - shown in red when the member is reachable but its wireless driver has stopped responding (a known failure mode of some USB chipsets under load). The member's management stays up so you can see this, but it cannot host traffic until its adapter is power-cycled or replugged. Treat it as a hardware reset, not a software error.
 - **in use by another pack leader** - shown when a member is connected but this leader did not deploy it, meaning another leader (or the member's own saved config) is driving it. Avoid retasking it unless you mean to take it over.
 - **card limits** - if the member's adapter has capability limits (for example **No WPA3-SAE (legacy chipset)**), they show in yellow under the member, the same flags described in the [Settings guide](/settings/guide). Check these before assigning a protocol the member's card cannot do.
 - **error** - if a deployed member is not connected and reported an error (such as a failed association), the leader shows it in yellow. Common causes are a protocol the member's card cannot do, the network not running, or a wrong passphrase or EAP identity. **Stop** clears the assignment so you can fix it and redeploy.`
