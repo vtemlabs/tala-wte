@@ -156,7 +156,28 @@ export const portals = {
 		return handleResponse<{ id: string; name: string }>(res);
 	},
 
-	previewURL: (id: string) => `/api/wte/portals/${id}/preview`
+	previewURL: (id: string) => `/api/wte/portals/${id}/preview`,
+
+	// Captive-portal auth types (click-through, hotel, voucher, login, ...) and the
+	// fields each collects.
+	authTypes: () =>
+		fetch('/api/wte/portals/auth-types', { headers: authHeaders() })
+			.then(handleResponse<{ auth_types: Record<string, unknown>[] }>)
+			.then((r) => r.auth_types),
+
+	// Generate a random, validatable credential set for an auth type.
+	generateCredentials: (auth_type: string, count: number, name: string) =>
+		fetch('/api/wte/portals/credentials/generate', {
+			method: 'POST',
+			headers: { ...authHeaders(), 'Content-Type': 'application/json' },
+			body: JSON.stringify({ auth_type, count, name })
+		}).then(handleResponse<{ id: string; name: string; count: number }>)
+};
+
+// Captive-portal credential sets (validatable logins per auth type).
+export const credentialSets = {
+	list: () => pb.collection('portal_credentials').getFullList({ sort: 'name' }),
+	delete: (id: string) => pb.collection('portal_credentials').delete(id)
 };
 
 // Portal submissions (harvested credentials/PII)

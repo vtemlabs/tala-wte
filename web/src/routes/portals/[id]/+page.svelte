@@ -18,10 +18,14 @@
   let isBuiltin = $derived(portal?.type === 'builtin');
   let html = $state('');
   let name = $state('');
+  let authType = $state('');
+  let authTypes = $state<Record<string, any>[]>([]);
   let saving = $state(false);
   let error = $state('');
   let saved = $state(false);
   let device = $state<'desktop' | 'mobile'>('desktop');
+  const authLabel = (t: string) =>
+    authTypes.find((a) => a.type === t)?.label ?? (t || 'Click-through');
 
   let isBundle = $derived(html.startsWith('fs:'));
 
@@ -42,8 +46,14 @@
       portal = await portals.get(id);
       html = portal.html;
       name = portal.name;
+      authType = portal.auth_type || '';
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to load portal');
+    }
+    try {
+      authTypes = await portals.authTypes();
+    } catch {
+      /* optional */
     }
   });
 
@@ -58,13 +68,14 @@
         const rec = await portals.create({
           name: copyName,
           html,
-          category: portal?.category || 'custom'
+          category: portal?.category || 'custom',
+          auth_type: authType
         });
         toast.success('Saved as a new copy (built-in templates are read-only)');
         goto(`/portals/${rec.id}`);
         return;
       }
-      await portals.update(id, { name, html });
+      await portals.update(id, { name, html, auth_type: authType });
       saved = true;
       setTimeout(() => (saved = false), 3000);
     } catch (e: any) {
@@ -91,6 +102,18 @@
     <div class="head-actions">
       {#if saved}<span class="badge badge-success">Saved</span>{/if}
       {#if isBuiltin}<span class="badge badge-info" title="Built-in templates are read-only">read-only template</span>{/if}
+      {#if isBuiltin}
+        <span class="badge badge-neutral" title="Captive-portal auth type">{authLabel(authType)}</span>
+      {:else if authTypes.length}
+        <select
+          class="input auth-select"
+          bind:value={authType}
+          aria-label="Auth type"
+          title="Captive-portal auth type"
+        >
+          {#each authTypes as a}<option value={a.type}>{a.label}</option>{/each}
+        </select>
+      {/if}
       <a href={portals.previewURL(id)} target="_blank" rel="noopener" class="btn">Open Preview</a>
       <a href="/portals" class="btn">Back</a>
       <button class="btn btn-primary" onclick={save} disabled={saving}
@@ -225,6 +248,9 @@
     align-items: center;
     gap: var(--space-sm);
     flex-wrap: wrap;
+  }
+  .auth-select {
+    max-width: 200px;
   }
 
   .bundle-note {

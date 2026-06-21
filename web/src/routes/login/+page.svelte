@@ -240,6 +240,18 @@
 
       <p class="login-foot">Authorized training use only. Sessions are scoped to this instance.</p>
     </div>
+
+    <footer class="login-vtem">
+      <img class="login-vtem-logo" src="/brand/vtem-labs.png" alt="VTEM Labs" />
+      <span class="login-vtem-copy">(c) 2026 VTEM Labs, Inc. All rights reserved.</span>
+      <span class="login-vtem-sep">|</span>
+      <a
+        class="login-vtem-link"
+        href="https://vtemlabs.com"
+        target="_blank"
+        rel="noopener noreferrer">vtemlabs.com</a
+      >
+    </footer>
   </section>
 
   <aside class="login-right" aria-hidden="true">
@@ -260,11 +272,44 @@
   }
 
   .login-left {
+    position: relative;
     display: flex;
     align-items: center;
     justify-content: center;
     padding: var(--space-2xl);
     background: var(--bg-primary);
+  }
+
+  .login-vtem {
+    position: absolute;
+    bottom: var(--space-2xl);
+    left: 0;
+    right: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: var(--space-md);
+    flex-wrap: wrap;
+    padding: 0 var(--space-xl);
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+  }
+  .login-vtem-logo {
+    height: 15px;
+    width: auto;
+    opacity: 0.85;
+  }
+  .login-vtem-sep {
+    color: var(--border-secondary);
+  }
+  .login-vtem-link {
+    color: var(--text-muted);
+    text-decoration: none;
+    transition: color var(--transition-fast);
+  }
+  .login-vtem-link:hover {
+    color: var(--accent-hover);
+    text-decoration: underline;
   }
   .login-col {
     width: 100%;

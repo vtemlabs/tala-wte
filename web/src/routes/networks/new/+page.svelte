@@ -8,7 +8,7 @@
 <script lang="ts">
   import { goto } from '$app/navigation';
   import { onMount } from 'svelte';
-  import { networks, system, portals } from '$lib/api';
+  import { networks, system, portals, credentialSets } from '$lib/api';
   import ProtocolGuide from '$lib/ProtocolGuide.svelte';
   import PortalPreviewModal from '$lib/components/PortalPreviewModal.svelte';
 
@@ -113,6 +113,17 @@
   const selectedPortalName = $derived(
     portalsList.find((p) => p.id === selectedPortalId)?.name ?? ''
   );
+
+  // Credential sets: a validating portal (login, hotel, voucher, membership)
+  // checks submissions against an assigned set.
+  const VALIDATING_TYPES = ['username_password', 'email_password', 'hotel', 'voucher', 'membership'];
+  let credSets = $state<Record<string, any>[]>([]);
+  let selectedCredSet = $state('');
+  const selectedPortalAuthType = $derived(
+    portalsList.find((p) => p.id === selectedPortalId)?.auth_type ?? ''
+  );
+  const portalValidates = $derived(VALIDATING_TYPES.includes(selectedPortalAuthType));
+  const matchingSets = $derived(credSets.filter((s) => s.auth_type === selectedPortalAuthType));
   let previewModalOpen = $state(false);
 
   const availableChannels = $derived(channelMap[band] ?? channelMap['2.4']);
@@ -192,6 +203,7 @@
     try {
       portalsList = await portals.list();
       if (portalsList.length) selectedPortalId = portalsList[0].id;
+      credSets = await credentialSets.list();
     } catch {
       // Portals are optional, form still works without them
     }
@@ -263,6 +275,8 @@
         portal_enabled: canHavePortal ? portalEnabled : false,
         portal_html: canHavePortal && portalEnabled ? selectedPortalHTML : '',
         portal_auth: canHavePortal && portalEnabled ? portalAuth : false,
+        credential_set_id:
+          canHavePortal && portalEnabled && portalValidates ? selectedCredSet : '',
         identity: isEnterprise ? identity : '',
         eap_password: isEnterprise ? eapPassword : ''
       });
@@ -514,6 +528,28 @@
                   >
                 {/each}
               </select>
+
+              {#if portalValidates}
+                <label class="field-label cred-set-label" for="credSetSelect"
+                  >Credential set <span class="dim"
+                    >({selectedPortalAuthType.replace(/_/g, ' ')} validation)</span
+                  ></label
+                >
+                {#if matchingSets.length}
+                  <select class="input" id="credSetSelect" bind:value={selectedCredSet}>
+                    <option value="">No set - capture only</option>
+                    {#each matchingSets as s}<option value={s.id}>{s.name}</option>{/each}
+                  </select>
+                {:else}
+                  <p class="field-desc">
+                    This portal validates credentials. <a href="/portals"
+                      >Generate a {selectedPortalAuthType.replace(/_/g, ' ')} credential set</a
+                    > on the Captive Portals page to check logins against it; until then it captures and
+                    grants on submit.
+                  </p>
+                {/if}
+              {/if}
+
               {#if selectedPortalId}
                 <div class="portal-preview">
                   <div class="portal-preview-head">
@@ -582,6 +618,9 @@
     margin-left: var(--space-md);
     padding-left: var(--space-lg);
     border-left: 2px solid var(--border-primary);
+  }
+  .cred-set-label {
+    margin-top: var(--space-md);
   }
   .portal-preview {
     margin-top: var(--space-sm);

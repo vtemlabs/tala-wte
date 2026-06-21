@@ -9,7 +9,7 @@
   import { onMount } from 'svelte';
   import { browser } from '$app/environment';
   import { goto } from '$app/navigation';
-  import { portals, submissions } from '$lib/api';
+  import { portals, submissions, credentialSets } from '$lib/api';
   import { toast } from '$lib/stores/toast';
   import GuideModal from '$lib/components/GuideModal.svelte';
   import { GUIDES } from '$lib/guides';
@@ -55,6 +55,59 @@
   let scrapeURL = $state('');
   let scrapeName = $state('');
   let scraping = $state(false);
+
+  // Credential sets: validatable logins for credentialed portals.
+  let authTypes = $state<Record<string, any>[]>([]);
+  let credSets = $state<Record<string, any>[]>([]);
+  let genType = $state('');
+  let genCount = $state(25);
+  let genName = $state('');
+  let generating = $state(false);
+  let viewSetRec = $state<Record<string, any> | null>(null);
+
+  let validatingTypes = $derived(authTypes.filter((t) => t.validates));
+  const authLabel = (t: string) => authTypes.find((a) => a.type === t)?.label ?? t;
+  function entriesOf(s: Record<string, any>): Record<string, string>[] {
+    try {
+      return JSON.parse(s.entries || '[]');
+    } catch {
+      return [];
+    }
+  }
+
+  async function loadCredentials() {
+    try {
+      [authTypes, credSets] = await Promise.all([portals.authTypes(), credentialSets.list()]);
+      if (!genType && validatingTypes.length) genType = validatingTypes[0].type;
+    } catch {
+      /* optional */
+    }
+  }
+
+  async function generateSet() {
+    if (!genType) return;
+    generating = true;
+    try {
+      await portals.generateCredentials(genType, Number(genCount) || 25, genName.trim());
+      genName = '';
+      credSets = await credentialSets.list();
+      toast.success('Credential set generated');
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to generate credential set');
+    } finally {
+      generating = false;
+    }
+  }
+
+  async function deleteSet(s: Record<string, any>) {
+    if (!confirm(`Delete credential set "${s.name}"?`)) return;
+    try {
+      await credentialSets.delete(s.id);
+      credSets = credSets.filter((x) => x.id !== s.id);
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to delete set');
+    }
+  }
 
   const CATS: Record<string, string> = {
     coffee: 'Coffee',
@@ -140,7 +193,10 @@
     }
   }
 
-  onMount(load);
+  onMount(() => {
+    load();
+    loadCredentials();
+  });
 
   async function clone(p: Record<string, any>) {
     try {
@@ -256,6 +312,72 @@
   </span>
   <span class="count-pill captured-count" class:lit={submissionCount > 0}>{submissionCount}</span>
 </a>
+
+<section class="panel cred-panel">
+  <div class="panel-head">
+    <h2 class="panel-title">Credential Sets</h2>
+    <span class="count-pill">{credSets.length}</span>
+  </div>
+  <div class="panel-body">
+    <p class="section-desc">
+      Validatable logins for credentialed portals (hotel room + last name, voucher, username /
+      password, membership). Generate a set here, then assign it to a network's portal on the
+      Networks page so submissions are checked against it - exactly like a real portal. Click-through,
+      email, and info-form portals collect data without validation and need no set.
+    </p>
+    <div class="cred-gen">
+      <select class="input" bind:value={genType} aria-label="Auth type">
+        {#each validatingTypes as t}<option value={t.type}>{t.label}</option>{/each}
+      </select>
+      <input
+        class="input cred-count"
+        type="number"
+        min="1"
+        max="1000"
+        bind:value={genCount}
+        aria-label="How many"
+      />
+      <input class="input" bind:value={genName} placeholder="Set name (optional)" />
+      <button class="btn btn-primary" onclick={generateSet} disabled={generating || !genType}>
+        {generating ? 'Generating…' : 'Generate set'}
+      </button>
+    </div>
+
+    {#if credSets.length}
+      <div class="table-wrap">
+        <table class="table">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Auth type</th>
+              <th class="num-col">Entries</th>
+              <th class="actions-col"></th>
+            </tr>
+          </thead>
+          <tbody>
+            {#each credSets as s}
+              <tr>
+                <td data-label="Name">{s.name}</td>
+                <td data-label="Auth type"
+                  ><span class="badge badge-neutral">{authLabel(s.auth_type)}</span></td
+                >
+                <td data-label="Entries" class="num-col mono">{entriesOf(s).length}</td>
+                <td class="actions-col">
+                  <div class="row-actions">
+                    <button class="action-btn" onclick={() => (viewSetRec = s)}>View</button>
+                    <button class="action-btn del-btn" onclick={() => deleteSet(s)}>Del</button>
+                  </div>
+                </td>
+              </tr>
+            {/each}
+          </tbody>
+        </table>
+      </div>
+    {:else}
+      <p class="dim cred-empty">No credential sets yet. Generate one above.</p>
+    {/if}
+  </div>
+</section>
 
 {#if !loading && list.length > 0}
   <div class="portal-controls">
@@ -561,9 +683,78 @@
   </div>
 {/if}
 
+{#if viewSetRec}
+  <div
+    class="overlay"
+    onclick={(e) => {
+      if (e.target === e.currentTarget) viewSetRec = null;
+    }}
+    onkeydown={(e) => {
+      if (e.key === 'Escape') viewSetRec = null;
+    }}
+    role="presentation"
+  >
+    <div class="upload-modal" role="dialog" aria-modal="true" tabindex="-1">
+      <div class="modal-header" style="cursor:default">
+        <span class="modal-title"
+          >{viewSetRec.name} <span class="dim">({authLabel(viewSetRec.auth_type)})</span></span
+        >
+        <button class="action-btn" onclick={() => (viewSetRec = null)}>Close</button>
+      </div>
+      <div class="modal-body">
+        <div class="table-wrap cred-view">
+          <table class="table">
+            <thead>
+              <tr>
+                {#each Object.keys(entriesOf(viewSetRec)[0] ?? {}) as col}<th>{col}</th>{/each}
+              </tr>
+            </thead>
+            <tbody>
+              {#each entriesOf(viewSetRec) as e}
+                <tr>
+                  {#each Object.keys(entriesOf(viewSetRec)[0] ?? {}) as col}<td class="mono"
+                      >{e[col]}</td
+                    >{/each}
+                </tr>
+              {/each}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+{/if}
+
 <GuideModal bind:open={guideOpen} title={GUIDES.portals.title} doc={GUIDES.portals.doc} />
 
 <style>
+  .cred-panel {
+    margin-bottom: var(--space-lg);
+  }
+  .cred-gen {
+    display: flex;
+    gap: var(--space-sm);
+    flex-wrap: wrap;
+    align-items: center;
+    margin: var(--space-md) 0 var(--space-lg);
+  }
+  .cred-gen select.input {
+    max-width: 220px;
+  }
+  .cred-gen input.input:not(.cred-count) {
+    max-width: 240px;
+  }
+  .cred-count {
+    max-width: 90px;
+  }
+  .cred-empty {
+    padding: var(--space-sm) 0;
+  }
+  .cred-view {
+    max-height: 60vh;
+    overflow: auto;
+  }
+
   .captured-link {
     display: flex;
     align-items: center;
