@@ -1,14 +1,14 @@
 <div align="center">
 
-<img src="web/static/brand/tala-logo.png" alt="Tala" height="84">
-
-# Wireless Training Environment
+<img src="images/banner.png" alt="Tala WTE - Wireless Training Environment" width="960">
 
 **by VTEM Labs**
 
-<img src="images/architecture.png" alt="Tala WTE architecture: the access point and den leader broadcasting WPA2-Enterprise, open + captive-portal, and hidden + isolated networks to a client pack doing 802.1X auth, portal logins, and traffic, with a FreeRADIUS / OpenLDAP / CA auth backbone and an attacker capturing handshakes and cleartext over the air" width="940">
+[![License: Personal and Non-Profit](https://img.shields.io/badge/License-Personal%20%26%20Non--Profit-2f81f7?style=for-the-badge&labelColor=08090c)](LICENSE) [![Platform: Linux](https://img.shields.io/badge/Platform-Debian%20%7C%20Ubuntu%20%7C%20Kali-2f81f7?style=for-the-badge&labelColor=08090c)](#deployment) [![Deploy: single binary](https://img.shields.io/badge/Deploy-Single%20Go%20binary-2f81f7?style=for-the-badge&labelColor=08090c)](#overview) [![Built by VTEM Labs](https://img.shields.io/badge/Built%20by-VTEM%20Labs-1f6feb?style=for-the-badge&labelColor=08090c)](https://vtemlabs.com)
 
-Build realistic wireless environments in minutes, then learn and practice wireless penetration testing against them. Every Wi-Fi security protocol on real radios, captive portals for you to learn how to clone and deploy your own rogue splash page captures, a full enterprise 802.1X stack, traffic-generating clients you can orchestrate as a den, and in-app packet capture and analysis, all from a single binary and a clean web console.
+<img src="images/architecture.png" alt="Tala WTE architecture: the access point and pack leader broadcasting WPA2-Enterprise, open + captive-portal, and hidden + isolated networks to a client pack doing 802.1X auth, portal logins, and traffic, with a FreeRADIUS / OpenLDAP / CA auth backbone and an attacker capturing handshakes and cleartext over the air" width="940">
+
+Build realistic wireless environments in minutes, then learn and practice wireless penetration testing against them. Every Wi-Fi security protocol on real radios, captive portals for you to learn how to clone and deploy your own rogue splash page captures, a full enterprise 802.1X stack, traffic-generating clients you can orchestrate as a pack, and in-app packet capture and analysis, all from a single binary and a clean web console.
 
 Free for personal and non-profit use, and the open counterpart to [**TALA**](#background), the VTEM Labs wireless penetration testing platform.
 
@@ -36,7 +36,7 @@ Tala WTE turns a single Linux host with a Wi-Fi adapter into a complete wireless
 
 Everything ships in one Go binary. The web console, database, captive portal engine, and directory services are embedded, with nothing to install or wire together beyond the binary itself.
 
-The platform has two roles in one binary. An access-point (server) role broadcasts the target networks; a client role joins them and generates realistic traffic so a network is never silent during an exercise. A server can also act as a den leader and orchestrate a whole pack of clients, so a single console drives the entire environment.
+The platform has two roles in one binary. An access-point (server) role broadcasts the target networks; a client role joins them and generates realistic traffic so a network is never silent during an exercise. A server can also act as a pack leader and orchestrate a whole pack of clients, so a single console drives the entire environment.
 
 ![Dashboard](images/dashboard.png)
 
@@ -47,6 +47,14 @@ The same pieces also make Tala WTE usable as a wireless honeypot. It broadcasts 
 ## Background
 
 Tala WTE is the open training and development counterpart to TALA, the VTEM Labs wireless penetration testing platform. Tala WTE is the safe range you learn and rehearse on; **TALA is VTEM Labs' professional wireless penetration testing platform. That is available exclusively (for free) to ARROW customers.**
+
+### Why the name?
+
+Tala is widely referenced as meaning **wolf**, and we lean into that association deliberately. A wolf does not cross its territory at random. It observes, tracks, reads patterns, and moves with intent, and it works as a pack. That mindset, signal over noise and the discipline of the hunt, is what both platforms are built around.
+
+Tala WTE is where the craft is taught: a safe range to build realistic wireless environments, study how clients and authentication actually behave, and sharpen your instincts, right down to driving a whole **pack** of clients from a single leader. TALA is where the craft is applied, carrying the same instincts into the field to detect, track, and locate real wireless activity.
+
+In short: **Tala WTE trains the pack. TALA hunts.**
 
 ### Government variant
 
@@ -68,9 +76,9 @@ TALA and its government variant are delivered through the VTEM Labs; learn more 
 | ------------------------ | ---------------------------- |
 | ![LDAP](images/ldap.png) | ![RADIUS](images/radius.png) |
 
-| Traffic console                                | The den                    |
+| Traffic console                                | The pack                    |
 | ---------------------------------------------- | -------------------------- |
-| ![Traffic console](images/traffic-console.png) | ![The den](images/den.png) |
+| ![Traffic console](images/traffic-console.png) | ![The pack](images/pack.png) |
 
 ## Features
 
@@ -123,11 +131,11 @@ The client dashboard shows the live connection, the wireless adapters present, a
 - Handshake-capture reconnect cycling: the client deauthenticates and reassociates on a schedule with a configurable frequency and random jitter, from preset values to custom intervals from seconds to hours, so students can capture a fresh WPA handshake each cycle.
 - A Live Log window that streams the raw wpa_supplicant and dhclient terminal output, the same way the server streams hostapd.
 
-### The Den
+### The Pack
 
-A server can act as a den leader and drive a pack of client members, so one operator orchestrates a whole fleet from a single console.
+A server can act as a pack leader and drive a pack of client members, so one operator orchestrates a whole fleet from a single console.
 
-![The den](images/den.png)
+![The pack](images/pack.png)
 
 - Each client exposes an agent key under its Settings; register a member on the leader by its address and key.
 - Deploy a network's configuration plus a traffic profile (Standard, Full, or Handshake-capture) to any member; the member joins the network and begins generating traffic.
@@ -172,7 +180,7 @@ A full terminal is built into the console as a draggable, resizable, tabbed wind
 
 ![Settings](images/settings.png)
 
-Configure the regulatory domain, uplink interface, and default network subnet; switch the instance between Server and Client mode; copy or rotate the den agent key; review the running services; apply software updates; and read the license, all from one page.
+Configure the regulatory domain, uplink interface, and default network subnet; switch the instance between Server and Client mode; copy or rotate the pack agent key; review the running services; apply software updates; and read the license, all from one page.
 
 ### Automatic driver and firmware setup
 
@@ -264,7 +272,7 @@ Add `--purge` to also remove the database.
 
 Tala WTE checks GitHub for newer releases and surfaces them in the console under Settings -> Software Updates (a dot also appears on the Settings nav item when an update is available). One click downloads the architecture-matched binary, verifies it against the release checksums, swaps it in place, and restarts the service; the console reconnects on its own. There is no command line and no manual download - the appliance updates itself.
 
-Running a den? The leader updates its whole pack in one step. The Den page has an **Update all members** action that tells every reachable member to pull and apply the same update, so the server and its clients stay on matching versions.
+Running a pack? The leader updates its whole pack in one step. The Pack page has an **Update all members** action that tells every reachable member to pull and apply the same update, so the server and its clients stay on matching versions.
 
 ## First run
 
@@ -288,13 +296,15 @@ Once the account exists, the setup screen becomes a normal sign-in.
 4. Watch the live log as clients connect, and review harvested credentials under Captured Data.
 5. For enterprise networks, manage directory users under LDAP, confirm the EAP configuration under RADIUS, and issue certificates under Certificates.
 6. To generate traffic, switch an instance to Client mode in Settings (or install a second host as a client), save a network config, and connect; the Traffic Console drives the generators and the handshake-capture cycling.
-7. To orchestrate a fleet, register clients as den members on the server, then deploy a network and traffic profile to each from the Den page.
+7. To orchestrate a fleet, register clients as pack members on the server, then deploy a network and traffic profile to each from the Pack page.
 
 ## License
 
 Tala WTE is free for personal and non-profit use.
 
-Non-profit use at an event (for example, a non-profit CTF) requires prior written approval from VTEM Labs, and the event must display the VTEM Labs logo and "Powered by VTEM Labs" and link to [vtemlabs.com](https://vtemlabs.com).
+VTEM Labs, Inc. is a self-funded Service-Disabled Veteran-Owned Small Business (SDVOSB). We pride ourselves on building the very best products in the industry, and we are deeply grateful to everyone who uses Tala WTE, honors these terms, and champions a small veteran-owned team. Your support, licensing, and sponsorship are what fund the next release and keep this work going - thank you.
+
+Non-profit use at an event (for example, a non-profit CTF) requires prior written approval from VTEM Labs, and the event must display the VTEM Labs logo and "Powered by VTEM Labs" and link to [vtemlabs.com](https://vtemlabs.com). A CTF or activity held at, or as part of, a conference or venue that charges paid admission or registration is considered for-profit use and requires a license, not approval, regardless of the non-profit status of the event or its organizer.
 
 It may not be used for commercial or for-profit purposes, including paid training, paid Capture-the-Flag projects, or use by, for, or on behalf of any for-profit school, institution, company, or organization, or any government or government agency, and it may not be copied, redistributed, rebranded, or claimed as another party's work, without prior written authorization and a license from VTEM Labs. Standing up a for-profit wireless penetration testing course or similar offering and using this platform, or any variant or copy of it, as the infrastructure or training material is expressly prohibited without a paid license.
 
@@ -303,6 +313,8 @@ See [LICENSE](LICENSE) for the full terms.
 ### Commercial licensing and demos
 
 **Tala WTE** is free for personal and non-profit use. Commercial and for-profit use of Tala WTE, including paid training, paid CTF, and use by, for, or on behalf of any for-profit school, institution, company, or organization, government, or government agency, requires written authorization and a license from VTEM Labs: [vtemlabs.com/contact](https://vtemlabs.com/contact).
+
+A license is not always monetary. For conferences, events, and CTFs, VTEM Labs may grant a license in exchange for non-monetary consideration instead of a fee, for example making VTEM Labs a high-tier sponsor with logo placement and brand recognition, and sharing the event's attendee, contact, and sponsor lists. Reach out to discuss terms.
 
 **TALA**, the commercial wireless penetration testing platform, is delivered through the VTEM Labs ARROW program. To evaluate it, request a demonstration via the [ARROW Platform](https://arrow.vtemlabs.com/). Government, DoW, and LEO inquiries about the tactical variant are welcome.
 

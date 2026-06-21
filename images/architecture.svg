@@ -1,19 +1,19 @@
 <svg width="1600" height="900" viewBox="0 0 1600 900" xmlns="http://www.w3.org/2000/svg" font-family="'Inter', system-ui, sans-serif">
   <defs>
-    <radialGradient id="bgGlow" cx="20%" cy="50%" r="40%">
-      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.15"/>
+    <radialGradient id="bgGlow" cx="18%" cy="50%" r="42%">
+      <stop offset="0%" stop-color="#2f81f7" stop-opacity="0.14"/>
       <stop offset="100%" stop-color="#08090c" stop-opacity="0"/>
     </radialGradient>
     <linearGradient id="cone" x1="0" y1="0" x2="0" y2="1">
-      <stop offset="0%" stop-color="#f43f5e" stop-opacity="0.22"/>
-      <stop offset="100%" stop-color="#f43f5e" stop-opacity="0.02"/>
+      <stop offset="0%" stop-color="#ef4444" stop-opacity="0.20"/>
+      <stop offset="100%" stop-color="#ef4444" stop-opacity="0.02"/>
     </linearGradient>
     <filter id="wolfGlow" x="-30%" y="-30%" width="160%" height="160%">
       <feGaussianBlur stdDeviation="4" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge>
     </filter>
     <filter id="soft" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="4"/></filter>
     <pattern id="grid" width="46" height="46" patternUnits="userSpaceOnUse">
-      <path d="M46 0 H0 V46" fill="none" stroke="#20242e" stroke-width="1" stroke-opacity="0.32"/>
+      <path d="M46 0 H0 V46" fill="none" stroke="#20242e" stroke-width="1" stroke-opacity="0.30"/>
     </pattern>
   </defs>
 
@@ -21,71 +21,79 @@
   <rect width="1600" height="900" fill="url(#grid)"/>
   <rect width="1600" height="900" fill="url(#bgGlow)"/>
 
-  <text x="62" y="72" font-size="38" font-weight="800" letter-spacing="-1" fill="#e8ebf2">TALA WTE</text>
-  <text x="64" y="99" font-size="12.5" letter-spacing="4.5" fill="#6b7384" font-family="'JetBrains Mono', monospace">WIRELESS  TRAINING  ENVIRONMENT</text>
+  <!-- ===== brand (logo + subtitle, matched width) ===== -->
+  <image href="tala-logo.png" x="70" y="119" width="232" height="70" preserveAspectRatio="xMinYMid meet"/>
+  <text x="70" y="211" font-size="11.5" textLength="232" lengthAdjust="spacingAndGlyphs" fill="#6b7384" font-family="'JetBrains Mono', monospace">WIRELESS TRAINING ENVIRONMENT</text>
 
-  <!-- ===== attacker capture cone over the WHOLE air (networks + clients) ===== -->
-  <path d="M918 150 L 372 648 L 1392 648 Z" fill="url(#cone)" stroke="#f43f5e" stroke-opacity="0.4" stroke-width="1.4" stroke-dasharray="7 7"/>
-  <text x="918" y="96" font-size="14" font-weight="700" letter-spacing="1.2" fill="#fb7185" text-anchor="middle" font-family="'JetBrains Mono', monospace">ATTACKER &#183; OVER-THE-AIR CAPTURE</text>
-  <text x="918" y="116" font-size="11" fill="#9aa3b4" text-anchor="middle" font-family="'JetBrains Mono', monospace">every network + every client &#183; handshakes &#183; credentials &#183; cleartext</text>
-  <g transform="translate(918 134)"><g stroke="#fb7185" stroke-width="2"><path d="M-13 0 a13 13 0 0 1 26 0" fill="none"/><path d="M-22 0 a22 22 0 0 1 44 0" fill="none" opacity="0.6"/><line x1="0" y1="0" x2="0" y2="14"/></g><circle cy="0" r="3" fill="#fb7185"/></g>
+  <!-- ===== attacker capture (over the traffic zone, right) ===== -->
+  <text x="1030" y="173" font-size="14" font-weight="700" letter-spacing="1.2" fill="#ef4444" text-anchor="middle" font-family="'JetBrains Mono', monospace">ATTACKER &#183; OVER-THE-AIR CAPTURE</text>
+  <text x="1030" y="193" font-size="11" fill="#9aa3b4" text-anchor="middle" font-family="'JetBrains Mono', monospace">every network + every client &#183; handshakes &#183; credentials &#183; cleartext</text>
+  <path d="M1030 233 L 720 617 L 1340 617 Z" fill="url(#cone)" stroke="#ef4444" stroke-opacity="0.38" stroke-width="1.4" stroke-dasharray="7 7"/>
+  <g transform="translate(1030 223)"><g stroke="#ef4444" stroke-width="2"><path d="M-13 0 a13 13 0 0 1 26 0" fill="none"/><path d="M-22 0 a22 22 0 0 1 44 0" fill="none" opacity="0.6"/><line x1="0" y1="0" x2="0" y2="14"/></g><circle cy="0" r="3" fill="#ef4444"/></g>
 
-  <!-- ===== AP / den leader (wolf) ===== -->
-  <circle cx="232" cy="452" r="158" fill="#2f81f7" opacity="0.12" filter="url(#soft)"/>
+  <!-- ===== access point / pack leader (wolf), left ===== -->
+  <circle cx="216" cy="455" r="150" fill="#2f81f7" opacity="0.12" filter="url(#soft)"/>
   <g fill="none" stroke="#22d3ee" stroke-linecap="round">
-    <path d="M352 392 A 132 132 0 0 1 352 512" stroke-width="2.2" opacity="0.45"/>
-    <path d="M384 366 A 168 168 0 0 1 384 538" stroke-width="1.7" opacity="0.28"/>
+    <path d="M334 397 A 130 130 0 0 1 334 513" stroke-width="2.2" opacity="0.42"/>
+    <path d="M366 371 A 166 166 0 0 1 366 539" stroke-width="1.7" opacity="0.26"/>
   </g>
-  <image href="tala-wolf-radar.png" x="102" y="332" width="260" height="260" opacity="0.97" filter="url(#wolfGlow)"/>
-  <text x="232" y="618" font-size="13.5" font-weight="700" letter-spacing="1.3" fill="#93c5fd" text-anchor="middle" font-family="'JetBrains Mono', monospace">ACCESS POINT &#183; DEN LEADER</text>
-  <text x="232" y="637" font-size="10.5" fill="#6b7384" text-anchor="middle" font-family="'JetBrains Mono', monospace">hostapd &#183; broadcasts the networks below</text>
+  <image href="tala-wolf-radar.png" x="96" y="335" width="240" height="240" opacity="0.97" filter="url(#wolfGlow)"/>
+  <text x="216" y="647" font-size="13.5" font-weight="700" letter-spacing="1.3" fill="#93c5fd" text-anchor="middle" font-family="'JetBrains Mono', monospace">ACCESS POINT &#183; PACK LEADER</text>
+  <text x="216" y="668" font-size="10.5" fill="#6b7384" text-anchor="middle" font-family="'JetBrains Mono', monospace">one console runs every network and the pack</text>
 
-  <!-- ===== networks the AP broadcasts ===== -->
-  <text x="392" y="332" font-size="11.5" font-weight="700" letter-spacing="2" fill="#6b7384" font-family="'JetBrains Mono', monospace">NETWORKS</text>
-  <g font-family="'JetBrains Mono', monospace" font-size="12.5">
-    <g transform="translate(392 360)"><rect width="286" height="36" rx="8" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="18" cy="18" r="4" fill="#22c55e"/><text x="32" y="23" fill="#e8ebf2">Acme-Corp</text><text x="278" y="23" text-anchor="end" fill="#c4b5fd">WPA2-Enterprise</text></g>
-    <g transform="translate(392 406)"><rect width="286" height="36" rx="8" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="18" cy="18" r="4" fill="#22c55e"/><text x="32" y="23" fill="#e8ebf2">Acme-Guest</text><text x="278" y="23" text-anchor="end" fill="#fbbf6b">Open + Captive Portal</text></g>
-    <g transform="translate(392 452)"><rect width="286" height="36" rx="8" fill="#0c0e13" stroke="#20242e" stroke-width="1.1" stroke-dasharray="5 4"/><circle cx="18" cy="18" r="4" fill="#6b7384"/><text x="32" y="23" fill="#9aa3b4">Conference-5G</text><text x="278" y="23" text-anchor="end" fill="#7fe3f4">WPA3 &#183; Hidden &#183; Isolated</text></g>
+  <!-- ===== networks the leader broadcasts (every protocol, WEP on up), center ===== -->
+  <text x="412" y="317" font-size="11.5" font-weight="700" letter-spacing="2" fill="#6b7384" font-family="'JetBrains Mono', monospace">NETWORKS &#183; EVERY PROTOCOL</text>
+  <g font-family="'JetBrains Mono', monospace" font-size="11">
+    <g transform="translate(412 333)"><rect width="288" height="27" rx="7" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="16" cy="13.5" r="3.5" fill="#f59e0b"/><text x="30" y="18" fill="#e8ebf2">Open</text><text x="274" y="18" text-anchor="end" fill="#fbbf6b">Captive Portal</text></g>
+    <g transform="translate(412 364)"><rect width="288" height="27" rx="7" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="16" cy="13.5" r="3.5" fill="#ef4444"/><text x="30" y="18" fill="#e8ebf2">WEP</text><text x="274" y="18" text-anchor="end" fill="#9aa3b4">RC4 &#183; broken</text></g>
+    <g transform="translate(412 395)"><rect width="288" height="27" rx="7" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="16" cy="13.5" r="3.5" fill="#f59e0b"/><text x="30" y="18" fill="#e8ebf2">WPA</text><text x="274" y="18" text-anchor="end" fill="#9aa3b4">TKIP &#183; legacy</text></g>
+    <g transform="translate(412 426)"><rect width="288" height="27" rx="7" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="16" cy="13.5" r="3.5" fill="#22c55e"/><text x="30" y="18" fill="#e8ebf2">WPA2-Personal</text><text x="274" y="18" text-anchor="end" fill="#7fe3f4">CCMP / AES</text></g>
+    <g transform="translate(412 457)"><rect width="288" height="27" rx="7" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="16" cy="13.5" r="3.5" fill="#22c55e"/><text x="30" y="18" fill="#e8ebf2">WPA2 + WPS</text><text x="274" y="18" text-anchor="end" fill="#9aa3b4">WPS PIN</text></g>
+    <g transform="translate(412 488)"><rect width="288" height="27" rx="7" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="16" cy="13.5" r="3.5" fill="#22c55e"/><text x="30" y="18" fill="#e8ebf2">WPA3-Personal</text><text x="274" y="18" text-anchor="end" fill="#7fe3f4">SAE &#183; PMF</text></g>
+    <g transform="translate(412 519)"><rect width="288" height="27" rx="7" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="16" cy="13.5" r="3.5" fill="#22c55e"/><text x="30" y="18" fill="#e8ebf2">WPA3-Transition</text><text x="274" y="18" text-anchor="end" fill="#7fe3f4">SAE + PSK</text></g>
+    <g transform="translate(412 550)"><rect width="288" height="27" rx="7" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="16" cy="13.5" r="3.5" fill="#22c55e"/><text x="30" y="18" fill="#e8ebf2">WPA2-Enterprise</text><text x="274" y="18" text-anchor="end" fill="#c4b5fd">802.1X / EAP</text></g>
+    <g transform="translate(412 581)"><rect width="288" height="27" rx="7" fill="#101218" stroke="#20242e" stroke-width="1.1"/><circle cx="16" cy="13.5" r="3.5" fill="#22c55e"/><text x="30" y="18" fill="#e8ebf2">WPA3-Enterprise</text><text x="274" y="18" text-anchor="end" fill="#c4b5fd">802.1X / EAP</text></g>
   </g>
 
-  <!-- ===== TRAFFIC: live packet streams the den generates ===== -->
-  <text x="1030" y="232" font-size="11.5" font-weight="700" letter-spacing="2" fill="#6b7384" text-anchor="middle" font-family="'JetBrains Mono', monospace">GENERATED TRAFFIC &#183; CAPTURED OVER THE AIR</text>
+  <!-- ===== generated traffic: the pack's streams, captured over the air (right) ===== -->
+  <text x="1030" y="317" font-size="11.5" font-weight="700" letter-spacing="2" fill="#6b7384" text-anchor="middle" font-family="'JetBrains Mono', monospace">GENERATED TRAFFIC &#183; CAPTURED OVER THE AIR</text>
   <g font-family="'JetBrains Mono', monospace" font-size="11" stroke-linecap="round">
-    <path d="M1188 280 L 706 280" stroke="#3b82f6" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
-    <text x="1204" y="284" fill="#93c5fd">HTTP / HTTPS</text>
-    <path d="M1188 338 L 706 338" stroke="#22d3ee" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
-    <text x="1204" y="342" fill="#7fe3f4">DNS lookups</text>
-    <path d="M1188 396 L 706 396" stroke="#22c55e" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
-    <text x="1204" y="400" fill="#4ade80">Downloads</text>
-    <path d="M1188 454 L 706 454" stroke="#f97316" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
-    <text x="1204" y="458" fill="#fbbf6b">Credentials (cleartext)</text>
-    <path d="M1188 512 L 706 512" stroke="#a855f7" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
-    <text x="1204" y="516" fill="#c4b5fd">EAPOL handshake</text>
+    <path d="M1130 359 L 758 359" stroke="#3b82f6" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
+    <text x="1146" y="363" fill="#93c5fd">HTTP / HTTPS</text>
+    <path d="M1130 415 L 758 415" stroke="#22d3ee" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
+    <text x="1146" y="419" fill="#7fe3f4">DNS lookups</text>
+    <path d="M1130 471 L 758 471" stroke="#22c55e" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
+    <text x="1146" y="475" fill="#4ade80">Downloads</text>
+    <path d="M1130 527 L 758 527" stroke="#f97316" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
+    <text x="1146" y="531" fill="#fbbf6b">Credentials (cleartext)</text>
+    <path d="M1130 583 L 758 583" stroke="#a855f7" stroke-width="7" stroke-dasharray="7 15" opacity="0.92"/>
+    <text x="1146" y="587" fill="#c4b5fd">EAPOL handshake</text>
   </g>
-  <!-- arrowheads into the AP -->
+  <!-- arrowheads (traffic flows from the pack toward the leader) -->
   <g fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9">
-    <path d="M716 272 L706 280 L716 288" stroke="#3b82f6"/>
-    <path d="M716 330 L706 338 L716 346" stroke="#22d3ee"/>
-    <path d="M716 388 L706 396 L716 404" stroke="#22c55e"/>
-    <path d="M716 446 L706 454 L716 462" stroke="#f97316"/>
-    <path d="M716 504 L706 512 L716 520" stroke="#a855f7"/>
+    <path d="M768 351 L758 359 L768 367" stroke="#3b82f6"/>
+    <path d="M768 407 L758 415 L768 423" stroke="#22d3ee"/>
+    <path d="M768 463 L758 471 L768 479" stroke="#22c55e"/>
+    <path d="M768 519 L758 527 L768 535" stroke="#f97316"/>
+    <path d="M768 575 L758 583 L768 591" stroke="#a855f7"/>
   </g>
 
-  <!-- ===== the den (clients generating the traffic) ===== -->
-  <text x="1404" y="606" font-size="13" font-weight="700" letter-spacing="1.5" fill="#fbbf6b" text-anchor="end" font-family="'JetBrains Mono', monospace">THE DEN &#183; CLIENT PACK</text>
-  <text x="1404" y="625" font-size="10.5" fill="#6b7384" text-anchor="end" font-family="'JetBrains Mono', monospace">join the networks and generate the traffic above</text>
+  <!-- ===== the pack: member clients generating the traffic (right) ===== -->
   <g>
-    <g transform="translate(1300 300)"><circle r="34" fill="#0d0f14" stroke="#f97316" stroke-width="2.2"/><rect x="-15" y="-12" width="30" height="22" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2"/><line x1="-7" y1="15" x2="7" y2="15" stroke="#fbbf6b" stroke-width="2"/><circle cx="0" cy="-1" r="2.4" fill="#fbbf6b"/></g>
-    <g transform="translate(1300 396)"><circle r="34" fill="#0d0f14" stroke="#f97316" stroke-width="2.2"/><rect x="-15" y="-12" width="30" height="22" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2"/><line x1="-7" y1="15" x2="7" y2="15" stroke="#fbbf6b" stroke-width="2"/><circle cx="0" cy="-1" r="2.4" fill="#fbbf6b"/></g>
-    <g transform="translate(1300 492)"><circle r="34" fill="#0d0f14" stroke="#f97316" stroke-width="2.2"/><rect x="-15" y="-12" width="30" height="22" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2"/><line x1="-7" y1="15" x2="7" y2="15" stroke="#fbbf6b" stroke-width="2"/><circle cx="0" cy="-1" r="2.4" fill="#fbbf6b"/></g>
+    <g transform="translate(1400 359)"><circle r="33" fill="#0d0f14" stroke="#f97316" stroke-width="2.2"/><rect x="-15" y="-12" width="30" height="22" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2"/><line x1="-7" y1="15" x2="7" y2="15" stroke="#fbbf6b" stroke-width="2"/><circle cx="0" cy="-1" r="2.4" fill="#fbbf6b"/></g>
+    <g transform="translate(1400 471)"><circle r="33" fill="#0d0f14" stroke="#f97316" stroke-width="2.2"/><rect x="-15" y="-12" width="30" height="22" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2"/><line x1="-7" y1="15" x2="7" y2="15" stroke="#fbbf6b" stroke-width="2"/><circle cx="0" cy="-1" r="2.4" fill="#fbbf6b"/></g>
+    <g transform="translate(1400 583)"><circle r="33" fill="#0d0f14" stroke="#f97316" stroke-width="2.2"/><rect x="-15" y="-12" width="30" height="22" rx="4" fill="none" stroke="#fbbf6b" stroke-width="2"/><line x1="-7" y1="15" x2="7" y2="15" stroke="#fbbf6b" stroke-width="2"/><circle cx="0" cy="-1" r="2.4" fill="#fbbf6b"/></g>
   </g>
+  <text x="1400" y="647" font-size="13" font-weight="700" letter-spacing="1.5" fill="#fbbf6b" text-anchor="middle" font-family="'JetBrains Mono', monospace">THE PACK &#183; MEMBERS</text>
+  <text x="1400" y="668" font-size="10.5" fill="#6b7384" text-anchor="middle" font-family="'JetBrains Mono', monospace">join the networks, generate the traffic</text>
 
-  <!-- ===== enterprise auth backbone (wired, internal) ===== -->
-  <path d="M232 612 C 232 690, 240 712, 250 730" fill="none" stroke="#2f81f7" stroke-width="1.6" stroke-opacity="0.6"/>
-  <text x="80" y="712" font-size="11.5" font-weight="700" letter-spacing="2" fill="#6b7384" font-family="'JetBrains Mono', monospace">ENTERPRISE AUTH &#183; 802.1X / EAP</text>
+  <!-- ===== footer: enterprise auth backbone (left) + brand credit (right) ===== -->
+  <text x="70" y="719" font-size="11.5" font-weight="700" letter-spacing="2" fill="#6b7384" font-family="'JetBrains Mono', monospace">ENTERPRISE AUTH &#183; 802.1X / EAP</text>
   <g font-family="'JetBrains Mono', monospace" font-size="13" text-anchor="middle">
-    <g transform="translate(80 732)"><rect width="150" height="46" rx="9" fill="#101218" stroke="#20242e" stroke-width="1.1"/><text x="75" y="28" fill="#93c5fd">FreeRADIUS</text></g>
-    <g transform="translate(250 732)"><rect width="150" height="46" rx="9" fill="#101218" stroke="#20242e" stroke-width="1.1"/><text x="75" y="28" fill="#93c5fd">OpenLDAP</text></g>
-    <g transform="translate(420 732)"><rect width="168" height="46" rx="9" fill="#101218" stroke="#20242e" stroke-width="1.1"/><text x="84" y="28" fill="#93c5fd">Cert Authority</text></g>
+    <g transform="translate(70 735)"><rect width="150" height="46" rx="9" fill="#101218" stroke="#20242e" stroke-width="1.1"/><text x="75" y="28" fill="#93c5fd">FreeRADIUS</text></g>
+    <g transform="translate(240 735)"><rect width="150" height="46" rx="9" fill="#101218" stroke="#20242e" stroke-width="1.1"/><text x="75" y="28" fill="#93c5fd">OpenLDAP</text></g>
+    <g transform="translate(410 735)"><rect width="168" height="46" rx="9" fill="#101218" stroke="#20242e" stroke-width="1.1"/><text x="84" y="28" fill="#93c5fd">Cert Authority</text></g>
   </g>
+  <text x="1530" y="749" font-size="9.5" letter-spacing="2.5" fill="#4b5263" text-anchor="end" font-family="'JetBrains Mono', monospace">BUILT BY</text>
+  <image href="vtem_labs.png" x="1362" y="755" width="168" height="20" opacity="0.9" preserveAspectRatio="xMaxYMid meet"/>
 </svg>
