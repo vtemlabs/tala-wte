@@ -78,6 +78,63 @@ func optionalFirmware(osr osInfo) []string {
 	}
 }
 
+// optionalDrivers returns the DKMS build toolchain plus out-of-tree USB Wi-Fi
+// driver packages for adapters that have no in-kernel driver. Most of the
+// README's tested adapters are in-kernel (MediaTek MT76xx/MT79xx, Ralink RT3xxx,
+// Atheros AR9271 - covered by optionalFirmware), but the Realtek RTL88xxAU family
+// (e.g. the ALFA AWUS036ACH / RTL8812AU) ships only as an out-of-tree DKMS
+// module. We over-install the whole common DKMS driver set best-effort (each
+// skipped if it has no candidate on this distro) because a few extra driver
+// packages are far cheaper than a deployment that fails the moment an operator
+// plugs in a card whose driver was never installed.
+func optionalDrivers(osr osInfo) []string {
+	// DKMS build prerequisites first, so the driver packages below can build.
+	pkgs := []string{"dkms", "build-essential"}
+	if rel := kernelRelease(); rel != "" {
+		pkgs = append(pkgs, "linux-headers-"+rel) // exact running-kernel headers
+	}
+	if osr.isUbuntuLike() {
+		pkgs = append(pkgs, "linux-headers-generic")
+	} else if arch := dpkgArch(); arch != "" {
+		pkgs = append(pkgs, "linux-headers-"+arch) // Debian/Kali kernel-tracking meta
+	}
+	// Out-of-tree USB Wi-Fi DKMS drivers. Package names differ across Debian/Kali
+	// and Ubuntu; installDrivers skips any with no install candidate.
+	pkgs = append(pkgs,
+		"realtek-rtl88xxau-dkms",  // RTL8811AU/8812AU/8814AU/8821AU (ALFA AWUS036AC/ACH/AC1200)
+		"rtl8812au-dkms",          // alt 88xxau package name on some distros
+		"realtek-rtl8814au-dkms",  // RTL8814AU (ALFA AWUS1900)
+		"realtek-rtl8188eus-dkms", // RTL8188EUS (Nano-class)
+		"realtek-rtl8188fu-dkms",  // RTL8188FU
+		"realtek-rtl8723bu-dkms",  // RTL8723BU
+		"realtek-rtl8723du-dkms",  // RTL8723DU
+		"realtek-rtl88x2bu-dkms",  // RTL88x2BU (some AWUS036ACM revisions)
+		"rtl88x2bu-dkms",          // alt name
+		"realtek-rtl8821cu-dkms",  // RTL8821CU
+		"rtl8821cu-dkms",          // alt name
+		"broadcom-sta-dkms",       // Broadcom STA (BCM43xx)
+	)
+	return pkgs
+}
+
+// kernelRelease returns the running kernel version (uname -r) for the headers package.
+func kernelRelease() string {
+	out, err := exec.Command("uname", "-r").Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
+// dpkgArch returns the dpkg architecture (arm64/amd64) for the Debian headers metapackage.
+func dpkgArch() string {
+	out, err := exec.Command("dpkg", "--print-architecture").Output()
+	if err != nil {
+		return ""
+	}
+	return strings.TrimSpace(string(out))
+}
+
 // ensureAptSources ensures the Debian non-free-firmware component is enabled.
 func ensureAptSources() {
 	b, err := os.ReadFile("/etc/apt/sources.list")
@@ -187,30 +244,36 @@ func InstallPackages(pkgs []string) error {
 	}
 	if len(missing) == 0 {
 		log.Println("[deps] All client packages are satisfied.")
-		return nil
-	}
-	log.Printf("[deps] Missing client packages: %v", missing)
-	if err := runSystemCmd("apt-get", "update"); err != nil {
-		log.Printf("[deps] apt-get update failed: %v (continuing)", err)
-	}
-	installable := []string{}
-	for _, pkg := range missing {
-		if hasCandidate(pkg) {
-			installable = append(installable, pkg)
-		} else {
-			log.Printf("[deps] No install candidate for %q on this system; skipping.", pkg)
+	} else {
+		log.Printf("[deps] Missing client packages: %v", missing)
+		if err := runSystemCmd("apt-get", "update"); err != nil {
+			log.Printf("[deps] apt-get update failed: %v (continuing)", err)
 		}
-	}
-	if len(installable) > 0 {
-		if err := runSystemCmd("apt-get", append([]string{"install", "-y"}, installable...)...); err != nil {
-			log.Printf("[deps] Batch install failed (%v); retrying individually.", err)
-			for _, pkg := range installable {
-				if err := runSystemCmd("apt-get", "install", "-y", pkg); err != nil {
-					log.Printf("[deps] Failed to install %q: %v", pkg, err)
+		installable := []string{}
+		for _, pkg := range missing {
+			if hasCandidate(pkg) {
+				installable = append(installable, pkg)
+			} else {
+				log.Printf("[deps] No install candidate for %q on this system; skipping.", pkg)
+			}
+		}
+		if len(installable) > 0 {
+			if err := runSystemCmd("apt-get", append([]string{"install", "-y"}, installable...)...); err != nil {
+				log.Printf("[deps] Batch install failed (%v); retrying individually.", err)
+				for _, pkg := range installable {
+					if err := runSystemCmd("apt-get", "install", "-y", pkg); err != nil {
+						log.Printf("[deps] Failed to install %q: %v", pkg, err)
+					}
 				}
 			}
 		}
 	}
+	// A client box still needs its radio enabled: firmware for in-kernel drivers
+	// plus the out-of-tree DKMS drivers (e.g. the Realtek RTL88xxAU on the ALFA
+	// AWUS036ACH). Best-effort and idempotent, so this is a cheap no-op once
+	// everything is already installed.
+	installOptional(osr)
+	installDrivers(osr)
 	return nil
 }
 
@@ -298,6 +361,7 @@ func VerifyAndInstall() error {
 		log.Println("[deps] Package installation complete.")
 
 		installOptional(osr)
+		installDrivers(osr)
 	}
 
 	ensureKernelModules()
@@ -337,6 +401,33 @@ func installOptional(osr osInfo) {
 		// of GPU firmware irrelevant to a wireless box.
 		if err := runSystemCmd("apt-get", "install", "-y", "--no-install-recommends", pkg); err != nil {
 			log.Printf("[deps] Optional package %q unavailable, skipping.", pkg)
+		}
+	}
+}
+
+// installDrivers installs the DKMS toolchain and out-of-tree Wi-Fi drivers one
+// package at a time, best-effort, so a single unavailable candidate (or a DKMS
+// build failure on an exotic kernel) never blocks the others or aborts the
+// install. The prerequisites (dkms, build-essential, headers) come first in the
+// list so each driver package can build against the running kernel as it installs.
+func installDrivers(osr osInfo) {
+	missing := []string{}
+	for _, pkg := range optionalDrivers(osr) {
+		if !isInstalled(pkg) {
+			missing = append(missing, pkg)
+		}
+	}
+	if len(missing) == 0 {
+		return
+	}
+	log.Printf("[deps] Installing Wi-Fi drivers + DKMS toolchain (best-effort): %v", missing)
+	for _, pkg := range missing {
+		if !hasCandidate(pkg) {
+			log.Printf("[deps] No install candidate for driver %q on this system; skipping.", pkg)
+			continue
+		}
+		if err := runSystemCmd("apt-get", "install", "-y", pkg); err != nil {
+			log.Printf("[deps] Driver package %q failed to install or build, skipping: %v", pkg, err)
 		}
 	}
 }
