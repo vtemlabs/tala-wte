@@ -43,7 +43,7 @@ var templateAuthType = map[string]AuthType{
 	"cruise-azure":         AuthHotel,
 	"cruise-ferry":         AuthEmail,
 	"education-k12":        AuthInfoForm,
-	"education-university": AuthUserPassword,
+	"education-university": AuthInfoForm, // primary path is sponsored-guest registration, not the student login
 	"event-arena":          AuthEmail,
 	"event-expo":           AuthVoucher,
 	"fitness-pulse":        AuthMembership,
