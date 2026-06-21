@@ -17,7 +17,7 @@ function inline(s: string): string {
 		.replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>');
 }
 
-const blockStart = /^(#{1,4}\s|>\s?|\s*[-*]\s+|\s*\d+\.\s+|```|---+\s*$)/;
+const blockStart = /^(#{1,4}\s|>\s?|\s*[-*]\s+|\s*\d+\.\s+|```|---+\s*$|\s*\|)/;
 
 export function mdToHtml(md: string): string {
 	const lines = md.replace(/\r/g, '').split('\n');
@@ -80,6 +80,34 @@ export function mdToHtml(md: string): string {
 				i++;
 			}
 			html += '</ol>';
+			continue;
+		}
+
+		// Tables: a header row, a |---| separator, then body rows.
+		if (
+			line.trim().startsWith('|') &&
+			i + 1 < lines.length &&
+			/^\s*\|?[\s:|-]*-[\s:|-]*\|?\s*$/.test(lines[i + 1])
+		) {
+			const cells = (row: string) =>
+				row
+					.trim()
+					.replace(/^\||\|$/g, '')
+					.split('|')
+					.map((c) => c.trim());
+			const headers = cells(line);
+			i += 2; // header + separator
+			let body = '';
+			while (i < lines.length && lines[i].trim().startsWith('|')) {
+				body += '<tr>' + cells(lines[i]).map((c) => `<td>${inline(c)}</td>`).join('') + '</tr>';
+				i++;
+			}
+			html +=
+				'<table><thead><tr>' +
+				headers.map((c) => `<th>${inline(c)}</th>`).join('') +
+				'</tr></thead><tbody>' +
+				body +
+				'</tbody></table>';
 			continue;
 		}
 

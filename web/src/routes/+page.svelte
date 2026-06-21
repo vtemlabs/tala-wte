@@ -19,10 +19,10 @@
   let loading = $state(true);
   let unsubscribe: (() => void) | null = null;
 
-  // Den: surface the leader's client pack on the dashboard, under Networks.
-  let denMembers = $state<Record<string, any>[]>([]);
-  let denStatuses = $state<Record<string, any>>({});
-  let denPoll: ReturnType<typeof setInterval> | null = null;
+  // Pack: surface the leader's client pack on the dashboard, under Networks.
+  let packMembers = $state<Record<string, any>[]>([]);
+  let packStatuses = $state<Record<string, any>>({});
+  let packPoll: ReturnType<typeof setInterval> | null = null;
 
   const activeNets = $derived(networkList.filter((n) => n.status === 'running'));
   const totalClients = $derived(networkList.reduce((s, n) => s + (n.client_count ?? 0), 0));
@@ -53,27 +53,27 @@
   });
   const protoLabel = (p: string) => p.replace('_', '-').toUpperCase();
 
-  function denAuthHeaders(): Record<string, string> {
+  function packAuthHeaders(): Record<string, string> {
     return pb.authStore.token ? { Authorization: pb.authStore.token } : {};
   }
-  async function loadDen() {
+  async function loadPack() {
     try {
-      denMembers = await pb.collection('den_members').getFullList({ sort: '-created' });
+      packMembers = await pb.collection('pack_members').getFullList({ sort: '-created' });
     } catch {
-      denMembers = [];
+      packMembers = [];
     }
   }
-  async function refreshDen() {
-    for (const m of denMembers) {
+  async function refreshPack() {
+    for (const m of packMembers) {
       try {
-        denStatuses[m.id] = await fetch(`/api/wte/den/${m.id}/status`, {
-          headers: denAuthHeaders()
+        packStatuses[m.id] = await fetch(`/api/wte/pack/${m.id}/status`, {
+          headers: packAuthHeaders()
         }).then((r) => r.json());
       } catch {
-        denStatuses[m.id] = { reachable: false };
+        packStatuses[m.id] = { reachable: false };
       }
     }
-    denStatuses = { ...denStatuses };
+    packStatuses = { ...packStatuses };
   }
 
   onMount(async () => {
@@ -88,9 +88,9 @@
     }
     loading = false;
 
-    await loadDen();
-    refreshDen();
-    denPoll = setInterval(refreshDen, 7000);
+    await loadPack();
+    refreshPack();
+    packPoll = setInterval(refreshPack, 7000);
 
     unsubscribe = await pb.collection('networks').subscribe('*', (e) => {
       if (e.action === 'update') {
@@ -105,7 +105,7 @@
 
   onDestroy(() => {
     unsubscribe?.();
-    if (denPoll) clearInterval(denPoll);
+    if (packPoll) clearInterval(packPoll);
   });
 </script>
 
@@ -251,12 +251,12 @@
 
     <div class="panel">
       <div class="panel-head">
-        <span class="panel-title">Den</span>
-        <a href="/den" class="action-btn">View all</a>
+        <span class="panel-title">Pack</span>
+        <a href="/pack" class="action-btn">View all</a>
       </div>
-      {#if denMembers.length === 0}
+      {#if packMembers.length === 0}
         <div class="empty-state" style="padding:var(--space-xl)">
-          <p>No den members yet. Drive a pack of clients from the Den page.</p>
+          <p>No pack members yet. Drive a pack of clients from the Pack page.</p>
         </div>
       {:else}
         <div class="table-wrap">
@@ -270,8 +270,8 @@
               </tr>
             </thead>
             <tbody>
-              {#each denMembers as m}
-                {@const st = denStatuses[m.id]}
+              {#each packMembers as m}
+                {@const st = packStatuses[m.id]}
                 {@const reachable = !!st?.reachable}
                 {@const adapters = st?.status?.adapters ?? 0}
                 {@const connected = reachable && !!st?.status?.connected}

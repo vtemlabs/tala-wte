@@ -272,6 +272,49 @@
     }
   }
 
+  // Set a new password on an existing user (e.g. to make a weak account strong, or
+  // give a known credential to test clients with).
+  async function setUserPassword(uid: string) {
+    const pw = prompt(`Set a new password for ${uid}:`);
+    if (pw === null) return;
+    if (!pw.trim()) {
+      toast.err('Password cannot be empty');
+      return;
+    }
+    try {
+      await ldap.setPassword(uid, pw);
+      toast.info(`Password updated for ${uid}`);
+      await loadAll();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to set password');
+    }
+  }
+
+  // Per-group "add member" inputs, keyed by group CN.
+  let memberAdd = $state<Record<string, string>>({});
+
+  async function addGroupMember(cn: string) {
+    const uid = (memberAdd[cn] || '').trim();
+    if (!uid) return;
+    try {
+      await ldap.addMember(cn, uid);
+      memberAdd[cn] = '';
+      memberAdd = { ...memberAdd };
+      await loadAll();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to add member');
+    }
+  }
+
+  async function removeGroupMember(cn: string, uid: string) {
+    try {
+      await ldap.removeMember(cn, uid);
+      await loadAll();
+    } catch (e: any) {
+      toast.err(e?.message ?? 'Failed to remove member');
+    }
+  }
+
   async function testAuth() {
     testing = true;
     testResult = null;
@@ -486,6 +529,7 @@
                       {/if}
                     </td>
                     <td data-label="" class="actions-col">
+                      <button class="action-btn" onclick={() => setUserPassword(u.uid)} title="Set a new password">Set pw</button>
                       <button class="action-btn del-btn" onclick={() => deleteUser(u.uid)}>Del</button>
                     </td>
                   </tr>
@@ -540,9 +584,26 @@
                     <td data-label="Group" class="mono">{g.cn}</td>
                     <td data-label="Members" class="num-col"><span class="count-pill">{g.uids.length}</span></td>
                     <td data-label="Membership">
-                      {#if g.uids.length}
-                        <span class="mono member-list">{g.uids.join(', ')}</span>
-                      {:else}<span class="dim">empty</span>{/if}
+                      <div class="member-cell">
+                        {#each g.uids as uid}
+                          <button
+                            class="action-btn member-chip mono"
+                            onclick={() => removeGroupMember(g.cn, uid)}
+                            title="Remove {uid} from {g.cn}">{uid} &#10005;</button
+                          >
+                        {/each}
+                        {#if !g.uids.length}<span class="dim">empty</span>{/if}
+                        <span class="member-add">
+                          <input
+                            class="input member-add-input"
+                            placeholder="add uid"
+                            aria-label="Add member to {g.cn}"
+                            bind:value={memberAdd[g.cn]}
+                            onkeydown={(e) => e.key === 'Enter' && addGroupMember(g.cn)}
+                          />
+                          <button class="action-btn" onclick={() => addGroupMember(g.cn)}>Add</button>
+                        </span>
+                      </div>
                     </td>
                     <td data-label="" class="actions-col">
                       <button class="action-btn del-btn" onclick={() => deleteGroup(g.cn)}>Del</button>
@@ -652,8 +713,26 @@
     gap: var(--space-md);
     margin-bottom: var(--space-md);
   }
-  .member-list {
-    color: var(--text-dim);
+  .member-cell {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--space-xs);
+  }
+  .member-chip {
+    font-size: var(--font-size-2xs);
+    padding: 2px 7px;
+  }
+  .member-add {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-xs);
+    margin-left: var(--space-xs);
+  }
+  .member-add-input {
+    width: 96px;
+    font-size: var(--font-size-2xs);
+    padding: 2px 7px;
   }
   .pw-cell {
     display: inline-block;

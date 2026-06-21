@@ -43,7 +43,7 @@
   // Instance role (AP vs client) and the one-button swap between them.
   let mode = $state<'ap' | 'client'>('ap');
   let swapping = $state(false);
-  // Den agent key (client mode): the control token a den leader uses to drive this client.
+  // Pack agent key (client mode): the control token a pack leader uses to drive this client.
   let agentKey = $state('');
 
   // The loaded value is folded in below so a region not on this list still shows.
@@ -221,7 +221,7 @@
   async function regenKey() {
     if (
       !confirm(
-        'Regenerate the agent key? Any den leader using the old key loses access until you re-add this client.'
+        'Regenerate the agent key? Any pack leader using the old key loses access until you re-add this client.'
       )
     ) {
       return;
@@ -324,10 +324,10 @@
 
     {#if mode === 'client'}
       <section class="panel">
-        <div class="panel-head"><h2 class="panel-title">Den Agent Key</h2></div>
+        <div class="panel-head"><h2 class="panel-title">Pack Agent Key</h2></div>
         <div class="panel-body">
           <span class="field-desc"
-            >Add this client to a den leader using its address and this key.</span
+            >Add this client to a pack leader using its address and this key.</span
           >
           <div class="key-val">{agentKey || 'generating...'}</div>
           <div class="key-actions">

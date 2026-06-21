@@ -83,7 +83,7 @@
   }
 
   async function loadMembers() {
-    members = await pb.collection('den_members').getFullList({ sort: '-created' });
+    members = await pb.collection('pack_members').getFullList({ sort: '-created' });
   }
   async function loadNetworks() {
     networkList = await pb.collection('networks').getFullList({ sort: 'ssid' });
@@ -154,7 +154,7 @@
   async function refreshStatuses() {
     for (const m of members) {
       try {
-        statuses[m.id] = await fetch(`/api/wte/den/${m.id}/status`, {
+        statuses[m.id] = await fetch(`/api/wte/pack/${m.id}/status`, {
           headers: authHeaders()
         }).then((r) => r.json());
       } catch {
@@ -168,7 +168,7 @@
     try {
       await Promise.all([loadMembers(), loadNetworks(), loadDatasets()]);
     } catch (e: any) {
-      toast.err(e?.message ?? 'Failed to load den');
+      toast.err(e?.message ?? 'Failed to load pack');
     }
     refreshStatuses();
     poll = setInterval(refreshStatuses, 5000);
@@ -182,7 +182,7 @@
     }
     adding = true;
     try {
-      await pb.collection('den_members').create({
+      await pb.collection('pack_members').create({
         name: name.trim(),
         address: address.trim(),
         agent_key: agentKey.trim()
@@ -192,7 +192,7 @@
       agentKey = '';
       await loadMembers();
       refreshStatuses();
-      toast.success('Member added to the den');
+      toast.success('Member added to the pack');
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to add member');
     }
@@ -208,7 +208,7 @@
   async function scanDiscovered() {
     scanning = true;
     try {
-      const d = await fetch('/api/wte/den/discovered', { headers: authHeaders() }).then((r) =>
+      const d = await fetch('/api/wte/pack/discovered', { headers: authHeaders() }).then((r) =>
         r.json()
       );
       discovered = d.peers ?? [];
@@ -241,7 +241,7 @@
         traffic.domains = lines(ds.domains);
         traffic.ips = lines(ds.ips);
       }
-      const r = await fetch(`/api/wte/den/${m.id}/deploy`, {
+      const r = await fetch(`/api/wte/pack/${m.id}/deploy`, {
         method: 'POST',
         headers: authHeaders({ 'Content-Type': 'application/json' }),
         body: JSON.stringify({ network_id: net, traffic, reconnect: profile.reconnect })
@@ -258,7 +258,7 @@
   async function stop(m: any) {
     busy = m.id;
     try {
-      await fetch(`/api/wte/den/${m.id}/stop`, { method: 'POST', headers: authHeaders() });
+      await fetch(`/api/wte/pack/${m.id}/stop`, { method: 'POST', headers: authHeaders() });
       toast.success(`Stopped ${m.name}`);
       await loadMembers();
     } catch (e: any) {
@@ -268,9 +268,9 @@
   }
 
   async function remove(m: any) {
-    if (!confirm(`Remove ${m.name} from the den?`)) return;
+    if (!confirm(`Remove ${m.name} from the pack?`)) return;
     try {
-      await pb.collection('den_members').delete(m.id);
+      await pb.collection('pack_members').delete(m.id);
       await loadMembers();
     } catch (e: any) {
       toast.err(e?.message ?? 'Failed to remove member');
@@ -285,12 +285,12 @@
   // restarts, so the leader and its members stay on matching versions.
   async function updateAll() {
     if (
-      !confirm('Push the latest update to all den members? Each downloads, applies, and restarts.')
+      !confirm('Push the latest update to all pack members? Each downloads, applies, and restarts.')
     )
       return;
     updating = true;
     try {
-      const r = await fetch('/api/wte/den/update', { method: 'POST', headers: authHeaders() });
+      const r = await fetch('/api/wte/pack/update', { method: 'POST', headers: authHeaders() });
       const j = await r.json();
       if (!r.ok) throw new Error(j?.error ?? 'update failed');
       const results = j.results ?? [];
@@ -301,18 +301,18 @@
       );
       refreshStatuses();
     } catch (e: any) {
-      toast.err(e?.message ?? 'Den update failed');
+      toast.err(e?.message ?? 'Pack update failed');
     }
     updating = false;
   }
 </script>
 
-<svelte:head><title>Den - Tala WTE</title></svelte:head>
+<svelte:head><title>Pack - Tala WTE</title></svelte:head>
 
 <div class="page-header">
   <div>
-    <h1 class="page-title">Den</h1>
-    <p class="page-subtitle">Drive a pack of client members from the den leader</p>
+    <h1 class="page-title">Pack</h1>
+    <p class="page-subtitle">Drive a pack of client members from the pack leader</p>
   </div>
   <div class="header-actions">
     <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
@@ -326,7 +326,7 @@
   </div>
 </div>
 
-<GuideModal bind:open={guideOpen} title={GUIDES.den.title} doc={GUIDES.den.doc} />
+<GuideModal bind:open={guideOpen} title={GUIDES.pack.title} doc={GUIDES.pack.doc} />
 
 <div class="stack">
   <div class="panel">
@@ -451,7 +451,7 @@
       <div class="form-group">
         <label class="field-label" for="mkey">Agent key</label>
         <input class="input" id="mkey" bind:value={agentKey} placeholder="paste from the member" />
-        <span class="field-desc">Copy it from the member's Settings -> Den Agent Key.</span>
+        <span class="field-desc">Copy it from the member's Settings -> Pack Agent Key.</span>
       </div>
       <button class="btn btn-primary" onclick={addMember} disabled={adding}>
         {adding ? 'Adding...' : 'Add member'}

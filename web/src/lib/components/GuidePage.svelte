@@ -8,6 +8,8 @@
 <script lang="ts">
   // Reusable in-app documentation page: back link, title, and a Markdown body.
   import { mdToHtml } from '$lib/md';
+  import { lightbox } from '$lib/lightbox';
+  import { docScale, zoomDoc } from '$lib/stores/docScale';
 
   let {
     title,
@@ -35,12 +37,17 @@
     {#if subtitle}<p class="page-subtitle">{subtitle}</p>{/if}
   </div>
   <div class="header-actions">
+    <div class="doc-font">
+      <button class="btn doc-font-btn" onclick={() => zoomDoc(-0.1)} title="Smaller text" aria-label="Smaller text">A-</button>
+      <span class="doc-fs">{Math.round($docScale * 100)}%</span>
+      <button class="btn doc-font-btn" onclick={() => zoomDoc(0.1)} title="Larger text" aria-label="Larger text">A+</button>
+    </div>
     <a href={backHref} class="btn">{backLabel}</a>
   </div>
 </div>
 
 <article class="panel prose-panel">
-  <div class="prose">
+  <div class="tala-doc" use:lightbox style="font-size: calc(var(--font-size-sm) * 1.1 * {$docScale})">
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html mdToHtml(doc)}
   </div>
@@ -58,88 +65,23 @@
   .prose-panel {
     padding: var(--space-2xl) var(--space-3xl);
   }
-  /* No max-width so the guide fills the frame instead of a narrow left column. */
-  .prose {
-    max-width: none;
-    width: 100%;
-    color: var(--text-secondary);
+  /* Document body styling is global (.tala-doc in app.css), shared with the Guide window. */
+  .doc-font {
+    display: flex;
+    align-items: center;
+    gap: var(--space-xs);
   }
-  .prose :global(h2) {
-    font-size: var(--font-size-lg);
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: var(--space-2xl) 0 var(--space-sm);
-    padding-top: var(--space-lg);
-    border-top: 1px solid var(--border-subtle);
-    letter-spacing: -0.01em;
+  .doc-font-btn {
+    padding: var(--space-xs) var(--space-sm);
+    font-weight: 600;
+    min-width: 34px;
   }
-  .prose :global(h2:first-child) {
-    margin-top: 0;
-    padding-top: 0;
-    border-top: none;
-  }
-  .prose :global(h3) {
-    font-size: var(--font-size-base);
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: var(--space-xl) 0 var(--space-xs);
-  }
-  .prose :global(p) {
-    font-size: var(--font-size-sm);
-    line-height: 1.7;
-    margin: 0 0 var(--space-md);
-  }
-  .prose :global(ul),
-  .prose :global(ol) {
-    margin: 0 0 var(--space-md);
-    padding-left: var(--space-xl);
-  }
-  .prose :global(li) {
-    font-size: var(--font-size-sm);
-    line-height: 1.7;
-    margin-bottom: var(--space-xs);
-  }
-  .prose :global(strong) {
-    color: var(--text-primary);
-    font-weight: 700;
-  }
-  .prose :global(a) {
-    color: var(--accent-hover);
-  }
-  .prose :global(a:hover) {
-    text-decoration: underline;
-  }
-  .prose :global(code) {
-    font-family: var(--font-mono);
-    font-size: 0.88em;
-    color: var(--accent-hover);
-    background: var(--bg-input);
-    border: 1px solid var(--border-subtle);
-    padding: 1px 6px;
-    border-radius: var(--radius-sm);
-  }
-  .prose :global(img) {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    margin: var(--space-lg) 0;
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-    box-shadow: var(--shadow-md);
-  }
-  .prose :global(blockquote) {
-    margin: 0 0 var(--space-md);
-    padding: var(--space-sm) var(--space-lg);
-    border-left: 3px solid var(--accent);
-    background: var(--accent-soft);
-    border-radius: var(--radius-sm);
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-  }
-  .prose :global(hr) {
-    border: none;
-    border-top: 1px solid var(--border-subtle);
-    margin: var(--space-xl) 0;
+  .doc-fs {
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+    min-width: 40px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
   }
 
   @media (max-width: 700px) {

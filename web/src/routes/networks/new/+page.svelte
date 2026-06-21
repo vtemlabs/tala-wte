@@ -390,7 +390,7 @@
               placeholder="directory password for this user"
             />
             <p class="field-desc">
-              The directory username and password test clients present for 802.1X. The den hands
+              The directory username and password test clients present for 802.1X. The pack hands
               these to deployed members so they authenticate against RADIUS / the directory. Must
               match a user in the Directory (LDAP).
             </p>

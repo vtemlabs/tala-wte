@@ -8,6 +8,8 @@
   // Floating, draggable, resizable guide window so a guide can be referenced
   // side by side while adjusting settings. Same chrome as the Live Log window.
   import { mdToHtml } from '$lib/md';
+  import { lightbox } from '$lib/lightbox';
+  import { docScale, zoomDoc } from '$lib/stores/docScale';
 
   let {
     open = $bindable(false),
@@ -19,8 +21,8 @@
   let maximized = $state(false);
   let x = $state(0),
     y = $state(0),
-    w = $state(720),
-    h = $state(620);
+    w = $state(1040),
+    h = $state(600);
   let started = false;
 
   const html = $derived(mdToHtml(doc));
@@ -28,6 +30,9 @@
   $effect(() => {
     if (open && !started) {
       started = true;
+      // Open at a proper 16:9, sized to the viewport.
+      w = Math.min(1120, window.innerWidth - 48);
+      h = Math.min(Math.round((w * 9) / 16), window.innerHeight - 48);
       x = Math.max(20, window.innerWidth - w - 40);
       y = Math.max(20, (window.innerHeight - h) / 4);
     }
@@ -116,6 +121,11 @@
         >{title}{#if minimized}
           (click to restore){/if}</span
       >
+      <div class="gw-font">
+        <button onclick={() => zoomDoc(-0.1)} title="Smaller text" aria-label="Smaller text">A-</button>
+        <span class="gw-fs">{Math.round($docScale * 100)}%</span>
+        <button onclick={() => zoomDoc(0.1)} title="Larger text" aria-label="Larger text">A+</button>
+      </div>
       <div class="gw-win">
         <button onclick={toggleMin} title="Minimize" aria-label="Minimize">-</button>
         <button onclick={toggleMax} title={maximized ? 'Restore' : 'Maximize'} aria-label="Maximize"
@@ -126,7 +136,15 @@
     </div>
 
     <div class="gw-body" class:hidden={minimized}>
-      <div class="guide-prose">{@html html}</div>
+      <div class="tala-doc" use:lightbox style="font-size: calc(var(--font-size-sm) * 1.1 * {$docScale})">
+        {@html html}
+        <footer class="gw-doc-footer">
+          <img src="/brand/vtem-labs.png" alt="VTEM Labs" />
+          <span>(c) 2026 VTEM Labs, Inc. All rights reserved.</span>
+          <span class="sep">|</span>
+          <a href="https://vtemlabs.com" target="_blank" rel="noopener noreferrer">vtemlabs.com</a>
+        </footer>
+      </div>
     </div>
 
     {#if !maximized && !minimized}
@@ -231,6 +249,69 @@
     background: var(--bg-hover);
     color: var(--text-primary);
   }
+  .gw-font {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-right: var(--space-sm);
+  }
+  .gw-font button {
+    min-width: 26px;
+    height: 22px;
+    padding: 0 5px;
+    background: none;
+    border: none;
+    cursor: pointer;
+    color: var(--text-muted);
+    font-size: var(--font-size-xs);
+    font-weight: 600;
+    border-radius: 4px;
+  }
+  .gw-font button:hover {
+    background: var(--bg-hover);
+    color: var(--text-primary);
+  }
+  .gw-fs {
+    font-size: var(--font-size-2xs);
+    color: var(--text-dim);
+    min-width: 36px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
+  :global(.gw .gw-doc-footer) {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: var(--space-sm);
+    margin-top: var(--space-2xl);
+    padding-top: var(--space-lg);
+    border-top: 1px solid var(--border-primary);
+    font-size: var(--font-size-xs);
+    color: var(--text-dim);
+  }
+  :global(.gw .gw-doc-footer img) {
+    height: 14px;
+    max-height: 14px;
+    width: auto;
+    margin: 0;
+    border: none;
+    border-radius: 0;
+    background: none;
+    opacity: 0.85;
+    cursor: default;
+  }
+  :global(.gw .gw-doc-footer .sep) {
+    color: var(--border-secondary);
+  }
+  :global(.gw .gw-doc-footer a) {
+    color: var(--text-muted);
+    text-decoration: none;
+  }
+  :global(.gw .gw-doc-footer a:hover) {
+    color: var(--accent-hover);
+    text-decoration: underline;
+  }
   .gw-body {
     flex: 1;
     min-height: 0;
@@ -266,41 +347,7 @@
     height: 14px;
     cursor: nwse-resize;
   }
-  :global(.gw .guide-prose img) {
-    display: block;
-    width: 100%;
-    max-width: 100%;
-    margin: var(--space-lg) 0;
-    border: 1px solid var(--border-primary);
-    border-radius: var(--radius-md);
-  }
-  :global(.gw .guide-prose h2) {
-    font-size: var(--font-size-lg);
-    color: var(--text-primary);
-    margin: var(--space-lg) 0 var(--space-sm);
-  }
-  :global(.gw .guide-prose h3) {
-    font-size: var(--font-size-md);
-    color: var(--text-primary);
-    margin: var(--space-md) 0 var(--space-xs);
-  }
-  :global(.gw .guide-prose p),
-  :global(.gw .guide-prose li) {
-    color: var(--text-secondary);
-    font-size: var(--font-size-sm);
-    line-height: 1.6;
-  }
-  :global(.gw .guide-prose code) {
-    font-family: var(--font-mono);
-    background: var(--bg-input);
-    padding: 1px 5px;
-    border-radius: 4px;
-    font-size: 0.85em;
-    color: var(--accent-hover);
-  }
-  :global(.gw .guide-prose strong) {
-    color: var(--text-primary);
-  }
+  /* Doc body styling is global (.tala-doc in app.css), shared with the full-page guides. */
   :global(.gw .gw-body::-webkit-scrollbar) {
     width: 8px;
   }

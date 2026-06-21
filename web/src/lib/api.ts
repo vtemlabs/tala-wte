@@ -252,6 +252,26 @@ export const ldap = {
 			handleResponse
 		),
 
+	setPassword: (uid: string, password: string) =>
+		fetch(`/api/wte/ldap/users/${encodeURIComponent(uid)}/password`, {
+			method: 'POST',
+			headers: authHeaders({ 'Content-Type': 'application/json' }),
+			body: JSON.stringify({ password })
+		}).then(handleResponse),
+
+	addMember: (cn: string, uid: string) =>
+		fetch(`/api/wte/ldap/groups/${encodeURIComponent(cn)}/members`, {
+			method: 'POST',
+			headers: authHeaders({ 'Content-Type': 'application/json' }),
+			body: JSON.stringify({ uid })
+		}).then(handleResponse),
+
+	removeMember: (cn: string, uid: string) =>
+		fetch(`/api/wte/ldap/groups/${encodeURIComponent(cn)}/members/${encodeURIComponent(uid)}`, {
+			method: 'DELETE',
+			headers: authHeaders()
+		}).then(handleResponse),
+
 	testAuth: (uid: string, password: string) =>
 		fetch('/api/wte/ldap/test-auth', {
 			method: 'POST',

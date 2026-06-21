@@ -99,7 +99,6 @@
             <option value="peap">EAP-PEAP (Recommended)</option>
             <option value="tls">EAP-TLS (Certificate Auth)</option>
             <option value="ttls">EAP-TTLS</option>
-            <option value="fast">EAP-FAST</option>
           </select>
         </div>
         <div class="field">
@@ -107,8 +106,6 @@
           <select class="input" id="innerAuth" bind:value={innerAuth}>
             <option value="mschapv2">MSCHAPv2</option>
             <option value="pap">PAP</option>
-            <option value="chap">CHAP</option>
-            <option value="gtc">GTC</option>
           </select>
         </div>
         <div class="field">
