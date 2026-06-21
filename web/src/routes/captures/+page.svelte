@@ -257,8 +257,7 @@
                     {:else}
                       <a href={`/captures/${c.id}`} class="action-btn">View</a>
                       <a href={captures.downloadURL(c.id)} class="action-btn" download>Download</a>
-                      <button class="action-btn del-btn" onclick={() => remove(c.id)}>Del</button
-                      >
+                      <button class="action-btn del-btn" onclick={() => remove(c.id)}>Del</button>
                     {/if}
                   </div>
                 </td>

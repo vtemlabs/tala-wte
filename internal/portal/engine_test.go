@@ -5,6 +5,7 @@
 package portal
 
 import (
+	"net/http"
 	"net/http/httptest"
 	"net/url"
 	"strings"
@@ -39,7 +40,7 @@ func TestDefaultPortalAuth(t *testing.T) {
 func TestSubmissionFieldsPackMember(t *testing.T) {
 	form := url.Values{"username": {"jsmith"}, "password": {"Summer2026!"}, "redirect": {"http://x"}}
 
-	req := httptest.NewRequest("POST", "/portal/accept", strings.NewReader(form.Encode()))
+	req := httptest.NewRequest(http.MethodPost, "/portal/accept", strings.NewReader(form.Encode()))
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	req.Header.Set("X-Tala-Member", "lab-client-1")
 	fields := submissionFields(req)
@@ -54,7 +55,7 @@ func TestSubmissionFieldsPackMember(t *testing.T) {
 	}
 
 	// No header -> untagged (a real target).
-	req2 := httptest.NewRequest("POST", "/portal/accept", strings.NewReader(form.Encode()))
+	req2 := httptest.NewRequest(http.MethodPost, "/portal/accept", strings.NewReader(form.Encode()))
 	req2.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 	f2 := submissionFields(req2)
 	if _, ok := f2["_pack_member"]; ok {

@@ -101,9 +101,13 @@
     </div>
     <div class="head-actions">
       {#if saved}<span class="badge badge-success">Saved</span>{/if}
-      {#if isBuiltin}<span class="badge badge-info" title="Built-in templates are read-only">read-only template</span>{/if}
+      {#if isBuiltin}<span class="badge badge-info" title="Built-in templates are read-only"
+          >read-only template</span
+        >{/if}
       {#if isBuiltin}
-        <span class="badge badge-neutral" title="Captive-portal auth type">{authLabel(authType)}</span>
+        <span class="badge badge-neutral" title="Captive-portal auth type"
+          >{authLabel(authType)}</span
+        >
       {:else if authTypes.length}
         <select
           class="input auth-select"

@@ -60,17 +60,37 @@ func TestAliasMatching(t *testing.T) {
 		submitted map[string]string // template field names
 		want      bool
 	}{
-		{AuthHotel, map[string]string{"last_name": "Smith", "room_number": "227"},
-			map[string]string{"surname": "smith", "stateroom": "227"}, true},
-		{AuthVoucher, map[string]string{"code": "AB12-CD34"},
-			map[string]string{"voucher": "ab12-cd34"}, true},
-		{AuthUserPassword, map[string]string{"username": "jsmith", "password": "S3cret!!"},
-			map[string]string{"account": "jsmith", "passcode": "S3cret!!"}, true},
-		{AuthMembership, map[string]string{"member_id": "M1234567", "pin": "4242"},
-			map[string]string{"card_number": "m1234567", "pin": "4242"}, true},
+		{
+			AuthHotel,
+			map[string]string{"last_name": "Smith", "room_number": "227"},
+			map[string]string{"surname": "smith", "stateroom": "227"},
+			true,
+		},
+		{
+			AuthVoucher,
+			map[string]string{"code": "AB12-CD34"},
+			map[string]string{"voucher": "ab12-cd34"},
+			true,
+		},
+		{
+			AuthUserPassword,
+			map[string]string{"username": "jsmith", "password": "S3cret!!"},
+			map[string]string{"account": "jsmith", "passcode": "S3cret!!"},
+			true,
+		},
+		{
+			AuthMembership,
+			map[string]string{"member_id": "M1234567", "pin": "4242"},
+			map[string]string{"card_number": "m1234567", "pin": "4242"},
+			true,
+		},
 		// wrong password (exact match required for secrets)
-		{AuthUserPassword, map[string]string{"username": "jsmith", "password": "S3cret!!"},
-			map[string]string{"account": "jsmith", "passcode": "s3cret!!"}, false},
+		{
+			AuthUserPassword,
+			map[string]string{"username": "jsmith", "password": "S3cret!!"},
+			map[string]string{"account": "jsmith", "passcode": "s3cret!!"},
+			false,
+		},
 	}
 	for i, c := range cases {
 		if got := MatchEntry(c.at, c.submitted, c.entry); got != c.want {

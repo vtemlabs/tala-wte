@@ -131,9 +131,7 @@
 {#if !loading && unsupported.length > 0}
   <div class="error-toast hw-warn">
     <span>
-      Wireless adapter(s) not ready: {unsupported
-        .map((a) => a.name + ' - ' + a.reason)
-        .join('; ')}.
+      Wireless adapter(s) not ready: {unsupported.map((a) => a.name + ' - ' + a.reason).join('; ')}.
     </span>
   </div>
 {/if}

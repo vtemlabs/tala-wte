@@ -31,11 +31,11 @@ var requiredPackages = []string{
 	"usbutils", // USB adapter discovery
 	"hwdata",   // usb.ids for adapter vendor/product naming fallback
 	"rfkill",
-	"iw",           // modern wireless tooling (wireless-tools/iwconfig is obsolete and dropped on newer distros)
+	"iw",            // modern wireless tooling (wireless-tools/iwconfig is obsolete and dropped on newer distros)
 	"wpasupplicant", // client-mode association (members join networks via wpa_supplicant)
 	"tcpdump",       // BPF filter validation in the capture engine
-	"psmisc",  // fuser, for releasing ports held before slapd starts
-	"procps",  // pgrep/pkill, for service status checks and cleanup
+	"psmisc",        // fuser, for releasing ports held before slapd starts
+	"procps",        // pgrep/pkill, for service status checks and cleanup
 	"git",
 }
 

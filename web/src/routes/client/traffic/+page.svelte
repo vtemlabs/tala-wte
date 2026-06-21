@@ -619,10 +619,14 @@
         onchange={applyDataset}
         disabled={datasets.length === 0}
       >
-        <option value="">{datasets.length ? 'Choose a dataset to fill the targets…' : 'No datasets'}</option>
+        <option value=""
+          >{datasets.length ? 'Choose a dataset to fill the targets…' : 'No datasets'}</option
+        >
         {#each datasets as d}<option value={d.id}>{d.name}</option>{/each}
       </select>
-      <span class="field-desc">Fills the fields below from a saved dataset; edit them after if you like.</span>
+      <span class="field-desc"
+        >Fills the fields below from a saved dataset; edit them after if you like.</span
+      >
     </div>
     <div class="grid3">
       <div class="form-group">

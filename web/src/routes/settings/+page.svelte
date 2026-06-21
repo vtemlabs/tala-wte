@@ -29,7 +29,9 @@
   // (their phy is in the network's namespace), so the backend returns full
   // hardware detail cached at start-time, with an in_use_by field for the SSID.
   let inUseAdapters = $state<any[]>([]);
-  let unsupported = $state<{ usb_id: string; usb_path?: string; name: string; reason: string }[]>([]);
+  let unsupported = $state<{ usb_id: string; usb_path?: string; name: string; reason: string }[]>(
+    []
+  );
   let healing = $state<Record<string, boolean>>({});
 
   // Free radios first, then in-use ones - all rendered as full hardware cards.

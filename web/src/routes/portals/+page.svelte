@@ -144,13 +144,15 @@
       if (activeCat !== 'all' && (p.category || 'custom') !== activeCat) return false;
       if (source === 'builtin' && p.type !== 'builtin') return false;
       if (source === 'custom' && p.type === 'builtin') return false;
-      if (q && !(`${p.name} ${p.description ?? ''}`.toLowerCase().includes(q))) return false;
+      if (q && !`${p.name} ${p.description ?? ''}`.toLowerCase().includes(q)) return false;
       return true;
     });
     const dir = sortDir === 'asc' ? 1 : -1;
     out = [...out].sort((a, b) => {
       if (sortBy === 'category')
-        return catLabel(a.category || 'custom').localeCompare(catLabel(b.category || 'custom')) * dir;
+        return (
+          catLabel(a.category || 'custom').localeCompare(catLabel(b.category || 'custom')) * dir
+        );
       if (sortBy === 'type') return (a.type || '').localeCompare(b.type || '') * dir;
       return (a.name || '').localeCompare(b.name || '') * dir;
     });
@@ -167,7 +169,9 @@
       const n = res?.restored ?? 0;
       const r = res?.reset ?? 0;
       toast.success(
-        n || r ? `Restored ${n} template(s), reset ${r} to original` : 'Templates already up to date'
+        n || r
+          ? `Restored ${n} template(s), reset ${r} to original`
+          : 'Templates already up to date'
       );
       await load();
     } catch (e: any) {
@@ -322,8 +326,8 @@
     <p class="section-desc">
       Validatable logins for credentialed portals (hotel room + last name, voucher, username /
       password, membership). Generate a set here, then assign it to a network's portal on the
-      Networks page so submissions are checked against it - exactly like a real portal. Click-through,
-      email, and info-form portals collect data without validation and need no set.
+      Networks page so submissions are checked against it - exactly like a real portal.
+      Click-through, email, and info-form portals collect data without validation and need no set.
     </p>
     <div class="cred-gen">
       <select class="input" bind:value={genType} aria-label="Auth type">
@@ -398,8 +402,11 @@
         <option value="type">Sort: Source</option>
       </select>
     {/if}
-    <button class="chip" class:active={view === 'card'} onclick={() => (view = 'card')}>Cards</button>
-    <button class="chip" class:active={view === 'list'} onclick={() => (view = 'list')}>List</button>
+    <button class="chip" class:active={view === 'card'} onclick={() => (view = 'card')}
+      >Cards</button
+    >
+    <button class="chip" class:active={view === 'list'} onclick={() => (view = 'list')}>List</button
+    >
     <span class="count-pill">{filtered.length}</span>
   </div>
   <div class="filter-row">
@@ -479,13 +486,19 @@
         <thead>
           <tr>
             <th class="sortable" onclick={() => sortPortalsBy('name')}>
-              Name{#if sortBy === 'name'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+              Name{#if sortBy === 'name'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}
             </th>
             <th class="sortable" onclick={() => sortPortalsBy('category')}>
-              Category{#if sortBy === 'category'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+              Category{#if sortBy === 'category'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}
             </th>
             <th class="sortable" onclick={() => sortPortalsBy('type')}>
-              Source{#if sortBy === 'type'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+              Source{#if sortBy === 'type'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}
             </th>
             <th class="actions-col"></th>
           </tr>
@@ -545,10 +558,7 @@
           sandbox="allow-scripts allow-forms"
         ></iframe>
       {:else}
-        <iframe
-          srcdoc={hoverPortal.html}
-          title="Mobile preview"
-          sandbox="allow-scripts allow-forms"
+        <iframe srcdoc={hoverPortal.html} title="Mobile preview" sandbox="allow-scripts allow-forms"
         ></iframe>
       {/if}
     </div>
@@ -566,12 +576,7 @@
     }}
     role="presentation"
   >
-    <div
-      class="upload-modal"
-      role="dialog"
-      aria-modal="true"
-      tabindex="-1"
-    >
+    <div class="upload-modal" role="dialog" aria-modal="true" tabindex="-1">
       <div class="modal-header" style="cursor:default">
         <span class="modal-title">Clone Portal from URL</span>
         <button
@@ -634,12 +639,7 @@
     }}
     role="presentation"
   >
-    <div
-      class="upload-modal"
-      role="dialog"
-      aria-modal="true"
-      tabindex="-1"
-    >
+    <div class="upload-modal" role="dialog" aria-modal="true" tabindex="-1">
       <div class="modal-header" style="cursor:default">
         <span class="modal-title">Upload Portal Template</span>
         <button

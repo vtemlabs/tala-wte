@@ -316,11 +316,7 @@
   </div>
   <div class="header-actions">
     <button class="btn" onclick={() => (guideOpen = true)}>Guide</button>
-    <button
-      class="btn btn-primary"
-      onclick={updateAll}
-      disabled={updating || members.length === 0}
-    >
+    <button class="btn btn-primary" onclick={updateAll} disabled={updating || members.length === 0}>
       {updating ? 'Updating...' : 'Update all members'}
     </button>
   </div>
@@ -364,8 +360,10 @@
                 {:else}
                   <span class="badge badge-neutral">idle</span>
                 {/if}
-                <button class="action-btn del-btn" onclick={() => remove(m)} aria-label="Remove member"
-                  >Del</button
+                <button
+                  class="action-btn del-btn"
+                  onclick={() => remove(m)}
+                  aria-label="Remove member">Del</button
                 >
               </div>
             </div>
@@ -382,11 +380,8 @@
               {:else if st.status?.connected}
                 Connected to <b>{st.status.ssid}</b> · {st.status.ip} · {st.status.requests ?? 0} requests
               {:else if st.status?.adapter_names?.length}
-                <span class="mono">{st.status.adapter_names.join(', ')}</span>{#if st.status?.version}<span
-                    class="dim"
-                  >
-                    · v{st.status.version}</span
-                  >{/if}
+                <span class="mono">{st.status.adapter_names.join(', ')}</span
+                >{#if st.status?.version}<span class="dim"> · v{st.status.version}</span>{/if}
               {:else}
                 Reachable, idle
               {/if}
@@ -411,14 +406,21 @@
                 {#each networkList as n}<option value={n.id}>{n.ssid}</option>{/each}
               </select>
               <select class="input" bind:value={selectedProfile[m.id]}>
-                {#each Object.entries(PROFILES) as [key, p]}<option value={key}>{p.label}</option>{/each}
+                {#each Object.entries(PROFILES) as [key, p]}<option value={key}>{p.label}</option
+                  >{/each}
               </select>
-              <select class="input" bind:value={selectedDataset[m.id]} title="Traffic dataset (targets)">
+              <select
+                class="input"
+                bind:value={selectedDataset[m.id]}
+                title="Traffic dataset (targets)"
+              >
                 <option value="">Default targets</option>
                 {#each datasets as d}<option value={d.id}>{d.name}</option>{/each}
               </select>
-              <button class="btn btn-sm btn-success" onclick={() => deploy(m)} disabled={busy === m.id}
-                >Deploy</button
+              <button
+                class="btn btn-sm btn-success"
+                onclick={() => deploy(m)}
+                disabled={busy === m.id}>Deploy</button
               >
               <button class="btn btn-sm btn-danger" onclick={() => stop(m)} disabled={busy === m.id}
                 >Stop</button
@@ -433,68 +435,73 @@
   <div class="grid grid-2">
     <div class="panel">
       <div class="panel-head"><span class="panel-title">Add Member</span></div>
-    <div class="panel-body stack">
-      <div class="form-group">
-        <label class="field-label" for="mname">Name</label>
-        <input class="input" id="mname" bind:value={name} placeholder="lab-client-1" />
-      </div>
-      <div class="form-group">
-        <label class="field-label" for="maddr">Address</label>
-        <input
-          class="input"
-          id="maddr"
-          bind:value={address}
-          placeholder="10.0.0.50 or client-host"
-        />
-        <span class="field-desc">Host or host:port; https and :8443 are assumed if omitted.</span>
-      </div>
-      <div class="form-group">
-        <label class="field-label" for="mkey">Agent key</label>
-        <input class="input" id="mkey" bind:value={agentKey} placeholder="paste from the member" />
-        <span class="field-desc">Copy it from the member's Settings -> Pack Agent Key.</span>
-      </div>
-      <button class="btn btn-primary" onclick={addMember} disabled={adding}>
-        {adding ? 'Adding...' : 'Add member'}
-      </button>
-    </div>
-  </div>
-
-  <div class="panel">
-    <div class="panel-head">
-      <span class="panel-title">Discovered on LAN</span>
-      <button class="btn" onclick={scanDiscovered} disabled={scanning}>
-        {scanning ? 'Scanning...' : 'Scan'}
-      </button>
-    </div>
-    <div class="panel-body stack">
-      {#if discovered.length === 0}
-        <p class="field-desc">
-          Scan to find other Tala WTE instances advertising on this network - handy for fresh
-          installs or members whose DHCP address changes. Pick one to fill the Add Member form,
-          then paste its agent key.
-        </p>
-      {:else}
-        <div class="member-list">
-          {#each discovered as p}
-            <div class="member">
-              <div class="member-top">
-                <div class="member-id">
-                  <span class="member-name">{p.name}</span>
-                  <span class="mono dim">{p.address || p.host}</span>
-                </div>
-                <button class="action-btn" onclick={() => useDiscovered(p)}>Use</button>
-              </div>
-              <div class="member-meta">
-                {p.role || 'unknown'}{#if p.version}
-                  · v{p.version}{/if}
-              </div>
-            </div>
-          {/each}
+      <div class="panel-body stack">
+        <div class="form-group">
+          <label class="field-label" for="mname">Name</label>
+          <input class="input" id="mname" bind:value={name} placeholder="lab-client-1" />
         </div>
-      {/if}
+        <div class="form-group">
+          <label class="field-label" for="maddr">Address</label>
+          <input
+            class="input"
+            id="maddr"
+            bind:value={address}
+            placeholder="10.0.0.50 or client-host"
+          />
+          <span class="field-desc">Host or host:port; https and :8443 are assumed if omitted.</span>
+        </div>
+        <div class="form-group">
+          <label class="field-label" for="mkey">Agent key</label>
+          <input
+            class="input"
+            id="mkey"
+            bind:value={agentKey}
+            placeholder="paste from the member"
+          />
+          <span class="field-desc">Copy it from the member's Settings -> Pack Agent Key.</span>
+        </div>
+        <button class="btn btn-primary" onclick={addMember} disabled={adding}>
+          {adding ? 'Adding...' : 'Add member'}
+        </button>
+      </div>
+    </div>
+
+    <div class="panel">
+      <div class="panel-head">
+        <span class="panel-title">Discovered on LAN</span>
+        <button class="btn" onclick={scanDiscovered} disabled={scanning}>
+          {scanning ? 'Scanning...' : 'Scan'}
+        </button>
+      </div>
+      <div class="panel-body stack">
+        {#if discovered.length === 0}
+          <p class="field-desc">
+            Scan to find other Tala WTE instances advertising on this network - handy for fresh
+            installs or members whose DHCP address changes. Pick one to fill the Add Member form,
+            then paste its agent key.
+          </p>
+        {:else}
+          <div class="member-list">
+            {#each discovered as p}
+              <div class="member">
+                <div class="member-top">
+                  <div class="member-id">
+                    <span class="member-name">{p.name}</span>
+                    <span class="mono dim">{p.address || p.host}</span>
+                  </div>
+                  <button class="action-btn" onclick={() => useDiscovered(p)}>Use</button>
+                </div>
+                <div class="member-meta">
+                  {p.role || 'unknown'}{#if p.version}
+                    · v{p.version}{/if}
+                </div>
+              </div>
+            {/each}
+          </div>
+        {/if}
+      </div>
     </div>
   </div>
-</div>
 
   <div class="panel">
     <div class="panel-head">
@@ -532,7 +539,9 @@
                   <td class="actions-col">
                     <div class="row-actions">
                       <button class="action-btn" onclick={() => editDataset(d)}>Edit</button>
-                      <button class="action-btn del-btn" onclick={() => deleteDataset(d)}>Del</button>
+                      <button class="action-btn del-btn" onclick={() => deleteDataset(d)}
+                        >Del</button
+                      >
                     </div>
                   </td>
                 </tr>
@@ -563,7 +572,12 @@
       <div class="grid grid-3" style="margin-top:var(--space-md)">
         <div class="form-group">
           <label class="field-label" for="dsUrls">URLs to browse</label>
-          <textarea class="input" id="dsUrls" rows="4" bind:value={dsUrls} placeholder="one per line"
+          <textarea
+            class="input"
+            id="dsUrls"
+            rows="4"
+            bind:value={dsUrls}
+            placeholder="one per line"
           ></textarea>
         </div>
         <div class="form-group">
@@ -675,5 +689,4 @@
     flex: 1;
     min-width: 140px;
   }
-
 </style>

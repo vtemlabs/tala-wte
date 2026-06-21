@@ -38,16 +38,30 @@
   </div>
   <div class="header-actions">
     <div class="doc-font">
-      <button class="btn doc-font-btn" onclick={() => zoomDoc(-0.1)} title="Smaller text" aria-label="Smaller text">A-</button>
+      <button
+        class="btn doc-font-btn"
+        onclick={() => zoomDoc(-0.1)}
+        title="Smaller text"
+        aria-label="Smaller text">A-</button
+      >
       <span class="doc-fs">{Math.round($docScale * 100)}%</span>
-      <button class="btn doc-font-btn" onclick={() => zoomDoc(0.1)} title="Larger text" aria-label="Larger text">A+</button>
+      <button
+        class="btn doc-font-btn"
+        onclick={() => zoomDoc(0.1)}
+        title="Larger text"
+        aria-label="Larger text">A+</button
+      >
     </div>
     <a href={backHref} class="btn">{backLabel}</a>
   </div>
 </div>
 
 <article class="panel prose-panel">
-  <div class="tala-doc" use:lightbox style="font-size: calc(var(--font-size-sm) * 1.1 * {$docScale})">
+  <div
+    class="tala-doc"
+    use:lightbox
+    style="font-size: calc(var(--font-size-sm) * 1.1 * {$docScale})"
+  >
     <!-- eslint-disable-next-line svelte/no-at-html-tags -->
     {@html mdToHtml(doc)}
   </div>

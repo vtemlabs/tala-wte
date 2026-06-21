@@ -91,8 +91,8 @@ func interfacesHandler() func(http.ResponseWriter, *http.Request) {
 		}
 		api.WriteJSON(w, map[string]any{
 			"interfaces":      ifaces,
-			"in_use":          inUse,           // legacy iface->ssid map
-			"in_use_adapters": inUseAdapters,   // full hardware detail per claimed adapter
+			"in_use":          inUse,         // legacy iface->ssid map
+			"in_use_adapters": inUseAdapters, // full hardware detail per claimed adapter
 			"unsupported":     iface.UnsupportedAdapters(),
 		})
 	}

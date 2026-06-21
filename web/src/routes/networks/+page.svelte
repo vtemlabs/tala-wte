@@ -191,20 +191,30 @@
         <thead>
           <tr>
             <th class="sortable" onclick={() => sortNetBy('ssid')}>
-              SSID{#if sortKey === 'ssid'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+              SSID{#if sortKey === 'ssid'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}
             </th>
             <th class="sortable" onclick={() => sortNetBy('protocol')}>
-              Protocol{#if sortKey === 'protocol'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+              Protocol{#if sortKey === 'protocol'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}
             </th>
             <th class="sortable" onclick={() => sortNetBy('band')}>
-              Band{#if sortKey === 'band'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+              Band{#if sortKey === 'band'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}
             </th>
             <th class="sortable" onclick={() => sortNetBy('channel')}>
-              Channel{#if sortKey === 'channel'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+              Channel{#if sortKey === 'channel'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}
             </th>
             <th>Interface</th>
             <th class="sortable" onclick={() => sortNetBy('status')}>
-              Status{#if sortKey === 'status'}<span class="sort-arrow">{sortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+              Status{#if sortKey === 'status'}<span class="sort-arrow"
+                  >{sortDir === 'asc' ? '▲' : '▼'}</span
+                >{/if}
             </th>
             <th class="actions-col">Actions</th>
           </tr>
@@ -287,5 +297,4 @@
     text-transform: capitalize;
     white-space: nowrap;
   }
-
 </style>

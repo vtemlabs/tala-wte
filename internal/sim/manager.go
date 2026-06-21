@@ -64,9 +64,9 @@ func resolveUplinkIface() string {
 	runtime.LockOSThread()
 	defer runtime.UnlockOSThread()
 	if host, err := vnetns.GetFromPid(1); err == nil {
-		defer host.Close()
+		defer func() { _ = host.Close() }()
 		if cur, e := vnetns.Get(); e == nil {
-			defer cur.Close()
+			defer func() { _ = cur.Close() }()
 			if vnetns.Set(host) == nil {
 				defer vnetns.Set(cur)
 			}

@@ -231,7 +231,10 @@
                 {:else}<span class="dim">-</span>{/if}
               </td>
               <td>
-                {#if packMember(rec)}<span class="badge badge-neutral" title="Pack member: {packMember(rec)}">pack member</span>{:else}<span class="dim">target</span>{/if}
+                {#if packMember(rec)}<span
+                    class="badge badge-neutral"
+                    title="Pack member: {packMember(rec)}">pack member</span
+                  >{:else}<span class="dim">target</span>{/if}
               </td>
               <td class="mono dim">{rec.mac || '-'}</td>
               <td class="mono dim">{rec.ip || '-'}</td>

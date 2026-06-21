@@ -116,7 +116,13 @@
 
   // Credential sets: a validating portal (login, hotel, voucher, membership)
   // checks submissions against an assigned set.
-  const VALIDATING_TYPES = ['username_password', 'email_password', 'hotel', 'voucher', 'membership'];
+  const VALIDATING_TYPES = [
+    'username_password',
+    'email_password',
+    'hotel',
+    'voucher',
+    'membership'
+  ];
   let credSets = $state<Record<string, any>[]>([]);
   let selectedCredSet = $state('');
   const selectedPortalAuthType = $derived(
@@ -275,8 +281,7 @@
         portal_enabled: canHavePortal ? portalEnabled : false,
         portal_html: canHavePortal && portalEnabled ? selectedPortalHTML : '',
         portal_auth: canHavePortal && portalEnabled ? portalAuth : false,
-        credential_set_id:
-          canHavePortal && portalEnabled && portalValidates ? selectedCredSet : '',
+        credential_set_id: canHavePortal && portalEnabled && portalValidates ? selectedCredSet : '',
         identity: isEnterprise ? identity : '',
         eap_password: isEnterprise ? eapPassword : ''
       });

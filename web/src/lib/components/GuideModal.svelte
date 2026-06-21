@@ -122,9 +122,12 @@
           (click to restore){/if}</span
       >
       <div class="gw-font">
-        <button onclick={() => zoomDoc(-0.1)} title="Smaller text" aria-label="Smaller text">A-</button>
+        <button onclick={() => zoomDoc(-0.1)} title="Smaller text" aria-label="Smaller text"
+          >A-</button
+        >
         <span class="gw-fs">{Math.round($docScale * 100)}%</span>
-        <button onclick={() => zoomDoc(0.1)} title="Larger text" aria-label="Larger text">A+</button>
+        <button onclick={() => zoomDoc(0.1)} title="Larger text" aria-label="Larger text">A+</button
+        >
       </div>
       <div class="gw-win">
         <button onclick={toggleMin} title="Minimize" aria-label="Minimize">-</button>
@@ -136,7 +139,11 @@
     </div>
 
     <div class="gw-body" class:hidden={minimized}>
-      <div class="tala-doc" use:lightbox style="font-size: calc(var(--font-size-sm) * 1.1 * {$docScale})">
+      <div
+        class="tala-doc"
+        use:lightbox
+        style="font-size: calc(var(--font-size-sm) * 1.1 * {$docScale})"
+      >
         {@html html}
         <footer class="gw-doc-footer">
           <img src="/brand/vtem-labs.png" alt="VTEM Labs" />

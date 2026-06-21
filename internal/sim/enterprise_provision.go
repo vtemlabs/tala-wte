@@ -278,7 +278,10 @@ func savedEAPType() string {
 func applyEAPDefaultType(eapType string) error {
 	data, err := os.ReadFile(freeradiusEAPModule)
 	if err != nil {
-		return nil // module not present yet; provisioning lays it down first
+		if os.IsNotExist(err) {
+			return nil // module not present yet; provisioning lays it down first
+		}
+		return err
 	}
 	n := 0
 	out := eapDefaultTypeRe.ReplaceAllStringFunc(string(data), func(line string) string {

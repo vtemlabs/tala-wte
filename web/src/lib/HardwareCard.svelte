@@ -31,7 +31,8 @@
       <span class="hw-iface">{adapter.interface}</span>
       <span class="hw-model">{model}</span>
     </div>
-    {#if inUseBy}<span class="badge badge-success" title="In use by {inUseBy}">in use: {inUseBy}</span
+    {#if inUseBy}<span class="badge badge-success" title="In use by {inUseBy}"
+        >in use: {inUseBy}</span
       >{/if}
     {#if adapter.chipset}<span class="hw-chip">{adapter.chipset}</span>{/if}
   </div>

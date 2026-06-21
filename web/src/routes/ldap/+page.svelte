@@ -230,7 +230,13 @@
     if (!newUID || !newCN || !newPass) return;
     addingUser = true;
     try {
-      await ldap.createUser({ uid: newUID, cn: newCN, sn: newSN, mail: newMail, password: newPass });
+      await ldap.createUser({
+        uid: newUID,
+        cn: newCN,
+        sn: newSN,
+        mail: newMail,
+        password: newPass
+      });
       newUID = newCN = newSN = newMail = newPass = '';
       await loadAll();
     } catch (e: any) {
@@ -359,10 +365,14 @@
           <span class="k">Base DN</span><span class="v mono dn-v">{ldapStatus.base_dn}</span>
         </div>
         <div class="stat-cell">
-          <span class="k">Bind DN</span><span class="v mono dn-v">cn=admin,{ldapStatus.base_dn}</span>
+          <span class="k">Bind DN</span><span class="v mono dn-v"
+            >cn=admin,{ldapStatus.base_dn}</span
+          >
         </div>
         <div class="stat-cell"><span class="k">Port</span><span class="v mono">3389</span></div>
-        <div class="stat-cell"><span class="k">Users</span><span class="v">{users.length}</span></div>
+        <div class="stat-cell">
+          <span class="k">Users</span><span class="v">{users.length}</span>
+        </div>
       </div>
     </div>
   {/if}
@@ -377,8 +387,10 @@
         <button class="btn btn-primary" onclick={provisionRandom} disabled={provisioning}>
           {provisioning ? 'Provisioning...' : 'Generate Random Company'}
         </button>
-        <button class="btn" class:active={showProvision} onclick={() => (showProvision = !showProvision)}
-          >Custom</button
+        <button
+          class="btn"
+          class:active={showProvision}
+          onclick={() => (showProvision = !showProvision)}>Custom</button
         >
       </div>
     </div>
@@ -392,25 +404,46 @@
           <div class="prov-grid">
             <div class="field">
               <label class="field-label" for="pCompany">Company Name</label>
-              <input class="input" id="pCompany" bind:value={customCompany} placeholder="e.g. Contoso Ltd" />
+              <input
+                class="input"
+                id="pCompany"
+                bind:value={customCompany}
+                placeholder="e.g. Contoso Ltd"
+              />
             </div>
             <div class="field">
               <label class="field-label" for="pDomain">Email Domain</label>
-              <input class="input" id="pDomain" bind:value={customDomain} placeholder="e.g. contoso.local" />
+              <input
+                class="input"
+                id="pDomain"
+                bind:value={customDomain}
+                placeholder="e.g. contoso.local"
+              />
             </div>
             <div class="field">
               <label class="field-label" for="pCount">Users</label>
-              <input class="input" id="pCount" type="number" bind:value={customCount} min="1" max="50" style="width:80px" />
+              <input
+                class="input"
+                id="pCount"
+                type="number"
+                bind:value={customCount}
+                min="1"
+                max="50"
+                style="width:80px"
+              />
             </div>
             <button
               class="btn btn-primary"
               onclick={provisionCustom}
-              disabled={provisioning || !customCompany.trim() || !customDomain.trim()}>Provision</button
+              disabled={provisioning || !customCompany.trim() || !customDomain.trim()}
+              >Provision</button
             >
           </div>
           <div class="toggle-field" style="margin-top:var(--space-md)">
             <div>
-              <div style="font-size:var(--font-size-sm);font-weight:500">All Strong Random Passwords</div>
+              <div style="font-size:var(--font-size-sm);font-weight:500">
+                All Strong Random Passwords
+              </div>
               <div class="field-desc">
                 On: every user gets a unique 12-char random password. Off (recommended): realistic
                 corporate mix - ~40% weak (Password1!, Welcome123, etc), ~30% semi-personal
@@ -455,21 +488,41 @@
       <button class="tab" class:active={tab === 'groups'} onclick={() => (tab = 'groups')}>
         Groups <span class="count-pill">{groups.length}</span>
       </button>
-      <button class="tab" class:active={tab === 'test'} onclick={() => (tab = 'test')}>Test Auth</button>
+      <button class="tab" class:active={tab === 'test'} onclick={() => (tab = 'test')}
+        >Test Auth</button
+      >
     </div>
 
     {#if tab === 'users'}
       <div class="panel-body">
         <div class="add-row">
           <input class="input" placeholder="UID *" aria-label="UID" bind:value={newUID} />
-          <input class="input" placeholder="Full name *" aria-label="Full name" bind:value={newCN} />
+          <input
+            class="input"
+            placeholder="Full name *"
+            aria-label="Full name"
+            bind:value={newCN}
+          />
           <input class="input" placeholder="Last name" aria-label="Last name" bind:value={newSN} />
-          <input class="input" type="email" placeholder="Email" aria-label="Email" bind:value={newMail} />
-          <input class="input" type="password" placeholder="Password *" aria-label="Password" bind:value={newPass} />
+          <input
+            class="input"
+            type="email"
+            placeholder="Email"
+            aria-label="Email"
+            bind:value={newMail}
+          />
+          <input
+            class="input"
+            type="password"
+            placeholder="Password *"
+            aria-label="Password"
+            bind:value={newPass}
+          />
           <button
             class="btn btn-primary"
             onclick={createUser}
-            disabled={addingUser || !newUID || !newCN || !newPass}>{addingUser ? '…' : 'Add User'}</button
+            disabled={addingUser || !newUID || !newCN || !newPass}
+            >{addingUser ? '…' : 'Add User'}</button
           >
         </div>
 
@@ -491,16 +544,24 @@
               <thead>
                 <tr>
                   <th class="sortable" onclick={() => sortUsersBy('uid')}>
-                    UID{#if userSort === 'uid'}<span class="sort-arrow">{userSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                    UID{#if userSort === 'uid'}<span class="sort-arrow"
+                        >{userSortDir === 'asc' ? '▲' : '▼'}</span
+                      >{/if}
                   </th>
                   <th class="sortable" onclick={() => sortUsersBy('cn')}>
-                    Name{#if userSort === 'cn'}<span class="sort-arrow">{userSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                    Name{#if userSort === 'cn'}<span class="sort-arrow"
+                        >{userSortDir === 'asc' ? '▲' : '▼'}</span
+                      >{/if}
                   </th>
                   <th class="sortable" onclick={() => sortUsersBy('title')}>
-                    Title{#if userSort === 'title'}<span class="sort-arrow">{userSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                    Title{#if userSort === 'title'}<span class="sort-arrow"
+                        >{userSortDir === 'asc' ? '▲' : '▼'}</span
+                      >{/if}
                   </th>
                   <th class="sortable" onclick={() => sortUsersBy('department')}>
-                    Department{#if userSort === 'department'}<span class="sort-arrow">{userSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                    Department{#if userSort === 'department'}<span class="sort-arrow"
+                        >{userSortDir === 'asc' ? '▲' : '▼'}</span
+                      >{/if}
                   </th>
                   <th>Email</th>
                   <th>Password</th>
@@ -517,7 +578,9 @@
                     <td data-label="Department" class="dim">{u.department || '-'}</td>
                     <td data-label="Email" class="dim">{u.mail || '-'}</td>
                     <td data-label="Password">
-                      <span class="mono pw-cell">{revealedPasswords[u.uid] ? pw.revealed : pw.hidden}</span>
+                      <span class="mono pw-cell"
+                        >{revealedPasswords[u.uid] ? pw.revealed : pw.hidden}</span
+                      >
                       {#if pw.copyable}
                         <button
                           class="action-btn pw-action"
@@ -525,12 +588,22 @@
                           title={revealedPasswords[u.uid] ? 'Hide' : 'Show'}
                           >{revealedPasswords[u.uid] ? 'Hide' : 'Show'}</button
                         >
-                        <button class="action-btn pw-action" onclick={() => copyPassword(pw.revealed)} title="Copy to clipboard">Copy</button>
+                        <button
+                          class="action-btn pw-action"
+                          onclick={() => copyPassword(pw.revealed)}
+                          title="Copy to clipboard">Copy</button
+                        >
                       {/if}
                     </td>
                     <td data-label="" class="actions-col">
-                      <button class="action-btn" onclick={() => setUserPassword(u.uid)} title="Set a new password">Set pw</button>
-                      <button class="action-btn del-btn" onclick={() => deleteUser(u.uid)}>Del</button>
+                      <button
+                        class="action-btn"
+                        onclick={() => setUserPassword(u.uid)}
+                        title="Set a new password">Set pw</button
+                      >
+                      <button class="action-btn del-btn" onclick={() => deleteUser(u.uid)}
+                        >Del</button
+                      >
                     </td>
                   </tr>
                 {/each}
@@ -548,8 +621,10 @@
             aria-label="Group CN"
             bind:value={newGroupCN}
           />
-          <button class="btn btn-primary" onclick={createGroup} disabled={addingGroup || !newGroupCN}
-            >{addingGroup ? '…' : 'Create Group'}</button
+          <button
+            class="btn btn-primary"
+            onclick={createGroup}
+            disabled={addingGroup || !newGroupCN}>{addingGroup ? '…' : 'Create Group'}</button
           >
         </div>
 
@@ -569,10 +644,14 @@
               <thead>
                 <tr>
                   <th class="sortable" onclick={() => sortGroupsBy('name')}>
-                    Group{#if groupSort === 'name'}<span class="sort-arrow">{groupSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                    Group{#if groupSort === 'name'}<span class="sort-arrow"
+                        >{groupSortDir === 'asc' ? '▲' : '▼'}</span
+                      >{/if}
                   </th>
                   <th class="sortable num-col" onclick={() => sortGroupsBy('members')}>
-                    Members{#if groupSort === 'members'}<span class="sort-arrow">{groupSortDir === 'asc' ? '▲' : '▼'}</span>{/if}
+                    Members{#if groupSort === 'members'}<span class="sort-arrow"
+                        >{groupSortDir === 'asc' ? '▲' : '▼'}</span
+                      >{/if}
                   </th>
                   <th>Membership</th>
                   <th class="actions-col"></th>
@@ -582,7 +661,9 @@
                 {#each shownGroups as g (g.cn)}
                   <tr>
                     <td data-label="Group" class="mono">{g.cn}</td>
-                    <td data-label="Members" class="num-col"><span class="count-pill">{g.uids.length}</span></td>
+                    <td data-label="Members" class="num-col"
+                      ><span class="count-pill">{g.uids.length}</span></td
+                    >
                     <td data-label="Membership">
                       <div class="member-cell">
                         {#each g.uids as uid}
@@ -601,12 +682,16 @@
                             bind:value={memberAdd[g.cn]}
                             onkeydown={(e) => e.key === 'Enter' && addGroupMember(g.cn)}
                           />
-                          <button class="action-btn" onclick={() => addGroupMember(g.cn)}>Add</button>
+                          <button class="action-btn" onclick={() => addGroupMember(g.cn)}
+                            >Add</button
+                          >
                         </span>
                       </div>
                     </td>
                     <td data-label="" class="actions-col">
-                      <button class="action-btn del-btn" onclick={() => deleteGroup(g.cn)}>Del</button>
+                      <button class="action-btn del-btn" onclick={() => deleteGroup(g.cn)}
+                        >Del</button
+                      >
                     </td>
                   </tr>
                 {/each}
@@ -624,7 +709,13 @@
           </div>
           <div class="field" style="margin-bottom:var(--space-lg)">
             <label class="field-label" for="testPass">Password</label>
-            <input class="input" id="testPass" type="password" bind:value={testPass} placeholder="••••••••" />
+            <input
+              class="input"
+              id="testPass"
+              type="password"
+              bind:value={testPass}
+              placeholder="••••••••"
+            />
           </div>
           <button
             class="btn btn-primary"

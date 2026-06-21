@@ -99,7 +99,12 @@ export function mdToHtml(md: string): string {
 			i += 2; // header + separator
 			let body = '';
 			while (i < lines.length && lines[i].trim().startsWith('|')) {
-				body += '<tr>' + cells(lines[i]).map((c) => `<td>${inline(c)}</td>`).join('') + '</tr>';
+				body +=
+					'<tr>' +
+					cells(lines[i])
+						.map((c) => `<td>${inline(c)}</td>`)
+						.join('') +
+					'</tr>';
 				i++;
 			}
 			html +=
