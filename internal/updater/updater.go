@@ -234,7 +234,7 @@ func Apply(ctx context.Context) (string, error) {
 
 // DownloadAsset fetches the latest release binary for arch into a temp file,
 // verifies it against the release checksums, and returns the temp path, version,
-// and sha256. The caller must remove the temp file. A den leader uses this to
+// and sha256. The caller must remove the temp file. A pack leader uses this to
 // download a build once and push it to members that have no internet of their own.
 func DownloadAsset(ctx context.Context, arch string) (path, ver, sha string, err error) {
 	rel, err := latestRelease(ctx)
@@ -287,7 +287,7 @@ func DownloadAsset(ctx context.Context, arch string) (path, ver, sha string, err
 
 // ApplyStream replaces the running binary with bytes read from src, verifying
 // their sha256 matches expectedSHA, then schedules a restart. It is the member
-// side of a leader-pushed update: the bytes arrive over the den agent channel
+// side of a leader-pushed update: the bytes arrive over the pack agent channel
 // rather than from GitHub, so a member with no internet can still be updated.
 func ApplyStream(src io.Reader, expectedSHA string) (string, error) {
 	self, err := os.Executable()

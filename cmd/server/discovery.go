@@ -19,7 +19,7 @@ import (
 	"github.com/vtemlabs/tala-wte/internal/version"
 )
 
-// startMDNSAdvertiser advertises this instance on the LAN over mDNS so a den
+// startMDNSAdvertiser advertises this instance on the LAN over mDNS so a pack
 // leader elsewhere can find it without knowing its address - which covers fresh
 // installs and hosts whose DHCP lease changes. It advertises for the process
 // lifetime.
@@ -39,10 +39,10 @@ func startMDNSAdvertiser() {
 	log.Printf("[mdns] advertising %s as %s on _tala-wte._tcp", host, role)
 }
 
-// denDiscoveredHandler browses the LAN over mDNS for other Tala WTE instances so
+// packDiscoveredHandler browses the LAN over mDNS for other Tala WTE instances so
 // the leader can find potential members (and other leaders) without addresses.
 // This instance is filtered out of the results.
-func denDiscoveredHandler(_ *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
+func packDiscoveredHandler(_ *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		peers, err := discovery.Browse(2500 * time.Millisecond)
 		if err != nil {

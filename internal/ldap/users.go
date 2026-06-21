@@ -38,6 +38,18 @@ func validateDNComponent(value, field string) error {
 	return nil
 }
 
+// safeGroupCNPattern allows internal spaces (e.g. "Domain Admins") but blocks the
+// characters that would break out of an RDN or LDIF line.
+var safeGroupCNPattern = regexp.MustCompile(`^[a-zA-Z0-9]([a-zA-Z0-9 ._-]*[a-zA-Z0-9])?$`)
+
+// validateGroupCN validates a group common name for DN construction; unlike a uid it may contain internal spaces.
+func validateGroupCN(value, field string) error {
+	if !safeGroupCNPattern.MatchString(value) {
+		return fmt.Errorf("invalid %s: must be alphanumeric with internal spaces, dots, hyphens, or underscores", field)
+	}
+	return nil
+}
+
 // needsBase64Encoding checks whether an LDIF value requires base64 encoding per RFC 2849.
 func needsBase64Encoding(val string) bool {
 	if val == "" {

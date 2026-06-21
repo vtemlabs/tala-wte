@@ -36,7 +36,10 @@ func TestAgentFillsEveryTemplate(t *testing.T) {
 		spec := portal.Spec(at)
 		creds := portal.GenerateEntry(at, i)
 
-		action, values := buildPortalSubmission(tmpl.HTML, PortalConfig{Fields: creds})
+		// Fill the SERVED form (Normalize is applied before the portal is served), not
+		// the raw catalog HTML, so a normalization step that retags a field cannot
+		// silently break typed-credential validation in production.
+		action, values := buildPortalSubmission(portal.Normalize(tmpl.HTML), PortalConfig{Fields: creds})
 		if action == "" {
 			t.Errorf("%s (%s): no form action parsed", tmpl.Slug, at)
 		}

@@ -5,7 +5,7 @@
 
 package main
 
-// The "den": a server (AP) acts as the den leader and drives a pack of client
+// The "pack": a server (AP) acts as the pack leader and drives a pack of client
 // instances (members). Each member exposes an agent key; the leader registers the
 // member by address + key, pushes a network's config to it, starts traffic, and
 // stops it when the network goes away. The leader reaches members over their
@@ -40,27 +40,27 @@ import (
 
 // ---- member side: agent key + auth ----
 
-// newAgentKey returns a random control token a den leader uses to drive a member.
+// newAgentKey returns a random control token a pack leader uses to drive a member.
 func newAgentKey() string {
 	b := make([]byte, 24)
 	if _, err := rand.Read(b); err != nil {
-		log.Fatalf("[den] agent key generation failed (no system entropy): %v", err)
+		log.Fatalf("[pack] agent key generation failed (no system entropy): %v", err)
 	}
 	return hex.EncodeToString(b)
 }
 
 func storedAgentKey(app *pocketbase.PocketBase) string {
-	return loadSetting(app, "den_agent_key")
+	return loadSetting(app, "pack_agent_key")
 }
 
 // ensureAgentKey returns this member's agent key, generating one on first use so
-// it is always available to copy into a den leader.
+// it is always available to copy into a pack leader.
 func ensureAgentKey(app *pocketbase.PocketBase) string {
 	if k := storedAgentKey(app); k != "" {
 		return k
 	}
 	k := newAgentKey()
-	_ = saveSetting(app, "den_agent_key", k)
+	_ = saveSetting(app, "pack_agent_key", k)
 	return k
 }
 
@@ -76,13 +76,13 @@ func clientAgentKeyHandler(app *pocketbase.PocketBase) func(http.ResponseWriter,
 func clientAgentKeyRegenHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		k := newAgentKey()
-		_ = saveSetting(app, "den_agent_key", k)
+		_ = saveSetting(app, "pack_agent_key", k)
 		api.WriteJSON(w, map[string]any{"key": k})
 	}
 }
 
 // wrapAgent admits a request from either a local superuser (the member's own
-// console) or a den leader presenting the matching X-Agent-Key header.
+// console) or a pack leader presenting the matching X-Agent-Key header.
 func wrapAgent(app *pocketbase.PocketBase, h func(http.ResponseWriter, *http.Request)) func(e *core.RequestEvent) error {
 	return func(e *core.RequestEvent) error {
 		if e.Auth != nil && e.Auth.IsSuperuser() {
@@ -102,7 +102,7 @@ func wrapAgent(app *pocketbase.PocketBase, h func(http.ResponseWriter, *http.Req
 
 // ---- leader side: reach members ----
 
-// memberHTTPClient talks to a den member over its self-signed HTTPS, pinning the
+// memberHTTPClient talks to a pack member over its self-signed HTTPS, pinning the
 // member's leaf certificate to the expected SHA-256 fingerprint instead of a CA
 // chain. An empty fp means trust-on-first-use: the connection is allowed and the
 // caller records the fingerprint it observed, so a later MITM that swaps the
@@ -163,7 +163,7 @@ func memberRequest(method, base, path, key, fp string, body any) (*http.Response
 	return memberHTTPClient(fp, 15*time.Second).Do(req)
 }
 
-// memberCall sends a request to a den member over its pinned channel using the
+// memberCall sends a request to a pack member over its pinned channel using the
 // member's stored agent key and certificate fingerprint. On first contact (no
 // stored fingerprint) it pins trust-on-first-use and persists the fingerprint it
 // observed, so later calls reject a swapped certificate.
@@ -211,14 +211,14 @@ func clientConfigFromNetwork(app *pocketbase.PocketBase, rec *core.Record) clien
 	return cfg
 }
 
-// denDeployHandler assigns a member to a network and brings it online: it pushes
+// packDeployHandler assigns a member to a network and brings it online: it pushes
 // the network's client config, waits for the member to associate, then starts
 // traffic. The wait + start run in the background so the call returns promptly.
-func denDeployHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
+func packDeployHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		member, err := app.FindRecordById("den_members", r.PathValue("id"))
+		member, err := app.FindRecordById("pack_members", r.PathValue("id"))
 		if err != nil {
-			api.WriteErr(w, http.StatusNotFound, "den member not found")
+			api.WriteErr(w, http.StatusNotFound, "pack member not found")
 			return
 		}
 		var body struct {
@@ -293,12 +293,12 @@ func startMemberTrafficWhenConnected(base, key, fp string, opts client.TrafficOp
 	}
 }
 
-// denStopHandler stops traffic, disconnects the member, and clears its assignment.
-func denStopHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
+// packStopHandler stops traffic, disconnects the member, and clears its assignment.
+func packStopHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		member, err := app.FindRecordById("den_members", r.PathValue("id"))
+		member, err := app.FindRecordById("pack_members", r.PathValue("id"))
 		if err != nil {
-			api.WriteErr(w, http.StatusNotFound, "den member not found")
+			api.WriteErr(w, http.StatusNotFound, "pack member not found")
 			return
 		}
 		if resp, e := memberCall(app, member, http.MethodPost, "/api/wte/client/disconnect", nil); e == nil {
@@ -310,13 +310,13 @@ func denStopHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.
 	}
 }
 
-// denStatusHandler proxies a member's live status so the den page can show it
+// packStatusHandler proxies a member's live status so the pack page can show it
 // without the browser needing to reach each member directly.
-func denStatusHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
+func packStatusHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		member, err := app.FindRecordById("den_members", r.PathValue("id"))
+		member, err := app.FindRecordById("pack_members", r.PathValue("id"))
 		if err != nil {
-			api.WriteErr(w, http.StatusNotFound, "den member not found")
+			api.WriteErr(w, http.StatusNotFound, "pack member not found")
 			return
 		}
 		resp, err := memberCall(app, member, http.MethodGet, "/api/wte/client/status", nil)
@@ -335,17 +335,17 @@ func denStatusHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 	}
 }
 
-// denUpdateHandler updates the whole pack from the leader. Members may be a mix
+// packUpdateHandler updates the whole pack from the leader. Members may be a mix
 // of amd64 and arm64, so the leader downloads each needed architecture's build
 // once and pushes the matching, checksum-verified binary to each member over the
 // agent channel; a member never needs its own internet access. A member that does
 // not report its architecture (older build) or that lacks the push endpoint falls
 // back to pulling the release from GitHub itself.
-func denUpdateHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
+func packUpdateHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
-		members, err := app.FindAllRecords("den_members")
+		members, err := app.FindAllRecords("pack_members")
 		if err != nil {
-			api.WriteErr(w, http.StatusInternalServerError, "could not list den members")
+			api.WriteErr(w, http.StatusInternalServerError, "could not list pack members")
 			return
 		}
 		type updateResult struct {
@@ -491,14 +491,14 @@ func pushToMember(app *pocketbase.PocketBase, member *core.Record, binPath, ver,
 	return "pushed " + ver + " (" + arch + ")", nil
 }
 
-// teardownDenForNetwork disconnects every member assigned to a network. The leader
+// teardownPackForNetwork disconnects every member assigned to a network. The leader
 // calls this when the network stops or is deleted, so members stop chasing a
 // network that no longer exists.
-func teardownDenForNetwork(app *pocketbase.PocketBase, networkID string) {
+func teardownPackForNetwork(app *pocketbase.PocketBase, networkID string) {
 	if networkID == "" {
 		return
 	}
-	members, err := app.FindRecordsByFilter("den_members", "network_id = {:n}", "", 0, 0, map[string]any{"n": networkID})
+	members, err := app.FindRecordsByFilter("pack_members", "network_id = {:n}", "", 0, 0, map[string]any{"n": networkID})
 	if err != nil {
 		return
 	}

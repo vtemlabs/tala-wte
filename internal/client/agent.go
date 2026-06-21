@@ -29,7 +29,7 @@ import (
 // handling, and the traffic generators. One per process.
 type Agent struct {
 	mu          sync.Mutex
-	connectMu   sync.Mutex // serializes Connect so overlapping connects (reconnect cycle + a manual/den connect) can't leave stray wpa_supplicant
+	connectMu   sync.Mutex // serializes Connect so overlapping connects (reconnect cycle + a manual/pack connect) can't leave stray wpa_supplicant
 	cfg         Config
 	opts        TrafficOptions
 	status      Status
@@ -302,7 +302,7 @@ func (w *agentLogWriter) Write(p []byte) (int, error) {
 // Connect joins the network described by cfg: it associates with wpa_supplicant,
 // pulls a DHCP lease, and gets past a captive portal if one is present.
 func (a *Agent) Connect(cfg Config) error {
-	// Serialize connects: a reconnect cycle and a manual/den connect must not race,
+	// Serialize connects: a reconnect cycle and a manual/pack connect must not race,
 	// or each would pkill then spawn its own wpa_supplicant and they would pile up.
 	a.connectMu.Lock()
 	defer a.connectMu.Unlock()

@@ -356,6 +356,12 @@ func radiusConfigHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *
 				api.WriteErr(w, http.StatusInternalServerError, "failed to save EAP type")
 				return
 			}
+			// Apply the EAP method to the running FreeRADIUS eap module (the restart below picks it up).
+			if err := sim.SetRADIUSEAPType(req.EAPType); err != nil {
+				log.Printf("[radius] failed to apply eap_type: %v", err)
+				api.WriteErr(w, http.StatusInternalServerError, "failed to apply EAP type to FreeRADIUS")
+				return
+			}
 		}
 		if req.InnerAuth != "" {
 			if err := saveSetting(app, "radius_inner_auth", req.InnerAuth); err != nil {

@@ -52,7 +52,7 @@ func CreateGroupHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *h
 			api.WriteErr(w, http.StatusBadRequest, "cn required")
 			return
 		}
-		if err := validateDNComponent(req.CN, "cn"); err != nil {
+		if err := validateGroupCN(req.CN, "cn"); err != nil {
 			api.WriteErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -81,7 +81,7 @@ func CreateGroupHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *h
 func DeleteGroupHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
 		cn := r.PathValue("cn")
-		if err := validateDNComponent(cn, "cn"); err != nil {
+		if err := validateGroupCN(cn, "cn"); err != nil {
 			api.WriteErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -105,7 +105,7 @@ func AddMemberHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 			api.WriteErr(w, http.StatusBadRequest, "uid required")
 			return
 		}
-		if err := validateDNComponent(cn, "cn"); err != nil {
+		if err := validateGroupCN(cn, "cn"); err != nil {
 			api.WriteErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -116,7 +116,8 @@ func AddMemberHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *htt
 		groupDN := fmt.Sprintf("cn=%s,ou=Groups,%s", cn, defaultBaseDN)
 		memberDN := fmt.Sprintf("uid=%s,ou=Users,%s", req.UID, defaultBaseDN)
 		ldif := fmt.Sprintf("dn: %s\nchangetype: modify\nadd: member\nmember: %s\n", groupDN, memberDN)
-		if err := ldapmodify(ldif); err != nil {
+		// Already a member is a no-op success, not an error.
+		if err := ldapmodify(ldif); err != nil && !strings.Contains(err.Error(), "Type or value exists") {
 			api.WriteErr(w, http.StatusInternalServerError, err.Error())
 			return
 		}
@@ -129,7 +130,7 @@ func RemoveMemberHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *
 	return func(w http.ResponseWriter, r *http.Request) {
 		cn := r.PathValue("cn")
 		uid := r.PathValue("uid")
-		if err := validateDNComponent(cn, "cn"); err != nil {
+		if err := validateGroupCN(cn, "cn"); err != nil {
 			api.WriteErr(w, http.StatusBadRequest, err.Error())
 			return
 		}
@@ -140,7 +141,8 @@ func RemoveMemberHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *
 		groupDN := fmt.Sprintf("cn=%s,ou=Groups,%s", cn, defaultBaseDN)
 		memberDN := fmt.Sprintf("uid=%s,ou=Users,%s", uid, defaultBaseDN)
 		ldif := fmt.Sprintf("dn: %s\nchangetype: modify\ndelete: member\nmember: %s\n", groupDN, memberDN)
-		if err := ldapmodify(ldif); err != nil {
+		// Not a member is a no-op success, not an error.
+		if err := ldapmodify(ldif); err != nil && !strings.Contains(err.Error(), "No such attribute") {
 			api.WriteErr(w, http.StatusInternalServerError, err.Error())
 			return
 		}

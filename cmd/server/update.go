@@ -66,7 +66,7 @@ func updateHandler() func(http.ResponseWriter, *http.Request) {
 	}
 }
 
-// applyHandler receives a binary pushed by a den leader over the agent channel,
+// applyHandler receives a binary pushed by a pack leader over the agent channel,
 // verifies its checksum, replaces this member's binary, and schedules a restart.
 // It lets a leader update members that cannot reach GitHub themselves: the leader
 // downloads the release once and streams it here. Registered with wrapAgent.

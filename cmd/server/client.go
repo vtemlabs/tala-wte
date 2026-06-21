@@ -44,7 +44,7 @@ func clientMode() bool {
 }
 
 // clientAutoconnectFile persists the last client connection so the agent
-// reconnects to it on its own after a reboot or crash, without the den leader
+// reconnects to it on its own after a reboot or crash, without the pack leader
 // re-driving it. Cleared on a deliberate disconnect.
 var clientAutoconnectFile = installDataDir + "/client-autoconnect.json"
 

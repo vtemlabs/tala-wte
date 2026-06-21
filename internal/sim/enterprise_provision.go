@@ -140,6 +140,14 @@ func AutoProvisionEnterprise() *EnterpriseProvisionResult {
 			"rewrote private_key_file/certificate_file/ca_file in mods-enabled/eap")
 	}
 
+	// Apply the saved EAP method (default peap) rather than the distro default (md5).
+	if err := applyEAPDefaultType(savedEAPType()); err != nil {
+		res.fail("radius_eap_type", "FreeRADIUS EAP type", err)
+	} else {
+		res.add("radius_eap_type", "FreeRADIUS EAP type", "created",
+			fmt.Sprintf("set default_eap_type = %s in mods-enabled/eap", savedEAPType()))
+	}
+
 	// 6c. slapd must be accepting connections before FreeRADIUS binds rlm_ldap.
 	if ldap.IsRunning() {
 		res.add("ldap_running", "OpenLDAP (slapd)", "skipped", "already accepting on 127.0.0.1:3389")
@@ -231,6 +239,60 @@ func patchEAPModuleCerts() error {
 		return nil
 	}
 	return os.WriteFile(freeradiusEAPModule, []byte(src), 0o640)
+}
+
+// radiusEAPTypeFile persists the chosen EAP method so it survives re-provisioning.
+const radiusEAPTypeFile = "/var/lib/tala-wte/radius/eap_type"
+
+// validEAPTypes are the outer EAP methods FreeRADIUS actually serves.
+var validEAPTypes = map[string]bool{"peap": true, "tls": true, "ttls": true}
+
+// eapDefaultTypeRe matches default_eap_type; only the first (outer eap{}) hit is rewritten.
+var eapDefaultTypeRe = regexp.MustCompile(`(?m)^([ \t]*)default_eap_type\s*=.*$`)
+
+// SetRADIUSEAPType persists the EAP method and writes it to the eap module (unknown -> peap); the caller restarts FreeRADIUS.
+func SetRADIUSEAPType(eapType string) error {
+	eapType = strings.ToLower(strings.TrimSpace(eapType))
+	if !validEAPTypes[eapType] {
+		eapType = "peap"
+	}
+	if err := os.MkdirAll(filepath.Dir(radiusEAPTypeFile), 0o755); err == nil {
+		_ = os.WriteFile(radiusEAPTypeFile, []byte(eapType), 0o644)
+	}
+	return applyEAPDefaultType(eapType)
+}
+
+// savedEAPType returns the operator-chosen outer EAP method, defaulting to peap.
+func savedEAPType() string {
+	b, err := os.ReadFile(radiusEAPTypeFile)
+	if err != nil {
+		return "peap"
+	}
+	if t := strings.ToLower(strings.TrimSpace(string(b))); validEAPTypes[t] {
+		return t
+	}
+	return "peap"
+}
+
+// applyEAPDefaultType rewrites the outer (first) default_eap_type, leaving the inner peap/ttls defaults untouched.
+func applyEAPDefaultType(eapType string) error {
+	data, err := os.ReadFile(freeradiusEAPModule)
+	if err != nil {
+		return nil // module not present yet; provisioning lays it down first
+	}
+	n := 0
+	out := eapDefaultTypeRe.ReplaceAllStringFunc(string(data), func(line string) string {
+		n++
+		if n != 1 {
+			return line
+		}
+		indent := line[:len(line)-len(strings.TrimLeft(line, " \t"))]
+		return indent + "default_eap_type = " + eapType
+	})
+	if out == string(data) {
+		return nil
+	}
+	return os.WriteFile(freeradiusEAPModule, []byte(out), 0o640)
 }
 
 // writeFreeRADIUSLDAPModule writes mods-enabled/ldap wired to our slapd at 127.0.0.1:3389, binding as

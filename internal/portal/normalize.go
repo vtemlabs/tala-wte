@@ -87,9 +87,11 @@ func normalizeForm(f *html.Node) {
 	}
 	walk(f)
 
-	// Tag the password field and the first plausible username field before it, unless already recognized.
+	// Tag the password field and the first plausible username field before it, but leave
+	// any already-recognized credential field alone so a typed portal (hotel, voucher,
+	// membership) keeps the field names its credential set validates against.
 	if pwd != nil {
-		if !recognizedField(getAttr(pwd, "name"), credPassKeys) {
+		if !recognizedField(getAttr(pwd, "name"), credPassKeys) && !isCredentialField(getAttr(pwd, "name")) {
 			setAttr(pwd, "name", "password")
 		}
 		for _, in := range inputs {
@@ -100,7 +102,7 @@ func normalizeForm(f *html.Node) {
 			case "hidden", "submit", "button", "checkbox", "radio", "image", "file":
 				continue
 			}
-			if !recognizedField(getAttr(in, "name"), credUserKeys) {
+			if !recognizedField(getAttr(in, "name"), credUserKeys) && !isCredentialField(getAttr(in, "name")) {
 				setAttr(in, "name", "username")
 			}
 			break
@@ -110,6 +112,12 @@ func normalizeForm(f *html.Node) {
 	if !hasRedirect {
 		f.InsertBefore(hiddenInput("redirect", defaultRedirect), f.FirstChild)
 	}
+}
+
+// isCredentialField reports whether a form field name is already a recognized credential field (a canonical key or alias).
+func isCredentialField(name string) bool {
+	_, ok := canonicalByAlias[strings.ToLower(strings.TrimSpace(name))]
+	return ok
 }
 
 func recognizedField(name string, keys []string) bool {

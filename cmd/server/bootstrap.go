@@ -192,10 +192,10 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 			},
 		},
 		{
-			// Den members: client instances this server (the den leader) drives. The
+			// Pack members: client instances this server (the pack leader) drives. The
 			// leader reaches each by address using its agent_key and tracks which
 			// network it is currently assigned to.
-			name: "den_members",
+			name: "pack_members",
 			fields: []core.Field{
 				&core.TextField{Name: "name", Required: true},
 				&core.TextField{Name: "address", Required: true},
@@ -206,6 +206,10 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 			},
 		},
 	}
+
+	// Rename legacy den_* collections/settings to pack_* before the create loop, so an
+	// in-place update preserves members instead of orphaning them and creating empties.
+	migratePackRename(app)
 
 	for _, c := range collections {
 		existing, _ := app.FindCollectionByNameOrId(c.name)
@@ -242,7 +246,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 	// migrate databases created by earlier versions.
 	reconcileNetworkProtocols(app)
 	reconcileCollectionRules(app)
-	reconcileDenMemberSchema(app)
+	reconcilePackMemberSchema(app)
 	reconcileNetworkSchema(app)
 	removeDefaultUsersCollection(app)
 	reconcilePortalFields(app)
@@ -584,7 +588,7 @@ func seedTrafficDatasets(app *pocketbase.PocketBase) {
 
 // reconcileCollectionRules locks the managed collections to superusers only (nil rules); PocketBase treats "" as PUBLIC.
 func reconcileCollectionRules(app *pocketbase.PocketBase) {
-	managed := []string{"portals", "networks", "settings", "certificates", "captures", "clients", "radius_config", "portal_submissions", "den_members", "client_configs", "traffic_datasets", "portal_credentials"}
+	managed := []string{"portals", "networks", "settings", "certificates", "captures", "clients", "radius_config", "portal_submissions", "pack_members", "client_configs", "traffic_datasets", "portal_credentials"}
 	for _, name := range managed {
 		col, err := app.FindCollectionByNameOrId(name)
 		if err != nil || col == nil {
@@ -607,12 +611,38 @@ func reconcileCollectionRules(app *pocketbase.PocketBase) {
 	}
 }
 
-// reconcileDenMemberSchema backfills the cert_fingerprint field on a den_members
+// migratePackRename renames the legacy den_members collection and den_agent_key
+// setting to their pack_* equivalents so an in-place update keeps registered members
+// and the agent key. No-op on fresh installs and idempotent once migrated.
+func migratePackRename(app *pocketbase.PocketBase) {
+	if _, err := app.FindCollectionByNameOrId("pack_members"); err != nil {
+		if col, e := app.FindCollectionByNameOrId("den_members"); e == nil && col != nil {
+			col.Name = "pack_members"
+			if err := app.Save(col); err != nil {
+				log.Printf("[bootstrap] failed to rename den_members -> pack_members: %v", err)
+			} else {
+				log.Printf("[bootstrap] renamed collection den_members -> pack_members")
+			}
+		}
+	}
+	// Carry the agent key over when only the legacy key exists, so a paired member stays paired.
+	if loadSetting(app, "pack_agent_key") == "" {
+		if old := loadSetting(app, "den_agent_key"); old != "" {
+			if err := saveSetting(app, "pack_agent_key", old); err != nil {
+				log.Printf("[bootstrap] failed to migrate den_agent_key -> pack_agent_key: %v", err)
+			} else {
+				log.Printf("[bootstrap] migrated den_agent_key -> pack_agent_key")
+			}
+		}
+	}
+}
+
+// reconcilePackMemberSchema backfills the cert_fingerprint field on a pack_members
 // collection created before certificate pinning existed. New installs get it from
 // the collection definition; this upgrades existing ones so the leader can pin
 // each member's self-signed certificate on first contact.
-func reconcileDenMemberSchema(app *pocketbase.PocketBase) {
-	col, err := app.FindCollectionByNameOrId("den_members")
+func reconcilePackMemberSchema(app *pocketbase.PocketBase) {
+	col, err := app.FindCollectionByNameOrId("pack_members")
 	if err != nil || col == nil {
 		return
 	}
@@ -621,7 +651,7 @@ func reconcileDenMemberSchema(app *pocketbase.PocketBase) {
 	}
 	col.Fields.Add(&core.TextField{Name: "cert_fingerprint"})
 	if err := app.Save(col); err != nil {
-		log.Printf("[bootstrap] failed to add cert_fingerprint to den_members: %v", err)
+		log.Printf("[bootstrap] failed to add cert_fingerprint to pack_members: %v", err)
 	}
 }
 

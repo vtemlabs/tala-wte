@@ -196,7 +196,7 @@ func main() {
 		se.Router.GET("/api/wte/networks/{id}/client-config", wrapAuth(clientConfigExportHandler(app)))
 
 		// Client mode: connect to another Tala WTE AP and generate traffic. These
-		// accept either the member's local superuser or a den leader's agent key,
+		// accept either the member's local superuser or a pack leader's agent key,
 		// so the leader can drive the member remotely.
 		se.Router.POST("/api/wte/client/connect", wrapAgent(app, clientConnectHandler()))
 		se.Router.POST("/api/wte/client/start", wrapAgent(app, clientStartHandler()))
@@ -208,12 +208,12 @@ func main() {
 		se.Router.GET("/api/wte/client/agent-key", wrapAuth(clientAgentKeyHandler(app)))
 		se.Router.POST("/api/wte/client/agent-key/regenerate", wrapAuth(clientAgentKeyRegenHandler(app)))
 
-		// Den leader: drive registered member clients.
-		se.Router.POST("/api/wte/den/{id}/deploy", wrapAuth(denDeployHandler(app)))
-		se.Router.POST("/api/wte/den/{id}/stop", wrapAuth(denStopHandler(app)))
-		se.Router.GET("/api/wte/den/{id}/status", wrapAuth(denStatusHandler(app)))
-		se.Router.POST("/api/wte/den/update", wrapAuth(denUpdateHandler(app)))
-		se.Router.GET("/api/wte/den/discovered", wrapAuth(denDiscoveredHandler(app)))
+		// Pack leader: drive registered member clients.
+		se.Router.POST("/api/wte/pack/{id}/deploy", wrapAuth(packDeployHandler(app)))
+		se.Router.POST("/api/wte/pack/{id}/stop", wrapAuth(packStopHandler(app)))
+		se.Router.GET("/api/wte/pack/{id}/status", wrapAuth(packStatusHandler(app)))
+		se.Router.POST("/api/wte/pack/update", wrapAuth(packUpdateHandler(app)))
+		se.Router.GET("/api/wte/pack/discovered", wrapAuth(packDiscoveredHandler(app)))
 
 		se.Router.GET("/api/wte/enterprise/preflight", wrapAuth(sim.PreflightHandler()))
 		se.Router.POST("/api/wte/enterprise/provision", wrapAuth(sim.ProvisionHandler()))
@@ -259,10 +259,10 @@ func main() {
 		se.Router.GET("/api/wte/system/status", wrap(systemStatusHandler(app)))
 		se.Router.POST("/api/wte/system/mode", wrapAuth(systemModeSwapHandler()))
 		se.Router.GET("/api/wte/system/version", wrapAuth(versionHandler()))
-		// wrapAgent so a den leader can trigger a member's self-update with its agent key.
+		// wrapAgent so a pack leader can trigger a member's self-update with its agent key.
 		se.Router.POST("/api/wte/system/update", wrapAgent(app, updateHandler()))
 		// A pushed binary is ~60 MB, well over PocketBase's 32 MB default; raise the
-		// body limit for this route only so a den leader can stream a release to it.
+		// body limit for this route only so a pack leader can stream a release to it.
 		se.Router.POST("/api/wte/system/apply", wrapAgent(app, applyHandler())).Bind(apis.BodyLimit(256 << 20))
 		se.Router.GET("/api/wte/system/settings", wrapAuth(settingsGetHandler(app)))
 		se.Router.POST("/api/wte/system/settings", wrapAuth(settingsSaveHandler(app)))
@@ -273,23 +273,23 @@ func main() {
 		// were running (AP) or auto-reconnect to the last network (client).
 		go bootAutoStart(app)
 
-		// Advertise this instance on the LAN over mDNS so a den leader can
+		// Advertise this instance on the LAN over mDNS so a pack leader can
 		// discover it without knowing its address.
 		go startMDNSAdvertiser()
 
 		return se.Next()
 	})
 
-	// Den teardown propagation: when a network stops or is deleted, disconnect any
-	// den members assigned to it so they stop chasing a network that is gone.
+	// Pack teardown propagation: when a network stops or is deleted, disconnect any
+	// pack members assigned to it so they stop chasing a network that is gone.
 	app.OnRecordAfterUpdateSuccess("networks").BindFunc(func(e *core.RecordEvent) error {
 		if e.Record.GetString("status") == "stopped" {
-			teardownDenForNetwork(app, e.Record.Id)
+			teardownPackForNetwork(app, e.Record.Id)
 		}
 		return e.Next()
 	})
 	app.OnRecordAfterDeleteSuccess("networks").BindFunc(func(e *core.RecordEvent) error {
-		teardownDenForNetwork(app, e.Record.Id)
+		teardownPackForNetwork(app, e.Record.Id)
 		return e.Next()
 	})
 
