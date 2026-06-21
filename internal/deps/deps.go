@@ -31,8 +31,9 @@ var requiredPackages = []string{
 	"usbutils", // USB adapter discovery
 	"hwdata",   // usb.ids for adapter vendor/product naming fallback
 	"rfkill",
-	"iw",      // modern wireless tooling (wireless-tools/iwconfig is obsolete and dropped on newer distros)
-	"tcpdump", // BPF filter validation in the capture engine
+	"iw",           // modern wireless tooling (wireless-tools/iwconfig is obsolete and dropped on newer distros)
+	"wpasupplicant", // client-mode association (members join networks via wpa_supplicant)
+	"tcpdump",       // BPF filter validation in the capture engine
 	"psmisc",  // fuser, for releasing ports held before slapd starts
 	"procps",  // pgrep/pkill, for service status checks and cleanup
 	"git",
@@ -120,6 +121,7 @@ var functionalCapabilities = []struct {
 	{"access points (hostapd)", []string{"hostapd"}, true},
 	{"DHCP and captive DNS (dnsmasq)", []string{"dnsmasq"}, true},
 	{"wireless control (iw)", []string{"iw"}, true},
+	{"client association (wpa_supplicant)", []string{"wpa_supplicant"}, true},
 	{"networking and namespaces (iproute2)", []string{"ip"}, true},
 	{"firewall and NAT (iptables)", []string{"iptables"}, true},
 	{"packet capture and analysis (tshark)", []string{"tshark", "capinfos"}, true},
