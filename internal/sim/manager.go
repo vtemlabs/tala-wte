@@ -152,6 +152,52 @@ func buildPortalValidator(app *pocketbase.PocketBase, record *core.Record, authT
 	return nil
 }
 
+// ensureCredentialSet auto-generates and assigns a credential set the first time a
+// validating captive-portal network starts without one, so a typed portal validates
+// out of the box and deployed pack members receive a working credential. Networks
+// that already have a set, and non-validating portals, are left untouched.
+func ensureCredentialSet(app *pocketbase.PocketBase, record *core.Record, authType portal.AuthType) {
+	if !portal.Spec(authType).Validates || record.GetString("credential_set_id") != "" {
+		return
+	}
+	col, err := app.FindCollectionByNameOrId("portal_credentials")
+	if err != nil {
+		return
+	}
+	const n = 25
+	entries := make([]map[string]string, 0, n)
+	seen := map[string]bool{}
+	for i := 0; len(entries) < n && i < n*5; i++ {
+		e := portal.GenerateEntry(authType, i)
+		k := fmt.Sprint(e)
+		if seen[k] {
+			continue
+		}
+		seen[k] = true
+		entries = append(entries, e)
+	}
+	data, err := json.Marshal(entries)
+	if err != nil {
+		return
+	}
+	set := core.NewRecord(col)
+	set.Set("name", fmt.Sprintf("%s - %s (auto)", record.GetString("ssid"), portal.Spec(authType).Label))
+	set.Set("auth_type", string(authType))
+	set.Set("entries", string(data))
+	set.Set("type", "custom")
+	set.Set("description", fmt.Sprintf("Auto-generated for %s", record.GetString("ssid")))
+	if err := app.Save(set); err != nil {
+		log.Printf("[sim][start] auto credential set save failed: %v", err)
+		return
+	}
+	record.Set("credential_set_id", set.Id)
+	if err := app.Save(record); err != nil {
+		log.Printf("[sim][start] assigning auto credential set failed: %v", err)
+		return
+	}
+	log.Printf("[sim][start] auto-generated %d %s credentials for %q", len(entries), authType, record.GetString("ssid"))
+}
+
 // defaultRouteIface returns the interface of the IPv4 default route, or "".
 func defaultRouteIface() string {
 	out, err := exec.Command("ip", "route", "show", "default").Output()
@@ -730,6 +776,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 			// are validated; the validator checks them against the assigned credential
 			// set (or the directory for username/password).
 			authType := PortalAuthType(app, record)
+			ensureCredentialSet(app, record, authType)
 			p.AuthType = string(authType)
 			p.Validate = buildPortalValidator(app, record, authType)
 			// Persist every harvested submission so it surfaces in the UI as captured credentials/PII.
