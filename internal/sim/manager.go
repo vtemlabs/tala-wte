@@ -146,8 +146,10 @@ func buildPortalValidator(app *pocketbase.PocketBase, record *core.Record, authT
 			return u != "" && p != "" && ldap.Authenticate(u, p)
 		}
 	}
-	// A validating type with no credential set cannot grant anyone.
-	return func(map[string]string) bool { return false }
+	// A validating type with no credential set assigned captures and grants on
+	// submit (acts like a collection portal) rather than locking everyone out;
+	// validation activates once a set is assigned to the network.
+	return nil
 }
 
 // defaultRouteIface returns the interface of the IPv4 default route, or "".
