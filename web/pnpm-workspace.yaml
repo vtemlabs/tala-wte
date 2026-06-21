@@ -3,3 +3,8 @@
 # script; approve it so `pnpm install` does not warn about an unapproved build.
 allowBuilds:
   esbuild: true
+# Transitive security pins (Dependabot): force patched versions of deps pulled
+# in by @sveltejs/kit and the build toolchain.
+overrides:
+  cookie: '>=0.7.0'
+  postcss: '>=8.5.10'

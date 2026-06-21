@@ -16,9 +16,9 @@
 	},
 	"devDependencies": {
 		"@eslint/js": "^9.39.0",
-		"@sveltejs/adapter-static": "^3.0.6",
-		"@sveltejs/kit": "^2.20.0",
-		"@sveltejs/vite-plugin-svelte": "^5.0.3",
+		"@sveltejs/adapter-static": "^3.0.10",
+		"@sveltejs/kit": "^2.66.0",
+		"@sveltejs/vite-plugin-svelte": "^5.1.1",
 		"@types/node": "^25.5.2",
 		"eslint": "^9.39.0",
 		"eslint-config-prettier": "^10.1.5",
@@ -26,11 +26,11 @@
 		"globals": "^16.5.0",
 		"prettier": "^3.6.2",
 		"prettier-plugin-svelte": "^3.4.0",
-		"svelte": "^5.51.0",
-		"svelte-check": "^4.2.0",
+		"svelte": "^5.56.3",
+		"svelte-check": "^4.6.0",
 		"typescript": "^5.9.3",
 		"typescript-eslint": "^8.46.2",
-		"vite": "^6.3.3"
+		"vite": "^6.4.3"
 	},
 	"dependencies": {
 		"@xterm/addon-fit": "^0.11.0",
