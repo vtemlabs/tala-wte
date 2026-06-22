@@ -198,6 +198,25 @@ func ResolveInterfaceFree(adapters []Adapter, requested string, inUse map[string
 	return "", false, "", fmt.Errorf("no free wireless adapter available (configured %q is not a free real adapter)", requested)
 }
 
+// applyDeviceInfo copies a curated device's hardware capabilities onto the
+// adapter. Manufacturer and DeviceModel are set by the caller, since USB devices
+// disambiguate the brand by MAC OUI while onboard radios take it from the board.
+func (a *Adapter) applyDeviceInfo(info *DeviceInfo) {
+	a.Chipset = info.Chipset
+	a.Bands = info.Bands
+	a.APBands = info.APBands
+	a.Standard = info.Standard
+	a.TxPowerAdjustable = info.TxPowerAdjustable
+	a.MonitorBands = info.MonitorBands
+	a.InjectionBands = info.InjectionBands
+	a.MaxChannelWidth = info.MaxChannelWidth
+	a.HasDFS = info.HasDFS
+	a.Notes = info.Notes
+	a.StockAntennaGain = info.StockAntennaGainDBI
+	a.StockAntennaCount = info.StockAntennaCount
+	a.AntennaConnector = info.AntennaConnector
+}
+
 // DiscoverAdapters enumerates all wireless interfaces and enriches them.
 func DiscoverAdapters() []Adapter {
 	ifaces := wirelessInterfaces()
@@ -216,21 +235,19 @@ func DiscoverAdapters() []Adapter {
 		a.USBID = readUSBID(ifName)
 		if a.USBID != "" {
 			if info := LookupDevice(a.USBID); info != nil {
-				a.Chipset = info.Chipset
+				a.applyDeviceInfo(info)
 				// The MAC OUI disambiguates adapters sharing a USB ID.
 				a.Manufacturer, a.DeviceModel = info.BrandForMAC(a.MacAddress)
-				a.Bands = info.Bands
-				a.APBands = info.APBands
-				a.Standard = info.Standard
-				a.TxPowerAdjustable = info.TxPowerAdjustable
-				a.MonitorBands = info.MonitorBands
-				a.InjectionBands = info.InjectionBands
-				a.MaxChannelWidth = info.MaxChannelWidth
-				a.HasDFS = info.HasDFS
-				a.Notes = info.Notes
-				a.StockAntennaGain = info.StockAntennaGainDBI
-				a.StockAntennaCount = info.StockAntennaCount
-				a.AntennaConnector = info.AntennaConnector
+			}
+		}
+
+		// Onboard (SDIO/PCIe) Wi-Fi on SBCs and mini-PCs has no USB ID; identify it
+		// by the board model (device-tree on ARM, DMI on x86) and apply the curated
+		// capabilities for that board's soldered chip.
+		if a.Chipset == "" {
+			if info := LookupOnboard(); info != nil {
+				a.applyDeviceInfo(info)
+				a.Manufacturer, a.DeviceModel = info.Manufacturer, info.Model
 			}
 		}
 
