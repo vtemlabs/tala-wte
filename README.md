@@ -236,17 +236,19 @@ The adapters below are recognized out of the box and surface their manufacturer,
 
 The interface picker only offers the bands an adapter can actually host as an AP (for example, a tri-band card that cannot beacon a 6 GHz AP will not list 6 GHz), and falls back to a hostable band if you pick one the radio cannot broadcast.
 
+Drivers and firmware are handled for you. The installer auto-installs firmware for the in-kernel chipset families (MediaTek MT76xx/MT79xx, Ralink RT3xxx, Atheros AR9271) and builds out-of-tree **DKMS drivers** for the Realtek RTL88xxAU family (RTL8812AU/8814AU/8821AU/88x2BU - e.g. the ALFA AWUS036ACH/AC1200/AWUS1900), so those cards work without manual driver steps.
+
 ## Tested platforms
 
-Install Tala WTE on a clean Linux host. The installer detects the distribution and installs every dependency (hostapd, dnsmasq, FreeRADIUS, OpenLDAP, tshark, and the rest) automatically, so no manual setup is required. A lightweight Debian or Ubuntu server gives the best performance. Kali Linux works if you really want it, but it is not recommended; a clean Debian or Ubuntu is the better choice.
+Install Tala WTE on a clean Linux host. The installer detects the distribution and installs every dependency (hostapd, dnsmasq, FreeRADIUS, OpenLDAP, tshark, and the rest) automatically, so no manual setup is required. **A headless Debian 13 (Trixie) server is the recommended platform** - no desktop environment, and the fewest surprises with USB Wi-Fi drivers and the toolchain. Ubuntu 24.04 LTS is also a solid choice. Ubuntu 26.04 will run but is **not recommended**: its newer kernel has USB Wi-Fi driver (mt76) instability that can wedge a radio under sustained load. Kali Linux works but is not recommended; a clean Debian or Ubuntu is the better choice.
 
-| Distribution | Version     | Status                  |
-| ------------ | ----------- | ----------------------- |
-| Debian       | 13 (Trixie) | Tested, recommended     |
-| Ubuntu       | 24.04 LTS   | Tested, recommended     |
-| Ubuntu       | 26.04 LTS   | Tested                  |
-| Ubuntu       | 22.04 LTS   | Tested                  |
-| Kali Linux   | 2026.1      | Tested, not recommended |
+| Distribution | Version              | Status                                        |
+| ------------ | -------------------- | --------------------------------------------- |
+| Debian       | 13 (Trixie) headless | Tested, recommended                           |
+| Ubuntu       | 24.04 LTS            | Tested                                         |
+| Ubuntu       | 22.04 LTS            | Tested                                         |
+| Ubuntu       | 26.04 LTS            | Runs, not recommended (kernel Wi-Fi/mt76 instability) |
+| Kali Linux   | 2026.1               | Tested, not recommended                       |
 
 Tested on both arm64 and x86_64. Other current apt-based Debian and Ubuntu derivatives are expected to work, since the installer targets the apt family. The installer resolves dependencies per system: it skips packages an OS or version has dropped or renamed, falls back to per-package installs so one bad package never aborts the rest, and verifies every core capability is present before reporting success.
 

@@ -19,7 +19,7 @@ Tala WTE is the open training and development range you learn and rehearse on. T
 A clean Linux host (arm64 or x86_64) and a Wi-Fi adapter whose driver supports AP (master) mode for the bands you want to host. Tala WTE broadcasts standard access points; it does not use monitor mode or injection for the AP role, so any AP-capable adapter works. The recommended adapter is the Panda Wireless PAU0F AXE3000 (MediaTek MT7921AU), the same chipset as the ALFA AWUS036AXM. Integrated Wi-Fi on boards like the Raspberry Pi 4 and 5 is also supported. See [[Installation]].
 
 ### Which operating systems are supported?
-A clean apt-based Debian or Ubuntu host. Tested and recommended: Debian 13 (Trixie) and Ubuntu 24.04 LTS. Also tested: Ubuntu 26.04 and 22.04, and Kali Linux 2026.1 (tested but not recommended; a clean Debian or Ubuntu is the better choice). Tested on both arm64 and x86_64. See [[Installation]].
+A clean apt-based Debian or Ubuntu host. **Recommended: a headless Debian 13 (Trixie) server** - no desktop environment, and the fewest surprises with USB Wi-Fi drivers. Ubuntu 24.04 LTS is also a solid choice; Ubuntu 22.04 is tested too. Ubuntu 26.04 runs but is **not recommended** - its newer kernel has USB Wi-Fi driver (mt76) instability that can wedge a radio under sustained load. Kali Linux 2026.1 is tested but not recommended. Tested on both arm64 and x86_64. See [[Installation]].
 
 ### Do I need internet?
 You need an outbound internet uplink for client traffic generation and for in-app updates. You do not need, and should not have, inbound exposure. You can also turn Internet Passthrough off per network for a sealed, local-only exercise. See [[Security-and-License]] and [[Settings]].

@@ -23,6 +23,8 @@ The installer auto-installs firmware for the common chipset families. Verified f
 
 On Ubuntu and Ubuntu-like distros the monolithic `linux-firmware` package is installed instead, which covers all of the above.
 
+Beyond firmware, the installer also builds out-of-tree **DKMS drivers** (it installs `dkms`, `build-essential`, and the matching kernel headers) for USB adapters that have no in-kernel driver - primarily the Realtek **RTL88xxAU** family (RTL8811AU / 8812AU / 8814AU / 8821AU / 88x2BU, e.g. the ALFA AWUS036AC / ACH / AC1200 / AWUS1900). The MediaTek MT76xx/MT79xx, Ralink RT3xxx, and Atheros AR9271 families are in-kernel and need only firmware. The common DKMS driver set is installed best-effort (each package skipped if it has no candidate on your distro). Verified from `internal/deps/deps.go` (`optionalDrivers`).
+
 If you plug in an adapter with no driver support, the installer and the app both call it out (a warning at install time and an "Unsupported" tag with a **Heal** button in [[Settings]]) so you know to install a driver before that radio can be used.
 
 ### Recommended
@@ -39,13 +41,13 @@ Tested platforms:
 
 | Distribution | Version | Status |
 | --- | --- | --- |
-| Debian | 13 (Trixie) | Tested, recommended |
-| Ubuntu | 24.04 LTS | Tested, recommended |
-| Ubuntu | 26.04 LTS | Tested |
+| Debian | 13 (Trixie) headless | Tested, recommended |
+| Ubuntu | 24.04 LTS | Tested |
 | Ubuntu | 22.04 LTS | Tested |
+| Ubuntu | 26.04 LTS | Runs, not recommended (kernel Wi-Fi/mt76 instability) |
 | Kali Linux | 2026.1 | Tested, not recommended |
 
-A lightweight clean Debian or Ubuntu server gives the best results. Kali works but is not recommended. On a non-apt distro the auto-installer is skipped and you must install the tools below with your own package manager; Tala WTE still verifies every core capability at startup and reports anything missing rather than failing later.
+**A headless Debian 13 (Trixie) server is the recommended platform** - no desktop environment, and the fewest surprises with USB Wi-Fi drivers and the toolchain. Ubuntu 24.04 LTS is also a solid choice. Ubuntu 26.04 will run, but is **not recommended**: its newer kernel has USB Wi-Fi driver (mt76) instability that can wedge a radio under sustained load. Kali works but is not recommended. On a non-apt distro the auto-installer is skipped and you must install the tools below with your own package manager; Tala WTE still verifies every core capability at startup and reports anything missing rather than failing later.
 
 ## Auto-installed dependencies
 
