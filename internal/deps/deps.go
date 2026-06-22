@@ -102,7 +102,10 @@ func optionalDrivers(osr osInfo) []string {
 		"rtl88x2bu-dkms",
 		"realtek-rtl8821cu-dkms",
 		"rtl8821cu-dkms",
-		"broadcom-sta-dkms",
+		// NOTE: broadcom-sta-dkms (the legacy internal-PCIe Broadcom "wl" driver) is
+		// deliberately excluded. It is irrelevant to Tala WTE - our USB adapters use
+		// mt76 / rtl88xxau / ath, and SBC onboard radios use brcmfmac - and its DKMS
+		// module fails to build on Debian / Raspberry Pi kernels, which breaks apt.
 	)
 }
 
@@ -408,7 +411,10 @@ func installDrivers(osr osInfo) {
 			continue
 		}
 		if err := runSystemCmd("apt-get", "install", "-y", pkg); err != nil {
-			log.Printf("[deps] Driver package %q failed to install or build, skipping: %v", pkg, err)
+			// A failed DKMS build leaves the package half-configured, which would break
+			// every later apt operation. Force-purge it so the system stays clean.
+			log.Printf("[deps] Driver package %q failed to install or build; purging to keep apt clean: %v", pkg, err)
+			_ = runSystemCmd("dpkg", "--purge", "--force-all", pkg)
 		}
 	}
 }
