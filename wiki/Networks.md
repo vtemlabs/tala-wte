@@ -32,6 +32,7 @@ The "+ New Network" form has three panels: Network Profile, Hardware, and Topolo
 - Client Isolation - prevents clients from communicating with each other, the way a public hotspot does. Leave it off when a lab needs client-to-client traffic.
 - Hidden Network - does not broadcast the SSID in beacons; clients must type the name to connect. Good for a "find the hidden SSID" exercise. It is obscurity, not security.
 - Pixie-Dust Downgrade - appears only when the protocol is WPA2 + WPS; off by default. Off, the AP behaves like a modern router: its WPS registrar nonces are unpredictable, so Pixie Dust fails and the only way in is the slower online PIN brute force (reaver/bully). On, the AP's WPS secret nonces (E-S1/E-S2) become predictable, so pixiewps recovers the PIN offline in seconds - the old-chipset flaw. Turn it on to teach Pixie Dust; leave it off to show why a patched AP defeats it and forces the online attack instead.
+- PMKID Exposed - appears only when the protocol is WPA2-Personal; off by default. Off, the AP withholds the PMKID like a modern router, so capturing the PSK needs a full four-way handshake from a connected client. On, the AP advertises the RSN PMKID KDE in EAPOL message 1/4, so the PSK is capturable clientlessly (hcxdumptool, then crack with hashcat 22000) with no client present. Turn it on to teach the clientless PMKID attack; leave it off to force a handshake capture.
 - Captive Portal Sandbox - appears only when the protocol is Open. Covered under [[Captive-Portals]].
 
 ## Security protocols and when to use each

@@ -313,6 +313,14 @@
                 </div>
               </div>
             {/if}
+            {#if net.protocol === 'wpa2'}
+              <div class="meta-row">
+                <div class="meta-key">PMKID</div>
+                <div class="meta-val">
+                  {net.pmkid_exposed ? 'Exposed (clientless capture)' : 'Withheld'}
+                </div>
+              </div>
+            {/if}
             <div class="meta-row">
               <div class="meta-key">Band</div>
               <div class="meta-val">{net.band ?? '2.4'} GHz</div>

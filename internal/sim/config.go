@@ -246,6 +246,17 @@ func buildConfig(record *core.Record, ifName string, nsGatewayIP string) *hostap
 	case "wpa2":
 		cfg.Protocol = hostapd.ProtocolWPA2
 		cfg.Passphrase = passphrase
+		// Optional PMKID exposure: stock hostapd omits the RSN PMKID KDE from
+		// EAPOL msg 1/4 for WPA2-PSK; the embedded patched hostapd includes it,
+		// enabling a clientless PMKID capture (hcxdumptool -> hashcat 22000).
+		if record.GetBool("pmkid_exposed") {
+			if bin, err := pixie.HostapdPath(); err != nil {
+				log.Printf("[sim] WPA2 network %q: PMKID exposure requested but unavailable: %v (falling back to system hostapd)", ssid, err)
+			} else {
+				cfg.Binary = bin
+				log.Printf("[sim] WPA2 network %q: PMKID exposed, using embedded hostapd %s (RSN PMKID in M1, clientless-capturable)", ssid, bin)
+			}
+		}
 	case "wps":
 		cfg.Protocol = hostapd.ProtocolWPS
 		cfg.Passphrase = passphrase

@@ -97,6 +97,7 @@
   let internetPassthrough = $state(true);
   let hidden = $state(false);
   let wpsPixie = $state(false);
+  let pmkidExposed = $state(false);
   let subnet = $state('10.0.0.0/24');
   let portalEnabled = $state(false);
   let selectedPortalId = $state('');
@@ -140,6 +141,7 @@
   const isEnterprise = $derived(['wpa2_enterprise', 'wpa3_enterprise'].includes(protocol));
   const isWEP = $derived(protocol === 'wep');
   const isWps = $derived(protocol === 'wps');
+  const isWpa2 = $derived(protocol === 'wpa2');
   const canHavePortal = $derived(protocol === 'open');
 
   // Accept any input and fit it to a valid WEP length (5/13 ASCII or 10/26 hex) rather than reject it.
@@ -280,6 +282,7 @@
         internet_passthrough: internetPassthrough,
         hidden,
         wps_pixie: isWps ? wpsPixie : false,
+        pmkid_exposed: isWpa2 ? pmkidExposed : false,
         subnet,
         portal_enabled: canHavePortal ? portalEnabled : false,
         portal_html: canHavePortal && portalEnabled ? selectedPortalHTML : '',
@@ -522,6 +525,21 @@
               </div>
             </div>
             <input type="checkbox" bind:checked={wpsPixie} />
+          </div>
+        {/if}
+
+        {#if isWpa2}
+          <div class="toggle-field">
+            <div>
+              <div class="toggle-name">PMKID Exposed</div>
+              <div class="field-desc">
+                Make the AP advertise the RSN PMKID in the first handshake frame, so the PSK can be
+                captured clientlessly (hcxdumptool, then cracked with hashcat) - no connected client
+                needed. Leave off for a modern AP that withholds the PMKID and forces a full
+                four-way-handshake capture.
+              </div>
+            </div>
+            <input type="checkbox" bind:checked={pmkidExposed} />
           </div>
         {/if}
 

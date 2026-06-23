@@ -1,10 +1,11 @@
-Pixie-Dust patch for hostapd 2.11.
+Lab-weakening patch for hostapd 2.11 (applied by build.sh via sed).
 
-Forces the WPS enrollee/registrar secret nonces (E-S1/E-S2) to zero instead of
-drawing them from the RNG. With predictable nonces, pixiewps recovers the WPS
-PIN offline from a single M1-M3 exchange. Stock hostapd uses a strong RNG here
-and is not Pixie-vulnerable; this build is used only for WPS lab networks that
-opt into the "Pixie-Dust Downgrade".
+Two independent, opt-in weaknesses for Tala WTE vulnerable targets. Stock
+hostapd does neither; a non-downgraded network is not affected.
+
+1. Pixie-Dust (WPS) - force the WPS enrollee/registrar secret nonces
+   (E-S1/E-S2) to zero so pixiewps recovers the WPS PIN offline from one
+   M1-M3 exchange.
 
 --- a/src/wps/wps_enrollee.c
 +++ b/src/wps/wps_enrollee.c
@@ -28,3 +29,20 @@ opt into the "Pixie-Dust Downgrade".
  		return -1;
  	wpa_hexdump(MSG_DEBUG, "WPS: R-S1", wps->snonce, WPS_SECRET_NONCE_LEN);
  	wpa_hexdump(MSG_DEBUG, "WPS: R-S2",
+
+2. PMKID (WPA2-PSK) - allow WPA2-PSK into the EAPOL msg 1/4 PMKID path.
+   Stock hostapd deliberately excludes PSK here (the comment notes it would
+   "initiate offline search for the passphrase/PSK"); adding PSK to the
+   condition lets it fall through to the existing rsn_pmkid() computation, so
+   the AP advertises the RSN PMKID KDE for a clientless capture.
+
+--- a/src/ap/wpa_auth.c
++++ b/src/ap/wpa_auth.c
+@@ -2754,6 +2754,7 @@ SM_STATE(WPA_PTK, PTKSTART)
+ 	if (sm->wpa == WPA_VERSION_WPA2 &&
+-	    (wpa_key_mgmt_wpa_ieee8021x(sm->wpa_key_mgmt) ||
++	    (wpa_key_mgmt_wpa_psk(sm->wpa_key_mgmt) ||
++	     wpa_key_mgmt_wpa_ieee8021x(sm->wpa_key_mgmt) ||
+ 	     (sm->wpa_key_mgmt == WPA_KEY_MGMT_OWE && sm->pmksa) ||
+ 	     wpa_key_mgmt_sae(sm->wpa_key_mgmt)) &&
+ 	    sm->wpa_key_mgmt != WPA_KEY_MGMT_OSEN) {

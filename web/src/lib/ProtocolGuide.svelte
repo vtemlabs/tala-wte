@@ -153,7 +153,7 @@
       vulns: [
         {
           title: 'PMKID Attack (2018)',
-          desc: 'PMKID extracted from single EAPOL frame - no client association required. Crack offline with hashcat.'
+          desc: 'PMKID extracted from the first EAPOL frame - no client association required, crack offline with hashcat. Modern APs (and the lab AP by default) withhold the PMKID; enable PMKID Exposed on the network to make it clientlessly capturable.'
         },
         {
           title: '4-Way Handshake Offline Crack',

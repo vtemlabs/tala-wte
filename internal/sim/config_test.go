@@ -29,6 +29,7 @@ func newNetworkRecord(fields map[string]any) *core.Record {
 		&core.BoolField{Name: "client_isolation"},
 		&core.BoolField{Name: "hidden"},
 		&core.BoolField{Name: "wps_pixie"},
+		&core.BoolField{Name: "pmkid_exposed"},
 	)
 	rec := core.NewRecord(col)
 	for k, v := range fields {
@@ -87,5 +88,40 @@ func TestBuildConfigNonWPSNoCustomBinary(t *testing.T) {
 		if cfg.Binary != "" {
 			t.Fatalf("protocol %q must not set a custom hostapd binary, got %q", proto, cfg.Binary)
 		}
+	}
+}
+
+// A WPA2 network with PMKID exposed must run the embedded patched hostapd
+// (which advertises the RSN PMKID KDE in M1), and that binary must be extracted.
+func TestBuildConfigPMKIDExposedOn(t *testing.T) {
+	rec := newNetworkRecord(map[string]any{
+		"ssid": "wlab-pmkid", "protocol": "wpa2", "band": "2.4", "channel": 6,
+		"passphrase": "labsecret123", "pmkid_exposed": true,
+	})
+	cfg := buildConfig(rec, "wlan0", "")
+
+	if cfg.Protocol != hostapd.ProtocolWPA2 {
+		t.Fatalf("protocol = %v, want WPA2", cfg.Protocol)
+	}
+	if cfg.Binary == "" {
+		t.Fatal("PMKID-exposed WPA2 must select the embedded patched hostapd, got empty Binary")
+	}
+	if fi, err := os.Stat(cfg.Binary); err != nil {
+		t.Fatalf("embedded hostapd not extracted at %q: %v", cfg.Binary, err)
+	} else if fi.Size() == 0 {
+		t.Fatalf("extracted hostapd is empty at %q", cfg.Binary)
+	}
+}
+
+// By default a WPA2 network withholds the PMKID: it uses system hostapd, so
+// cfg.Binary stays empty.
+func TestBuildConfigPMKIDExposedOff(t *testing.T) {
+	rec := newNetworkRecord(map[string]any{
+		"ssid": "wlab-wpa2", "protocol": "wpa2", "band": "2.4", "channel": 6,
+		"passphrase": "labsecret123", "pmkid_exposed": false,
+	})
+	cfg := buildConfig(rec, "wlan0", "")
+	if cfg.Binary != "" {
+		t.Fatalf("non-exposed WPA2 must use system hostapd, got Binary = %q", cfg.Binary)
 	}
 }

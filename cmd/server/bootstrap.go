@@ -79,7 +79,8 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.BoolField{Name: "internet_passthrough"},
 				&core.BoolField{Name: "portal_auth"},
 				&core.BoolField{Name: "hidden"},
-				&core.BoolField{Name: "wps_pixie"}, // downgrade WPS to the Pixie-Dust-vulnerable hostapd
+				&core.BoolField{Name: "wps_pixie"},     // downgrade WPS to the Pixie-Dust-vulnerable hostapd
+				&core.BoolField{Name: "pmkid_exposed"}, // WPA2-PSK AP advertises the RSN PMKID KDE in M1 (clientless capture)
 				&core.TextField{Name: "subnet"},
 				&core.TextField{Name: "credential_set_id"}, // portal_credentials record validated against
 			},
@@ -677,6 +678,10 @@ func reconcileNetworkSchema(app *pocketbase.PocketBase) {
 	}
 	if col.Fields.GetByName("wps_pixie") == nil {
 		col.Fields.Add(&core.BoolField{Name: "wps_pixie"})
+		changed = true
+	}
+	if col.Fields.GetByName("pmkid_exposed") == nil {
+		col.Fields.Add(&core.BoolField{Name: "pmkid_exposed"})
 		changed = true
 	}
 	if changed {
