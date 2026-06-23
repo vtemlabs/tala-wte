@@ -79,6 +79,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.BoolField{Name: "internet_passthrough"},
 				&core.BoolField{Name: "portal_auth"},
 				&core.BoolField{Name: "hidden"},
+				&core.BoolField{Name: "wps_pixie"}, // downgrade WPS to the Pixie-Dust-vulnerable hostapd
 				&core.TextField{Name: "subnet"},
 				&core.TextField{Name: "credential_set_id"}, // portal_credentials record validated against
 			},
@@ -674,9 +675,13 @@ func reconcileNetworkSchema(app *pocketbase.PocketBase) {
 		col.Fields.Add(&core.TextField{Name: "eap_password"})
 		changed = true
 	}
+	if col.Fields.GetByName("wps_pixie") == nil {
+		col.Fields.Add(&core.BoolField{Name: "wps_pixie"})
+		changed = true
+	}
 	if changed {
 		if err := app.Save(col); err != nil {
-			log.Printf("[bootstrap] failed to add EAP fields to networks: %v", err)
+			log.Printf("[bootstrap] failed to reconcile networks schema: %v", err)
 		}
 	}
 }

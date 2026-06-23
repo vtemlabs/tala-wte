@@ -96,6 +96,7 @@
   let clientIsolation = $state(false);
   let internetPassthrough = $state(true);
   let hidden = $state(false);
+  let wpsPixie = $state(false);
   let subnet = $state('10.0.0.0/24');
   let portalEnabled = $state(false);
   let selectedPortalId = $state('');
@@ -138,6 +139,7 @@
   );
   const isEnterprise = $derived(['wpa2_enterprise', 'wpa3_enterprise'].includes(protocol));
   const isWEP = $derived(protocol === 'wep');
+  const isWps = $derived(protocol === 'wps');
   const canHavePortal = $derived(protocol === 'open');
 
   // Accept any input and fit it to a valid WEP length (5/13 ASCII or 10/26 hex) rather than reject it.
@@ -277,6 +279,7 @@
         client_isolation: clientIsolation,
         internet_passthrough: internetPassthrough,
         hidden,
+        wps_pixie: isWps ? wpsPixie : false,
         subnet,
         portal_enabled: canHavePortal ? portalEnabled : false,
         portal_html: canHavePortal && portalEnabled ? selectedPortalHTML : '',
@@ -507,6 +510,20 @@
           </div>
           <input type="checkbox" bind:checked={hidden} />
         </div>
+
+        {#if isWps}
+          <div class="toggle-field">
+            <div>
+              <div class="toggle-name">Pixie-Dust Downgrade</div>
+              <div class="field-desc">
+                Weaken the WPS registrar so its secret nonces are predictable, letting pixiewps
+                recover the PIN offline in seconds. Leave off for a modern AP that resists Pixie
+                Dust and is only attackable with an online PIN brute force (reaver/bully).
+              </div>
+            </div>
+            <input type="checkbox" bind:checked={wpsPixie} />
+          </div>
+        {/if}
 
         {#if canHavePortal}
           <div class="toggle-field">

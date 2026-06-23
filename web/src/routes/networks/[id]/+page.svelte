@@ -305,6 +305,14 @@
               <div class="meta-key">Protocol</div>
               <div class="meta-val">{net.protocol}</div>
             </div>
+            {#if net.protocol === 'wps'}
+              <div class="meta-row">
+                <div class="meta-key">WPS Attack</div>
+                <div class="meta-val">
+                  {net.wps_pixie ? 'Online PIN + Pixie Dust' : 'Online PIN only'}
+                </div>
+              </div>
+            {/if}
             <div class="meta-row">
               <div class="meta-key">Band</div>
               <div class="meta-val">{net.band ?? '2.4'} GHz</div>

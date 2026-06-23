@@ -40,6 +40,9 @@ const (
 
 // Config holds all parameters for generating a hostapd.conf file.
 type Config struct {
+	// Binary is the hostapd executable to run; empty means "hostapd" from PATH.
+	// Downgraded WPS lab networks point this at the embedded Pixie-vulnerable build.
+	Binary      string
 	Interface   string
 	SSID        string
 	HWMode      string

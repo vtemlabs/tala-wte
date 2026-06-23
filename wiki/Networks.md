@@ -31,6 +31,7 @@ The "+ New Network" form has three panels: Network Profile, Hardware, and Topolo
 - Network Subnet - the CIDR clients join, default `10.0.0.0/24`. The gateway is `.1` and DHCP serves `.10` to `.250`. The default comes from Settings; each network can override it.
 - Client Isolation - prevents clients from communicating with each other, the way a public hotspot does. Leave it off when a lab needs client-to-client traffic.
 - Hidden Network - does not broadcast the SSID in beacons; clients must type the name to connect. Good for a "find the hidden SSID" exercise. It is obscurity, not security.
+- Pixie-Dust Downgrade - appears only when the protocol is WPA2 + WPS; off by default. Off, the AP behaves like a modern router: its WPS registrar nonces are unpredictable, so Pixie Dust fails and the only way in is the slower online PIN brute force (reaver/bully). On, the AP's WPS secret nonces (E-S1/E-S2) become predictable, so pixiewps recovers the PIN offline in seconds - the old-chipset flaw. Turn it on to teach Pixie Dust; leave it off to show why a patched AP defeats it and forces the online attack instead.
 - Captive Portal Sandbox - appears only when the protocol is Open. Covered under [[Captive-Portals]].
 
 ## Security protocols and when to use each
@@ -41,7 +42,7 @@ These are the exact options in the Security Protocol dropdown, in order. Pick th
 - WEP (Insecure - Legacy) - RC4 with a 24-bit IV, broken since 2001. Use it only to demonstrate why WEP is dead (aircrack-ng / PTW cracking). The key is 5 or 13 ASCII characters, or 10/26 hex; any other input is fitted to a valid 13-character key automatically and the effective key is shown for you to enter on test clients.
 - WPA (TKIP - Legacy) - the 2003 transitional standard (TKIP over RC4). Use it for legacy-device compatibility and to demonstrate TKIP weaknesses. Avoid it otherwise.
 - WPA2-Personal (AES) - the current mainstream standard (AES-CCMP), and the everyday choice for handshake-capture labs. This is the highest-value protocol for capture-and-crack exercises (four-way handshake and PMKID).
-- WPA2 + WPS - WPA2 with Wi-Fi Protected Setup enabled. Pick this to teach the WPS attack surface (Pixie Dust, PIN brute force with reaver/bully).
+- WPA2 + WPS - WPA2 with Wi-Fi Protected Setup enabled. Pick this to teach the WPS attack surface. Every WPS network ships a recoverable AP PIN, so the online PIN brute force (reaver/bully) always works; by default the AP resists Pixie Dust (strong nonces, like a patched router). To make it Pixie-vulnerable too, enable Pixie-Dust Downgrade in the Topology section.
 - WPA3-Personal (SAE) - the modern strong standard. SAE gives forward secrecy and resists offline dictionary attacks; PMF is mandatory. Use it to test WPA3-capable clients or demonstrate SAE/Dragonblood topics.
 - WPA3-Transition (SAE+PSK) - runs WPA3-SAE and WPA2-PSK side by side on one SSID for mixed client fleets. Use it for migration scenarios and transition-mode downgrade testing.
 - WPA2-Enterprise (802.1X) - the corporate lesson. Each user logs in with a directory identity, validated by RADIUS against the LDAP directory. Use it for corporate-network simulation and PEAP credential-harvest demos. Needs the enterprise stack (see preflight below).

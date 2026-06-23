@@ -38,7 +38,7 @@ This is the most important choice; it decides what students practice.
 - **Open (No Auth)** - no encryption. Pick this for open-hotspot and **captive-portal** labs (enabling Open reveals the Captive Portal Sandbox option). Example: a coffee-shop SSID that harvests emails.
 - **WEP (Insecure - Legacy)** - 40/104-bit. For demonstrating why WEP is dead. Key is 5 or 13 ASCII characters (or 10/26 hex); anything else is fitted to a valid key automatically and the effective key is shown.
 - **WPA (TKIP - Legacy)** / **WPA2-Personal (AES)** - passphrase, 8-63 characters. WPA2-Personal is the everyday choice for handshake-capture labs. Example: passphrase \`Summer2026!\` for a four-way-handshake exercise.
-- **WPA2 + WPS** - for teaching the WPS attack surface.
+- **WPA2 + WPS** - for teaching the WPS attack surface. Every WPS network here ships a recoverable 8-digit AP PIN, so the **online PIN brute force** (reaver, bully) always has a target. By default the AP uses strong WPS nonces and resists **Pixie Dust**, which is how a modern router behaves; to also make it Pixie-vulnerable, turn on **Pixie-Dust Downgrade** in Topology (below).
 - **WPA3-Personal (SAE)** - modern, PMF required. **WPA3-Transition (SAE+PSK)** runs SAE and WPA2-PSK side by side for mixed fleets.
 - **WPA2-Enterprise (802.1X) / WPA3-Enterprise (Suite-B)** - the corporate lesson: each user logs in with a directory identity, validated by RADIUS against the LDAP directory. These need a CA, a server certificate, LDAP users, and FreeRADIUS running (see the [Certificates](/certificates/guide), [RADIUS](/radius/guide), and [LDAP](/ldap/guide) guides). You provide an **EAP Identity (directory username)** and **EAP Password** (a real directory user); the pack hands these to deployed members so they authenticate for real.
 
@@ -53,6 +53,9 @@ This is the most important choice; it decides what students practice.
 - **Network Subnet** - the client subnet (default \`10.0.0.0/24\`); the gateway is \`.1\` and DHCP serves \`.10\`-\`.250\`.
 - **Client Isolation** - stops clients from talking to each other (hotspot-style).
 - **Hidden Network** - does not beacon the SSID; clients must type the name. Good for "find the hidden SSID" exercises - it is obscurity, not security.
+- **Pixie-Dust Downgrade** (WPS networks only, off by default) - decides whether the WPS network can be Pixie'd. **Off**, the AP behaves like a modern router: its registrar nonces are unpredictable, so **Pixie Dust fails** and the only way in is the slower **online PIN brute force** (reaver/bully). **On**, the AP's WPS secret nonces become predictable, so **pixiewps recovers the PIN offline in seconds** - the old-chipset flaw. Turn it on to teach Pixie Dust; leave it off to show why a patched AP defeats it and forces the online attack instead.
+
+![A WPS network with the Pixie-Dust Downgrade toggle](/guide/networks-wps.png)
 
 ### Captive Portal Sandbox (Open networks only)
 

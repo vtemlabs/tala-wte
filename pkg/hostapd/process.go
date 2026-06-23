@@ -41,14 +41,19 @@ type Process struct {
 }
 
 // Start launches hostapd with the given config file, inside netns if provided.
-func Start(ctx context.Context, confPath string, netnsName string) (*Process, error) {
+// binary is the hostapd executable to run; empty falls back to "hostapd" from PATH.
+func Start(ctx context.Context, confPath string, netnsName string, binary string) (*Process, error) {
 	ctx, cancel := context.WithCancel(ctx)
+
+	if binary == "" {
+		binary = "hostapd"
+	}
 
 	var cmd *exec.Cmd
 	if netnsName != "" {
-		cmd = exec.CommandContext(ctx, "ip", "netns", "exec", netnsName, "hostapd", "-d", confPath)
+		cmd = exec.CommandContext(ctx, "ip", "netns", "exec", netnsName, binary, "-d", confPath)
 	} else {
-		cmd = exec.CommandContext(ctx, "hostapd", "-d", confPath)
+		cmd = exec.CommandContext(ctx, binary, "-d", confPath)
 	}
 
 	p := &Process{

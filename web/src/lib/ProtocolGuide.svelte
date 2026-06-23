@@ -195,7 +195,7 @@
         },
         {
           title: 'Pixie Dust Attack',
-          desc: 'Many chipsets (Ralink, Broadcom, Realtek pre-2014) used weak RNG for the WPS E-S1/E-S2 nonces, so the PIN is recoverable offline in seconds with pixiewps. This is a real-hardware flaw: the lab AP runs hostapd with a strong RNG, so Pixie Dust will not succeed against it. Use the online PIN brute force here.'
+          desc: 'Many chipsets (Ralink, Broadcom, Realtek pre-2014) used weak RNG for the WPS E-S1/E-S2 nonces, so the PIN is recoverable offline in seconds with pixiewps. By default the lab AP uses a strong RNG and resists this (like a patched router), so use the online PIN brute force. To practice Pixie Dust, enable Pixie-Dust Downgrade on the network: the AP then emits predictable nonces and pixiewps cracks the PIN offline.'
         },
         {
           title: 'PBC Race Condition',
@@ -206,6 +206,7 @@
       useCases: [
         'Demonstrating the WPS PIN attack surface',
         'Online PIN recovery with reaver/bully',
+        'Pixie Dust recovery with pixiewps (enable Pixie-Dust Downgrade)',
         'Legacy device enumeration'
       ]
     },

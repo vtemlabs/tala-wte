@@ -22,6 +22,7 @@ import (
 	"github.com/pocketbase/pocketbase/core"
 
 	"github.com/vtemlabs/tala-wte/internal/iface"
+	"github.com/vtemlabs/tala-wte/internal/sim/pixie"
 	"github.com/vtemlabs/tala-wte/pkg/hostapd"
 )
 
@@ -254,6 +255,18 @@ func buildConfig(record *core.Record, ifName string, nsGatewayIP string) *hostap
 		// per network so the WPS PIN brute-force lab actually has a target.
 		cfg.WPSPin = wpsPIN(record.Id)
 		log.Printf("[sim] WPS network %q: ap_pin=%s (training target, recoverable via reaver/bully)", ssid, cfg.WPSPin)
+		// Optional downgrade: swap in the embedded Pixie-Dust-vulnerable hostapd
+		// (WPS secret nonces zeroed) so pixiewps can recover the PIN offline.
+		// Off by default, every WPS network is online-PIN-only (Pixie-resistant),
+		// which is how a modern AP behaves.
+		if record.GetBool("wps_pixie") {
+			if bin, err := pixie.HostapdPath(); err != nil {
+				log.Printf("[sim] WPS network %q: Pixie downgrade requested but unavailable: %v (falling back to system hostapd)", ssid, err)
+			} else {
+				cfg.Binary = bin
+				log.Printf("[sim] WPS network %q: Pixie-Dust downgrade ON, using embedded hostapd %s (recoverable via pixiewps)", ssid, bin)
+			}
+		}
 	case "wpa3":
 		cfg.Protocol = hostapd.ProtocolWPA3
 		cfg.Passphrase = passphrase

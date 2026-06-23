@@ -733,7 +733,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 		}
 		log.Printf("[sim][start] Hostapd config written to: %s", confPath)
 
-		proc, err := hostapd.Start(context.Background(), confPath, nsName)
+		proc, err := hostapd.Start(context.Background(), confPath, nsName, cfg.Binary)
 		if err != nil {
 			log.Printf("[sim][start] failed to start hostapd: %v", err)
 			routing.TeardownVethTunnel(topology)

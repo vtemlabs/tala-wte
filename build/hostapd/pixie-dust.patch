@@ -1,0 +1,30 @@
+Pixie-Dust patch for hostapd 2.11.
+
+Forces the WPS enrollee/registrar secret nonces (E-S1/E-S2) to zero instead of
+drawing them from the RNG. With predictable nonces, pixiewps recovers the WPS
+PIN offline from a single M1-M3 exchange. Stock hostapd uses a strong RNG here
+and is not Pixie-vulnerable; this build is used only for WPS lab networks that
+opt into the "Pixie-Dust Downgrade".
+
+--- a/src/wps/wps_enrollee.c
++++ b/src/wps/wps_enrollee.c
+@@ -38,7 +38,7 @@
+ 	const u8 *addr[4];
+ 	size_t len[4];
+
+-	if (random_get_bytes(wps->snonce, 2 * WPS_SECRET_NONCE_LEN) < 0)
++	if ((os_memset(wps->snonce, 0, 2 * WPS_SECRET_NONCE_LEN), 0) < 0)
+ 		return -1;
+ 	wpa_hexdump(MSG_DEBUG, "WPS: E-S1", wps->snonce, WPS_SECRET_NONCE_LEN);
+ 	wpa_hexdump(MSG_DEBUG, "WPS: E-S2",
+--- a/src/wps/wps_registrar.c
++++ b/src/wps/wps_registrar.c
+@@ -1457,7 +1457,7 @@
+ 	const u8 *addr[4];
+ 	size_t len[4];
+
+-	if (random_get_bytes(wps->snonce, 2 * WPS_SECRET_NONCE_LEN) < 0)
++	if ((os_memset(wps->snonce, 0, 2 * WPS_SECRET_NONCE_LEN), 0) < 0)
+ 		return -1;
+ 	wpa_hexdump(MSG_DEBUG, "WPS: R-S1", wps->snonce, WPS_SECRET_NONCE_LEN);
+ 	wpa_hexdump(MSG_DEBUG, "WPS: R-S2",
