@@ -12,15 +12,9 @@ Scan for your symptom, read the likely cause, apply the fix. Everything here is 
 - Likely cause: the host's DHCP address changed, or mDNS name resolution is not working from your machine.
 - Fix: reach it by IP, `https://<ip>:8443/`. From a pack leader, the Pack page's Discovered on LAN -> Scan finds Tala WTE instances over mDNS and shows their current addresses.
 
-### I lost the setup token / cannot create the admin account
-- Likely cause: first-boot admin setup is gated by a one-time setup token. Tala WTE never auto-provisions an admin and never prints credentials, so the token is written only to the host log. Without it the wizard rejects you with "invalid or missing setup token".
-- Fix: read it from the service log on the host:
-
-  ```
-  journalctl -u tala-wte | grep 'SETUP TOKEN'
-  ```
-
-  Enter that value in the browser setup wizard, set an admin email and a password of at least 10 characters, acknowledge the license, and the account is created. The token is one-time and is consumed once the admin exists; after that the setup screen becomes a normal sign-in.
+### I cannot create the admin account
+- Likely cause: on a fresh install the setup wizard appears at `https://<host>:8443/`. If you see the normal sign-in instead, an admin account already exists for this instance. Tala WTE never auto-provisions an admin and never prints credentials.
+- Fix: from the wizard, set an admin email and a password of at least 10 characters, acknowledge the license, and create the account. Setup is one-shot: once the admin exists, the setup screen becomes a normal sign-in. To start over with a fresh setup screen, see Starting over below.
 
 ## Starting a network
 

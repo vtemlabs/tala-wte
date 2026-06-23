@@ -16,7 +16,6 @@
   let email = $state('');
   let password = $state('');
   let confirm = $state('');
-  let setupToken = $state('');
   let error = $state('');
   let loading = $state(false);
 
@@ -66,7 +65,7 @@
       const res = await fetch('/api/wte/setup/complete', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email, password, setup_token: setupToken, license_ack: licenseAck })
+        body: JSON.stringify({ email, password, license_ack: licenseAck })
       });
       const data = await res.json();
       if (!res.ok) {
@@ -129,22 +128,6 @@
             createAccount();
           }}
         >
-          <div class="form-group">
-            <label class="field-label" for="setup-token">Setup Token</label>
-            <input
-              class="input"
-              type="text"
-              id="setup-token"
-              bind:value={setupToken}
-              placeholder="from the server log"
-              required
-              autocomplete="off"
-            />
-            <span class="field-desc"
-              >Shown in the server log at first boot (run: journalctl -u tala-wte, line "SETUP
-              TOKEN").</span
-            >
-          </div>
           <div class="form-group">
             <label class="field-label" for="email">Admin Email</label>
             <input

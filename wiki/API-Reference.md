@@ -53,14 +53,14 @@ App endpoints (`/api/wte/...`) return indented JSON. Errors use the shape `{"err
 
 ## Authentication & Setup
 
-First-boot account setup runs entirely in the browser wizard. No superuser is auto-created and no credentials are printed; instead a one-time setup token is logged to the server journal at first boot (look for the `SETUP TOKEN:` line). The wizard endpoints are unauthenticated because no admin exists yet, and `/complete` hard-rejects once a real admin is present.
+First-boot account setup runs entirely in the browser wizard. No superuser is auto-created and no credentials are printed. The wizard endpoints are unauthenticated because no admin exists yet, and `/complete` hard-rejects once a real admin is present.
 
 | Method | Path | Auth | Purpose |
 |---|---|---|---|
 | GET | `/api/wte/setup/status` | public | Report whether first-boot setup is still needed. |
 | POST | `/api/wte/setup/complete` | public | Create the first superuser from the wizard. |
 
-`GET /api/wte/setup/status` returns `{"needs_setup": <bool>}`. While setup is still needed it (re)generates and logs the setup token.
+`GET /api/wte/setup/status` returns `{"needs_setup": <bool>}`.
 
 `POST /api/wte/setup/complete` body:
 
@@ -68,12 +68,11 @@ First-boot account setup runs entirely in the browser wizard. No superuser is au
 {
   "email": "admin@example.com",
   "password": "at-least-10-chars",
-  "setup_token": "<token from the server log>",
   "license_ack": true
 }
 ```
 
-The password must be at least 10 characters, the email must contain `@`, the setup token must match the logged one, and `license_ack` must be `true` (the license gate is enforced server-side). On success it returns an auth token shaped like a normal PocketBase login so the browser can persist it:
+The password must be at least 10 characters, the email must contain `@`, and `license_ack` must be `true` (the license gate is enforced server-side). On success it returns an auth token shaped like a normal PocketBase login so the browser can persist it:
 
 ```json
 {
@@ -349,7 +348,7 @@ Every managed collection has its API rules locked, so **only an authenticated su
 | `traffic_datasets` | Named URL/domain/IP target sets for traffic generation. |
 | `pack_members` | Registered client members a leader drives (address, agent key, pinned fingerprint). |
 | `client_configs` | Saved client connection profiles (used in client mode). |
-| `settings` | Internal key/value store (agent key, persisted settings, setup token). |
+| `settings` | Internal key/value store (agent key, persisted settings). |
 
 For login itself, the superusers collection uses the auth endpoint shown earlier: `POST /api/collections/_superusers/auth-with-password`. The default public `users` collection that PocketBase ships with is removed (or locked) at boot, so there is no public self-registration.
 

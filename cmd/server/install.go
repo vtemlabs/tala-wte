@@ -299,8 +299,6 @@ After install, open the web UI to create your admin account in the browser.`)
 	fmt.Printf("  Tala WTE installed - service: %s, web UI: %s\n", state, web)
 	fmt.Printf("  Open the web UI:  https://%s:8443/\n", host)
 	fmt.Println("  On first visit, create your admin account in the browser.")
-	fmt.Println("  The wizard asks for a one-time setup token. Retrieve it with:")
-	fmt.Println("    journalctl -u tala-wte | grep 'SETUP TOKEN'")
 	fmt.Println(line)
 	if state != "active" || !webReady {
 		fmt.Fprintln(os.Stderr, "note: service not fully ready yet; check: journalctl -u tala-wte -n 50")

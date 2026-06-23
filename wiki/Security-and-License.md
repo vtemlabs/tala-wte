@@ -26,7 +26,7 @@ From the README deployment guidance and the way the binary is built:
 
 ## Admin account and first run
 
-Tala WTE never auto-provisions an administrator and never prints credentials to a terminal. On a fresh install the console shows a setup screen, and you create the single administrator account in the browser. To stop a stranger on the network from claiming that account during the provisioning window, setup is gated by a one-time setup token that is written only to the host log. You must also acknowledge the license before the account can be created. See [[Installation]] and [[Troubleshooting]] for the token.
+Tala WTE never auto-provisions an administrator and never prints credentials to a terminal. On a fresh install the console shows a setup screen, and you create the single administrator account in the browser. You must acknowledge the license before the account can be created. See [[Installation]] and [[Troubleshooting]].
 
 There is no default login and no shared password baked into the build.
 

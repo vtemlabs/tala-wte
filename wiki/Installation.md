@@ -26,7 +26,7 @@ This is the standard install: the box becomes an access point that broadcasts yo
 5. Sets up the in-browser terminal for the operator account (the user who ran sudo, or the first regular user).
 6. Writes `/etc/systemd/system/tala-wte.service`, runs `systemctl daemon-reload`, then enables and starts the unit.
 7. Waits for systemd to report the unit active, then waits for `:8443` to answer.
-8. Prints the console URL and how to retrieve the one-time setup token.
+8. Prints the console URL to open.
 
 It never creates an account. Admin setup happens in the browser (see First boot below).
 
@@ -76,12 +76,5 @@ On a fresh install the console shows a setup wizard, not a login. Tala WTE never
 
 - An admin email and a password (minimum 10 characters).
 - The license acknowledgment (enforced server-side; the full license is viewable from that screen).
-- A one-time setup token.
 
-The setup token gates the wizard so a stranger on the network cannot claim the admin account during the window between install and first login. It is logged at first boot; retrieve it from the host's journal:
-
-```
-journalctl -u tala-wte | grep 'SETUP TOKEN'
-```
-
-Enter the token in the wizard to create the account. The token is one-shot: once the admin exists, it is consumed, the setup screen becomes the normal sign-in, and the wizard hard-refuses to create a second admin.
+Create the account from the wizard. It is one-shot: once the admin exists, the setup screen becomes the normal sign-in, and the wizard hard-refuses to create a second admin.

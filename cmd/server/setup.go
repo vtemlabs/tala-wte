@@ -9,15 +9,12 @@ package main
 // First-boot admin setup, performed entirely in the browser. No superuser is
 // auto-provisioned and no credentials are printed. Both endpoints are
 // unauthenticated by design (no superuser exists yet); /complete hard-rejects
-// (409) once a real superuser exists. A "real" superuser is any _superusers row
-// that is NOT the PocketBase install placeholder (core.DefaultInstallerEmail).
+// (409) once a real superuser exists, so setup is one-shot. A "real" superuser
+// is any _superusers row that is NOT the PocketBase install placeholder
+// (core.DefaultInstallerEmail).
 
 import (
-	"crypto/rand"
-	"crypto/subtle"
-	"encoding/hex"
 	"encoding/json"
-	"log"
 	"net/http"
 	"strings"
 	"time"
@@ -42,28 +39,6 @@ func hasRealSuperuser(app *pocketbase.PocketBase) (bool, error) {
 	return false, nil
 }
 
-// ensureSetupToken returns the one-time first-boot setup token, generating and
-// logging it on first use. The token gates browser setup: during the window
-// between install and the first admin being created, only an operator who can
-// read the host log (whoever installed it) can claim the admin account, closing
-// the race where a stranger on the network reaches the wizard first.
-func ensureSetupToken(app *pocketbase.PocketBase) string {
-	if t := loadSetting(app, "setup_token"); t != "" {
-		return t
-	}
-	b := make([]byte, 8)
-	if _, err := rand.Read(b); err != nil {
-		log.Fatalf("[setup] failed to generate setup token: %v", err)
-	}
-	t := hex.EncodeToString(b)
-	_ = saveSetting(app, "setup_token", t)
-	log.Printf("[setup] ------------------------------------------------------------")
-	log.Printf("[setup] SETUP TOKEN: %s", t)
-	log.Printf("[setup] Enter this in the browser setup wizard to create the admin.")
-	log.Printf("[setup] ------------------------------------------------------------")
-	return t
-}
-
 // setupStatusHandler reports whether first-boot account setup is still needed.
 func setupStatusHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Request) {
 	return func(w http.ResponseWriter, r *http.Request) {
@@ -71,10 +46,6 @@ func setupStatusHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *h
 		if err != nil {
 			api.WriteErr(w, http.StatusInternalServerError, "status check failed")
 			return
-		}
-		if !real {
-			// Generate and log the one-time token so the operator can retrieve it.
-			ensureSetupToken(app)
 		}
 		api.WriteJSON(w, map[string]any{"needs_setup": !real})
 	}
@@ -96,18 +67,10 @@ func setupCompleteHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, 
 		var body struct {
 			Email      string `json:"email"`
 			Password   string `json:"password"`
-			Token      string `json:"setup_token"`
 			LicenseAck bool   `json:"license_ack"`
 		}
 		if err := json.NewDecoder(r.Body).Decode(&body); err != nil {
 			api.WriteErr(w, http.StatusBadRequest, "invalid request body")
-			return
-		}
-		// Gate setup on the one-time token logged at first boot, so a stranger on
-		// the network cannot claim the admin account during the provisioning window.
-		want := ensureSetupToken(app)
-		if want == "" || subtle.ConstantTimeCompare([]byte(strings.TrimSpace(body.Token)), []byte(want)) != 1 {
-			api.WriteErr(w, http.StatusForbidden, "invalid or missing setup token (see the server log line: SETUP TOKEN)")
 			return
 		}
 		body.Email = strings.TrimSpace(body.Email)
@@ -142,9 +105,6 @@ func setupCompleteHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, 
 		// Record the license acknowledgment alongside the account that made it.
 		_ = saveSetting(app, "license_acknowledged_at", time.Now().UTC().Format(time.RFC3339))
 		_ = saveSetting(app, "license_acknowledged_by", body.Email)
-
-		// Consume the one-time setup token; setup is one-shot from here on.
-		_ = saveSetting(app, "setup_token", "")
 
 		// Remove the PocketBase install placeholder.
 		if ph, perr := app.FindFirstRecordByFilter(

@@ -10,11 +10,7 @@ This assumes Tala WTE is already installed (see [[Installation]]) on a host that
 
 Browse to `https://<host>:8443/`. The certificate is self-signed, so accept the browser warning.
 
-On a fresh install you get a setup wizard. Enter an admin email, a password (at least 10 characters), acknowledge the license, and paste the one-time setup token. Get the token from the host:
-
-```
-journalctl -u tala-wte | grep 'SETUP TOKEN'
-```
+On a fresh install you get a setup wizard. Enter an admin email, a password (at least 10 characters), acknowledge the license, and create the account.
 
 After setup, the screen becomes the normal sign-in and you land on the dashboard.
 

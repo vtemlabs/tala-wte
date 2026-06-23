@@ -30,7 +30,7 @@ Yes. Note that on a USB-passthrough VM, a software USB reset cannot recover a we
 ## Setup and login
 
 ### Is there a default login?
-No. Tala WTE never auto-provisions an administrator and never prints credentials to a terminal. On first run you create the one admin account in the browser, gated by a one-time setup token written to the host log, and you must acknowledge the license first. See [[Installation]] and [[Troubleshooting]].
+No. Tala WTE never auto-provisions an administrator and never prints credentials to a terminal. On first run you create the one admin account in the browser, and you must acknowledge the license first. See [[Installation]] and [[Troubleshooting]].
 
 ### Why do I get an HTTPS security warning?
 The console is served over HTTPS on port 8443 using a self-signed certificate the binary generates for itself. Browsers do not trust a self-signed cert, so they warn. Proceed past the warning; this is expected for a lab appliance. See [[Troubleshooting]] and [[Installation]].

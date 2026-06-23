@@ -309,11 +309,6 @@ func main() {
 			return err
 		}
 		bootstrapCollections(app)
-		// Log the one-time setup token at boot when no admin exists yet, so the
-		// operator can retrieve it from the journal before opening the wizard.
-		if real, _ := hasRealSuperuser(app); !real {
-			ensureSetupToken(app)
-		}
 		// Re-export operator-configured settings so a value set in the UI survives a restart; an explicit env override wins.
 		hydrateSettingEnv(app, "uplink_iface", "TALA_UPLINK_IFACE")
 		hydrateSettingEnv(app, "country_code", "TALA_COUNTRY_CODE")

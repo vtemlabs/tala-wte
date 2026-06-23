@@ -14,7 +14,7 @@ So: do not stand up superusers or run other verbs on a running box from the CLI.
 sudo ./tala-wte-linux-arm64 install
 ```
 
-Installs Tala WTE in the access-point (server) role as a systemd service. Verifies and installs dependencies, installs USB wireless recovery, copies the binary into `/var/lib/tala-wte`, writes and starts `tala-wte.service`, waits for `:8443`, and prints the console URL plus how to get the setup token. Takes no flags and is idempotent; re-run any time to upgrade the binary or repair the unit. The database under `/var/lib/tala-wte` is preserved across reinstalls. Must run as root. It never creates an account; admin setup is done in the browser (see [[Installation]]).
+Installs Tala WTE in the access-point (server) role as a systemd service. Verifies and installs dependencies, installs USB wireless recovery, copies the binary into `/var/lib/tala-wte`, writes and starts `tala-wte.service`, waits for `:8443`, and prints the console URL. Takes no flags and is idempotent; re-run any time to upgrade the binary or repair the unit. The database under `/var/lib/tala-wte` is preserved across reinstalls. Must run as root. It never creates an account; admin setup is done in the browser (see [[Installation]]).
 
 `-h` / `--help` prints usage.
 
