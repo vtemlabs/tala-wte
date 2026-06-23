@@ -58,6 +58,8 @@ This is the most important choice; it decides what students practice.
 
 ![A WPS network with the Pixie-Dust Downgrade toggle](/guide/networks-wps.png)
 
+![A WPA2-Personal network with the PMKID Exposed toggle](/guide/networks-wpa2-pmkid.png)
+
 ### Captive Portal Sandbox (Open networks only)
 
 Enable it, choose a **Portal Module** (any template from Captive Portals), and a live preview appears. If the chosen portal validates credentials (a hotel, login, voucher, or membership portal), a **Credential set** selector appears, labeled with the auth type (e.g. "Credential set (hotel validation)"), so submissions are checked against a real list - see the [Portal Guide](/portals/guide). Its first option is **No set - capture only** (record what users enter without validating); if no matching set exists yet, the form shows a **Generate a credential set** link instead. You can also turn on **Require Login (Directory / LDAP)** to validate portal logins against the directory like a corporate hotspot.

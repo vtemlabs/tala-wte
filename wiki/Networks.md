@@ -35,6 +35,14 @@ The "+ New Network" form has three panels: Network Profile, Hardware, and Topolo
 - PMKID Exposed - appears only when the protocol is WPA2-Personal; off by default. Off, the AP withholds the PMKID like a modern router, so capturing the PSK needs a full four-way handshake from a connected client. On, the AP advertises the RSN PMKID KDE in EAPOL message 1/4, so the PSK is capturable clientlessly (hcxdumptool, then crack with hashcat 22000) with no client present. Turn it on to teach the clientless PMKID attack; leave it off to force a handshake capture.
 - Captive Portal Sandbox - appears only when the protocol is Open. Covered under [[Captive-Portals]].
 
+The Pixie-Dust Downgrade toggle appears on a WPA2 + WPS network:
+
+![WPS network with the Pixie-Dust Downgrade toggle](images/networks-wps.png)
+
+The PMKID Exposed toggle appears on a WPA2-Personal network:
+
+![WPA2-Personal network with the PMKID Exposed toggle](images/networks-wpa2-pmkid.png)
+
 ## Security protocols and when to use each
 
 These are the exact options in the Security Protocol dropdown, in order. Pick the one that matches the lesson.
