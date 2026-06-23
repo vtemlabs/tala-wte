@@ -10,6 +10,7 @@ import (
 	"crypto/rand"
 	"encoding/json"
 	"fmt"
+	"hash/fnv"
 	"log"
 	"math/big"
 	"net"
@@ -247,6 +248,12 @@ func buildConfig(record *core.Record, ifName string, nsGatewayIP string) *hostap
 	case "wps":
 		cfg.Protocol = hostapd.ProtocolWPS
 		cfg.Passphrase = passphrase
+		// A configured AP registrar PIN is what makes WPS attackable: without it
+		// hostapd refuses the external-registrar exchange with EAP-Failure, so
+		// reaver/bully have no PIN to recover. Derive a stable, valid 8-digit PIN
+		// per network so the WPS PIN brute-force lab actually has a target.
+		cfg.WPSPin = wpsPIN(record.Id)
+		log.Printf("[sim] WPS network %q: ap_pin=%s (training target, recoverable via reaver/bully)", ssid, cfg.WPSPin)
 	case "wpa3":
 		cfg.Protocol = hostapd.ProtocolWPA3
 		cfg.Passphrase = passphrase
@@ -266,6 +273,31 @@ func buildConfig(record *core.Record, ifName string, nsGatewayIP string) *hostap
 	}
 
 	return cfg
+}
+
+// wpsPIN derives a stable, valid 8-digit WPS device PIN from a seed. The first 7
+// digits come from a hash of the seed; the 8th is the WPS checksum digit. hostapd
+// rejects an ap_pin without a valid checksum, and without a registrar PIN at all
+// it refuses the WPS exchange (EAP-Failure), so this is what gives the WPS PIN
+// brute-force lab an actual, recoverable target.
+func wpsPIN(seed string) string {
+	h := fnv.New32a()
+	_, _ = h.Write([]byte(seed))
+	base := int(h.Sum32() % 10000000) // 7-digit body
+	return fmt.Sprintf("%07d%d", base, wpsChecksum(base))
+}
+
+// wpsChecksum returns the WPS PIN checksum digit for a 7-digit PIN body, per the
+// Wi-Fi Simple Config spec.
+func wpsChecksum(pin int) int {
+	accum := 0
+	for pin > 0 {
+		accum += 3 * (pin % 10)
+		pin /= 10
+		accum += pin % 10
+		pin /= 10
+	}
+	return (10 - accum%10) % 10
 }
 
 func applyEnterpriseConfig(cfg *hostapd.Config, record *core.Record, nsGatewayIP string) {

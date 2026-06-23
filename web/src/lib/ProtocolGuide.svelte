@@ -190,12 +190,12 @@
       doesNotProvide: ['Security - the PIN design is fundamentally broken'],
       vulns: [
         {
-          title: 'Pixie Dust Attack',
-          desc: 'Many chipsets (Ralink, Broadcom, Realtek pre-2014) used weak RNG for the WPS E-S1/E-S2 nonces, so the PIN is recoverable offline in seconds with pixiewps.'
+          title: 'Online PIN Brute Force',
+          desc: 'Rate limiting was optional. Reaver or bully cycle all 11,000 PIN combinations in minutes to hours. This is the attack the lab target is built for: it advertises a registrar PIN and does not lock out, so reaver/bully recover the PIN and the WPA passphrase.'
         },
         {
-          title: 'Online PIN Brute Force',
-          desc: 'Rate limiting was optional. Reaver cycles all 11,000 PIN combinations in minutes to hours.'
+          title: 'Pixie Dust Attack',
+          desc: 'Many chipsets (Ralink, Broadcom, Realtek pre-2014) used weak RNG for the WPS E-S1/E-S2 nonces, so the PIN is recoverable offline in seconds with pixiewps. This is a real-hardware flaw: the lab AP runs hostapd with a strong RNG, so Pixie Dust will not succeed against it. Use the online PIN brute force here.'
         },
         {
           title: 'PBC Race Condition',
@@ -204,8 +204,8 @@
       ],
       tools: ['reaver', 'bully', 'pixiewps', 'wash'],
       useCases: [
-        'Demonstrating WPS PIN attack surface',
-        'Pixie Dust vulnerability demo',
+        'Demonstrating the WPS PIN attack surface',
+        'Online PIN recovery with reaver/bully',
         'Legacy device enumeration'
       ]
     },
