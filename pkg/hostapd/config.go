@@ -27,6 +27,9 @@ const (
 	ProtocolWPA2Enterprise
 	ProtocolWPA3Enterprise
 	ProtocolWEP
+	ProtocolOWE
+	ProtocolWPA2FT
+	ProtocolOWETransition
 )
 
 // PMFMode represents Protected Management Frame configuration.
@@ -67,6 +70,11 @@ type Config struct {
 	RADIUSAddr   string
 	RADIUSPort   int
 	RADIUSSecret string
+
+	// OWE transition: an open primary BSS paired with a hidden companion OWE BSS.
+	RadioMAC          string // primary (open) BSS MAC = the radio MAC; the OWE BSS references it
+	OWEHiddenSSID     string // companion OWE SSID
+	OWESecondaryBSSID string // BSSID of the companion OWE BSS
 }
 
 // WriteToTemp generates the config and writes to a temp file, returning the path.
@@ -169,9 +177,19 @@ ap_setup_locked=0
 {{- if .WPSPin}}
 ap_pin={{.WPSPin}}
 {{- end}}
+# hostapd refuses to initialize WPS (no WSC EAP method is offered, so an attacker
+# only ever sees "EAP type 0") unless the full device attribute set is present and
+# device_name is non-empty. Always emit a valid device profile.
+{{- if .DeviceName}}
 device_name={{.DeviceName}}
+{{- else}}
+device_name=TalaWTE-AP
+{{- end}}
 manufacturer=TalaWTE
 model_name=TalaWTE-AP
+model_number=1.0
+serial_number=00000001
+device_type=6-0050F204-1
 {{- end}}
 
 {{- if eq .Protocol 4}}
@@ -239,5 +257,51 @@ acct_server_shared_secret={{.RADIUSSecret}}
 auth_algs=3
 wep_default_key=0
 wep_key0={{.WEPKey}}
+{{- end}}
+
+{{- if eq .Protocol 9}}
+# OWE / Enhanced Open (RFC 8110): unauthenticated like an open network but with
+# per-client Diffie-Hellman encryption. PMF (ieee80211w=2) is mandatory for OWE.
+wpa=2
+wpa_key_mgmt=OWE
+rsn_pairwise=CCMP
+group_cipher=CCMP
+ieee80211w=2
+{{- end}}
+
+{{- if eq .Protocol 10}}
+# WPA2-PSK with 802.11r Fast Transition (FT-PSK). Advertises a mobility domain
+# and runs the FT key hierarchy (PMK-R0/PMK-R1) on association, so the FT
+# handshake and FT information elements are exercised for capture and analysis.
+wpa=2
+wpa_passphrase={{.Passphrase}}
+wpa_key_mgmt=FT-PSK WPA-PSK
+rsn_pairwise=CCMP
+group_cipher=CCMP
+ieee80211w=1
+mobility_domain=a1b2
+ft_psk_generate_local=1
+nas_identifier=talawte01
+r1_key_holder=02000000000a
+{{- end}}
+
+{{- if eq .Protocol 11}}
+# OWE-Transition: open primary BSS advertising a hidden companion OWE BSS, so legacy
+# clients join open while OWE-capable clients get encryption. The realistic downgrade
+# target. Needs a radio that can host two AP vifs (mt7921-class / capable rt2800usb).
+owe_transition_bssid={{.OWESecondaryBSSID}}
+owe_transition_ssid="{{.OWEHiddenSSID}}"
+
+bss=owetr0
+ssid={{.OWEHiddenSSID}}
+bssid={{.OWESecondaryBSSID}}
+wpa=2
+wpa_key_mgmt=OWE
+rsn_pairwise=CCMP
+group_cipher=CCMP
+ieee80211w=2
+ignore_broadcast_ssid=1
+owe_transition_bssid={{.RadioMAC}}
+owe_transition_ssid="{{.SSID}}"
 {{- end}}
 `

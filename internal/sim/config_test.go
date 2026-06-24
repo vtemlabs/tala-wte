@@ -8,6 +8,7 @@ package sim
 
 import (
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/pocketbase/pocketbase/core"
@@ -44,7 +45,7 @@ func TestBuildConfigWPSPixieDowngradeOn(t *testing.T) {
 	rec := newNetworkRecord(map[string]any{
 		"ssid": "wlab-wps", "protocol": "wps", "band": "2.4", "channel": 1, "wps_pixie": true,
 	})
-	cfg := buildConfig(rec, "wlan0", "")
+	cfg := buildConfig(rec, "wlan0", "", "")
 
 	if cfg.Protocol != hostapd.ProtocolWPS {
 		t.Fatalf("protocol = %v, want WPS", cfg.Protocol)
@@ -68,7 +69,7 @@ func TestBuildConfigWPSPixieDowngradeOff(t *testing.T) {
 	rec := newNetworkRecord(map[string]any{
 		"ssid": "wlab-wps", "protocol": "wps", "band": "2.4", "channel": 1, "wps_pixie": false,
 	})
-	cfg := buildConfig(rec, "wlan0", "")
+	cfg := buildConfig(rec, "wlan0", "", "")
 
 	if cfg.WPSPin == "" {
 		t.Fatal("WPS network must set an ap_pin even without the downgrade")
@@ -84,7 +85,7 @@ func TestBuildConfigNonWPSNoCustomBinary(t *testing.T) {
 		rec := newNetworkRecord(map[string]any{
 			"ssid": "x", "protocol": proto, "band": "2.4", "channel": 6, "wps_pixie": true,
 		})
-		cfg := buildConfig(rec, "wlan0", "")
+		cfg := buildConfig(rec, "wlan0", "", "")
 		if cfg.Binary != "" {
 			t.Fatalf("protocol %q must not set a custom hostapd binary, got %q", proto, cfg.Binary)
 		}
@@ -98,7 +99,7 @@ func TestBuildConfigPMKIDExposedOn(t *testing.T) {
 		"ssid": "wlab-pmkid", "protocol": "wpa2", "band": "2.4", "channel": 6,
 		"passphrase": "labsecret123", "pmkid_exposed": true,
 	})
-	cfg := buildConfig(rec, "wlan0", "")
+	cfg := buildConfig(rec, "wlan0", "", "")
 
 	if cfg.Protocol != hostapd.ProtocolWPA2 {
 		t.Fatalf("protocol = %v, want WPA2", cfg.Protocol)
@@ -120,8 +121,65 @@ func TestBuildConfigPMKIDExposedOff(t *testing.T) {
 		"ssid": "wlab-wpa2", "protocol": "wpa2", "band": "2.4", "channel": 6,
 		"passphrase": "labsecret123", "pmkid_exposed": false,
 	})
-	cfg := buildConfig(rec, "wlan0", "")
+	cfg := buildConfig(rec, "wlan0", "", "")
 	if cfg.Binary != "" {
 		t.Fatalf("non-exposed WPA2 must use system hostapd, got Binary = %q", cfg.Binary)
 	}
+}
+
+// A crafted SSID or passphrase containing control characters must not inject a
+// hostapd directive: control chars are stripped before they reach the config.
+func TestBuildConfigStripsControlChars(t *testing.T) {
+	rec := newNetworkRecord(map[string]any{
+		"ssid": "evil\nap_setup_locked=0", "protocol": "wpa2", "band": "2.4", "channel": 6,
+		"passphrase": "secret\nignore_broadcast_ssid=1",
+	})
+	cfg := buildConfig(rec, "wlan0", "", "")
+	if strings.ContainsAny(cfg.SSID, "\n\r") {
+		t.Errorf("SSID not sanitized: %q", cfg.SSID)
+	}
+	if strings.ContainsAny(cfg.Passphrase, "\n\r") {
+		t.Errorf("passphrase not sanitized: %q", cfg.Passphrase)
+	}
+	out, err := cfg.Generate()
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	for _, injected := range []string{"ap_setup_locked=0", "ignore_broadcast_ssid=1"} {
+		if _, ok := directiveLine(out, injected); ok {
+			t.Errorf("crafted value injected %q as a directive\n---\n%s", injected, out)
+		}
+	}
+}
+
+// Regression: the WEP key path once read the raw record value, so a 13-rune key
+// with embedded newlines injected directives. It must use the sanitized value.
+func TestBuildConfigWEPKeySanitized(t *testing.T) {
+	// 13 runes including two newlines: the length fitWEPKey keeps verbatim.
+	rec := newNetworkRecord(map[string]any{
+		"ssid": "wlab-wep", "protocol": "wep", "band": "2.4", "channel": 6,
+		"passphrase": "abc\nwpa=2\ndef",
+	})
+	cfg := buildConfig(rec, "wlan0", "", "")
+	if strings.ContainsAny(cfg.WEPKey, "\n\r") {
+		t.Errorf("WEP key carried a control character: %q", cfg.WEPKey)
+	}
+	out, err := cfg.Generate()
+	if err != nil {
+		t.Fatalf("Generate: %v", err)
+	}
+	if _, ok := directiveLine(out, "wpa=2"); ok {
+		t.Errorf("WEP key newline injected a wpa=2 directive\n---\n%s", out)
+	}
+}
+
+// directiveLine reports whether the generated config has a standalone line equal
+// to want (a full injected directive), ignoring surrounding whitespace.
+func directiveLine(cfg, want string) (string, bool) {
+	for _, line := range strings.Split(cfg, "\n") {
+		if strings.TrimSpace(line) == want {
+			return line, true
+		}
+	}
+	return "", false
 }

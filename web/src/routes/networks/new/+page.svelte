@@ -136,7 +136,7 @@
 
   const availableChannels = $derived(channelMap[band] ?? channelMap['2.4']);
   const needsPassphrase = $derived(
-    ['wpa', 'wpa2', 'wps', 'wpa3', 'wpa3_transition', 'wep'].includes(protocol)
+    ['wpa', 'wpa2', 'wps', 'wpa3', 'wpa3_transition', 'wep', 'wpa2_ft'].includes(protocol)
   );
   const isEnterprise = $derived(['wpa2_enterprise', 'wpa3_enterprise'].includes(protocol));
   const isWEP = $derived(protocol === 'wep');
@@ -350,6 +350,9 @@
             <option value="wpa3_transition">WPA3-Transition (SAE+PSK)</option>
             <option value="wpa2_enterprise">WPA2-Enterprise (802.1X)</option>
             <option value="wpa3_enterprise">WPA3-Enterprise (Suite-B)</option>
+            <option value="owe">OWE / Enhanced Open</option>
+            <option value="wpa2_ft">WPA2 + 802.11r (Fast Transition)</option>
+            <option value="owe_transition">OWE-Transition (Enhanced Open + open twin)</option>
           </select>
         </div>
 

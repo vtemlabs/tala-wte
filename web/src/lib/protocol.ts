@@ -15,7 +15,10 @@ export function protocolBadge(p: string): string {
 		wpa3: 'badge-wpa3',
 		wpa3_transition: 'badge-wpa3',
 		wpa2_enterprise: 'badge-enterprise',
-		wpa3_enterprise: 'badge-enterprise'
+		wpa3_enterprise: 'badge-enterprise',
+		owe: 'badge-open',
+		wpa2_ft: 'badge-wpa2',
+		owe_transition: 'badge-open'
 	};
 	return map[p] ?? 'badge-neutral';
 }

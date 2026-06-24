@@ -62,7 +62,7 @@ func bootstrapCollections(app *pocketbase.PocketBase) {
 				&core.TextField{Name: "ssid", Required: true},
 				&core.SelectField{Name: "protocol", Required: true, Values: []string{
 					"open", "wep", "wpa", "wpa2", "wps", "wpa3", "wpa3_transition",
-					"wpa2_enterprise", "wpa3_enterprise",
+					"wpa2_enterprise", "wpa3_enterprise", "owe", "wpa2_ft", "owe_transition",
 				}},
 				&core.SelectField{Name: "band", Values: []string{"2.4", "5", "6"}},
 				&core.NumberField{Name: "channel"},
@@ -282,7 +282,7 @@ func reconcileNetworkProtocols(app *pocketbase.PocketBase) {
 	if !ok {
 		return
 	}
-	want := []string{"open", "wep", "wpa", "wpa2", "wps", "wpa3", "wpa3_transition", "wpa2_enterprise", "wpa3_enterprise"}
+	want := []string{"open", "wep", "wpa", "wpa2", "wps", "wpa3", "wpa3_transition", "wpa2_enterprise", "wpa3_enterprise", "owe", "wpa2_ft", "owe_transition"}
 	if strings.Join(field.Values, ",") == strings.Join(want, ",") {
 		return
 	}
@@ -290,7 +290,7 @@ func reconcileNetworkProtocols(app *pocketbase.PocketBase) {
 	if err := app.Save(nets); err != nil {
 		log.Printf("[bootstrap] failed to update networks.protocol values: %v", err)
 	} else {
-		log.Printf("[bootstrap] reconciled networks.protocol values (now includes wep)")
+		log.Printf("[bootstrap] reconciled networks.protocol values (now includes owe, wpa2_ft)")
 	}
 }
 

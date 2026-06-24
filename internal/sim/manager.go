@@ -691,11 +691,13 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 
 		// Move PHY to namespace.
 		phyName := ""
+		ifMAC := ""
 		log.Printf("[sim][start] Discovered %d adapters", len(adapters))
 		for _, a := range adapters {
 			log.Printf("[sim][start]   Adapter: interface=%s phy=%s driver=%s", a.Interface, a.Phy, a.Driver)
 			if a.Interface == ifName {
 				phyName = a.Phy
+				ifMAC = a.MacAddress
 			}
 		}
 
@@ -722,7 +724,7 @@ func StartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Re
 		}
 
 		// Start hostapd. Enterprise networks use the host-side veth IP as the RADIUS server so packets reach FreeRADIUS.
-		cfg := buildConfig(record, ifName, topology.HostIP)
+		cfg := buildConfig(record, ifName, ifMAC, topology.HostIP)
 		confPath, err := cfg.WriteToTemp()
 		if err != nil {
 			log.Printf("[sim][start] failed to write hostapd config: %v", err)

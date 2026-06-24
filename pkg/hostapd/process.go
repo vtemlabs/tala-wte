@@ -14,6 +14,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"strings"
 	"sync"
 	"time"
@@ -118,6 +119,9 @@ func Start(ctx context.Context, confPath string, netnsName string, binary string
 		exitCh <- err
 	}()
 
+	// Per-instance suffix so concurrent APs (one per adapter) do not clobber a shared diagnostic log.
+	logTag := hostapdLogTag(netnsName, confPath)
+
 	// Wait briefly to confirm the process stabilized.
 	select {
 	case <-exitCh:
@@ -129,7 +133,7 @@ func Start(ctx context.Context, confPath string, netnsName string, binary string
 		capMu.Unlock()
 
 		// Write the full trace to a file since journald drops large multi-line messages.
-		const failLog = "/tmp/tala-hostapd-fail.log"
+		failLog := fmt.Sprintf("/tmp/tala-hostapd-fail-%s.log", logTag)
 		if err := os.WriteFile(failLog, []byte(strings.Join(lines, "\n")), 0o600); err == nil {
 			log.Printf("[hostapd] start failed (%d lines captured); full output: %s", len(lines), failLog)
 		} else {
@@ -138,6 +142,30 @@ func Start(ctx context.Context, confPath string, netnsName string, binary string
 
 		return nil, fmt.Errorf("hostapd failed to start: %s", summarizeHostapdFailure(lines))
 	case <-time.After(500 * time.Millisecond):
+		// Roll the live hostapd trace (driver init, WPS/EAP setup, AP-ENABLED, and
+		// per-station WPS/EAP exchanges) to a stable log so a target that beacons
+		// but still misbehaves -- e.g. WPS that never offers the WSC EAP method to
+		// an attacking station -- is diagnosable from the live trace, not just the
+		// startup snapshot. Cap retained lines so a long-lived AP cannot grow it
+		// without bound.
+		go func() {
+			t := time.NewTicker(2 * time.Second)
+			defer t.Stop()
+			for {
+				select {
+				case <-ctx.Done():
+					return
+				case <-t.C:
+					capMu.Lock()
+					if len(captured) > 4000 {
+						captured = captured[len(captured)-4000:]
+					}
+					lines := append([]string(nil), captured...)
+					capMu.Unlock()
+					_ = os.WriteFile(fmt.Sprintf("/tmp/tala-hostapd-startup-%s.log", logTag), []byte(strings.Join(lines, "\n")), 0o600)
+				}
+			}
+		}()
 		return p, nil
 	}
 }
@@ -181,6 +209,27 @@ func summarizeHostapdFailure(lines []string) string {
 		return fatal + " || " + tail
 	}
 	return tail
+}
+
+// hostapdLogTag derives a filesystem-safe, per-instance suffix for the diagnostic
+// log paths so concurrent APs (one per adapter) do not clobber a shared file.
+func hostapdLogTag(netnsName, confPath string) string {
+	tag := netnsName
+	if tag == "" {
+		tag = strings.TrimSuffix(filepath.Base(confPath), ".conf")
+	}
+	tag = strings.Map(func(r rune) rune {
+		switch {
+		case r >= 'a' && r <= 'z', r >= 'A' && r <= 'Z', r >= '0' && r <= '9', r == '-', r == '_':
+			return r
+		default:
+			return '-'
+		}
+	}, tag)
+	if tag == "" {
+		return "ap"
+	}
+	return tag
 }
 
 // Stop terminates hostapd and blocks until it exits (up to 5s), then escalates to SIGKILL. Waits on p.done rather than calling cmd.Wait() a second time (which would deadlock).

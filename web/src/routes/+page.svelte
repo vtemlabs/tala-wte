@@ -44,7 +44,10 @@
     wpa3: 'var(--color-green)',
     wpa3_transition: 'var(--color-green)',
     wpa2_enterprise: 'var(--color-purple)',
-    wpa3_enterprise: 'var(--color-purple)'
+    wpa3_enterprise: 'var(--color-purple)',
+    owe: 'var(--color-green)',
+    wpa2_ft: 'var(--color-yellow)',
+    owe_transition: 'var(--color-green)'
   };
   const protoDist = $derived.by(() => {
     const m: Record<string, number> = {};

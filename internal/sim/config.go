@@ -84,6 +84,17 @@ func isHexKey(s string) bool {
 	return true
 }
 
+// incMAC returns the MAC with its last byte incremented, used to derive the
+// companion OWE-transition BSS BSSID from the radio's primary MAC.
+func incMAC(mac string) string {
+	hw, err := net.ParseMAC(mac)
+	if err != nil || len(hw) != 6 {
+		return mac
+	}
+	hw[5]++
+	return hw.String()
+}
+
 // generateSecret creates a cryptographically random alphanumeric string.
 func generateSecret(length int) (string, error) {
 	const charset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
@@ -192,7 +203,7 @@ func bestBandForAdapter(cand *iface.Adapter, band string) string {
 // buildConfig constructs the hostapd.Config from a network record. ifName is the resolved adapter (the allocation
 // guard may substitute a free one). nsGatewayIP is the host-side veth address used as the enterprise RADIUS server;
 // pass "" for non-enterprise protocols.
-func buildConfig(record *core.Record, ifName string, nsGatewayIP string) *hostapd.Config {
+func buildConfig(record *core.Record, ifName, ifMAC, nsGatewayIP string) *hostapd.Config {
 	protocol := record.GetString("protocol")
 	band := record.GetString("band")
 	channel := record.GetInt("channel")
@@ -235,7 +246,9 @@ func buildConfig(record *core.Record, ifName string, nsGatewayIP string) *hostap
 		cfg.Protocol = hostapd.ProtocolOpen
 	case "wep":
 		cfg.Protocol = hostapd.ProtocolWEP
-		cfg.WEPKey = formatWEPKey(record.GetString("passphrase"))
+		// Use the sanitized passphrase (control chars already stripped) so a crafted
+		// WEP key cannot inject a hostapd directive; formatWEPKey does not sanitize.
+		cfg.WEPKey = formatWEPKey(passphrase)
 		// WEP is incompatible with HT/VHT/HE; strip the band-derived radio modes.
 		cfg.IEEE80211N = false
 		cfg.IEEE80211AC = false
@@ -294,6 +307,27 @@ func buildConfig(record *core.Record, ifName string, nsGatewayIP string) *hostap
 		cfg.Protocol = hostapd.ProtocolWPA3Enterprise
 		cfg.PMFMode = hostapd.PMFRequired
 		applyEnterpriseConfig(cfg, record, nsGatewayIP)
+	case "owe":
+		// OWE / Enhanced Open: no passphrase, mandatory PMF.
+		cfg.Protocol = hostapd.ProtocolOWE
+		cfg.PMFMode = hostapd.PMFRequired
+	case "wpa2_ft":
+		// WPA2-PSK with 802.11r Fast Transition.
+		cfg.Protocol = hostapd.ProtocolWPA2FT
+		cfg.Passphrase = passphrase
+		cfg.PMFMode = hostapd.PMFOptional
+	case "owe_transition":
+		// OWE transition: open primary BSS + hidden companion OWE BSS (downgrade target).
+		// Needs a radio that can host two AP vifs; the bssids derive from the radio MAC.
+		cfg.Protocol = hostapd.ProtocolOWETransition
+		cfg.PMFMode = hostapd.PMFRequired
+		cfg.RadioMAC = ifMAC
+		cfg.OWESecondaryBSSID = incMAC(ifMAC)
+		oweHidden := ssid + "-enc"
+		if len(oweHidden) > 32 {
+			oweHidden = oweHidden[:32]
+		}
+		cfg.OWEHiddenSSID = oweHidden
 	}
 
 	return cfg
@@ -383,6 +417,14 @@ func loadRADIUSSecret() string {
 	}
 	log.Printf("[radius] shared secret generated and persisted to %s", secretFile)
 	return generated
+}
+
+// EnsureRADIUSClientsConf writes clients.conf with the given secret (host loopback
+// plus the per-namespace veth range) and reloads FreeRADIUS. Exported so the
+// settings handler reuses this canonical writer instead of emitting a
+// localhost-only file that would drop namespace authorization between enterprise starts.
+func EnsureRADIUSClientsConf(secret string) error {
+	return ensureRADIUSClientsConf(sanitizeRADIUSSecret(secret))
 }
 
 // ensureRADIUSClientsConf writes clients.conf with the given secret and reloads FreeRADIUS. Idempotent. The file
