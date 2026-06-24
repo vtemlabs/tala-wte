@@ -98,3 +98,8 @@ internal/eterminal/assets/e-terminal/
 
 # Internal kernel/driver fix bundle - private repo only, never public
 kernel/
+
+# Docs site (MkDocs Material) build output + local venv
+/site/
+/.venv-docs/
+.cache/

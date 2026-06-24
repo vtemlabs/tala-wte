@@ -4,7 +4,7 @@
 
 **by VTEM Labs**
 
-[![License: Personal and Non-Profit](https://img.shields.io/badge/License-Personal%20%26%20Non--Profit-2f81f7?style=for-the-badge&labelColor=08090c)](LICENSE) [![Platform: Linux](https://img.shields.io/badge/Platform-Debian%20%7C%20Ubuntu%20%7C%20Kali-2f81f7?style=for-the-badge&labelColor=08090c)](#deployment) [![Deploy: single binary](https://img.shields.io/badge/Deploy-Single%20Go%20binary-2f81f7?style=for-the-badge&labelColor=08090c)](#overview) [![Built by VTEM Labs](https://img.shields.io/badge/Built%20by-VTEM%20Labs-1f6feb?style=for-the-badge&labelColor=08090c)](https://vtemlabs.com)
+[![License: Personal and Non-Profit](https://img.shields.io/badge/License-Personal%20%26%20Non--Profit-2f81f7?style=for-the-badge&labelColor=08090c)](LICENSE) [![Docs](https://img.shields.io/badge/Docs-tala--wte.vtemlabs.com-2f81f7?style=for-the-badge&labelColor=08090c)](https://tala-wte.vtemlabs.com) [![Platform: Linux](https://img.shields.io/badge/Platform-Debian%20%7C%20Ubuntu%20%7C%20Kali-2f81f7?style=for-the-badge&labelColor=08090c)](#deployment) [![Deploy: single binary](https://img.shields.io/badge/Deploy-Single%20Go%20binary-2f81f7?style=for-the-badge&labelColor=08090c)](#overview) [![Built by VTEM Labs](https://img.shields.io/badge/Built%20by-VTEM%20Labs-1f6feb?style=for-the-badge&labelColor=08090c)](https://vtemlabs.com)
 
 <img src="images/architecture.png" alt="Tala WTE architecture: the access point and pack leader broadcasting WPA2-Enterprise, open + captive-portal, and hidden + isolated networks to a client pack doing 802.1X auth, portal logins, and traffic, with a FreeRADIUS / OpenLDAP / CA auth backbone and an attacker capturing handshakes and cleartext over the air" width="940">
 
@@ -43,6 +43,14 @@ The platform has two roles in one binary. An access-point (server) role broadcas
 ### As a wireless honeypot
 
 The same pieces also make Tala WTE usable as a wireless honeypot. It broadcasts a real, inviting network (an open SSID with a captive portal, or a familiar-looking WPA2 network) that is never silent, because its own clients generate realistic traffic, and it records what happens around it: hostapd logs every association, the captive portal captures any submitted credentials along with the device MAC, IP, and browser, the connected-client list updates live, and the built-in packet capture saves the air for offline analysis. It is built as a training range rather than a hardened sensor, so catching an active attacker (deauthentication floods, offline handshake cracking, and the like) would want alerting beyond what ships today, but as a passive decoy that records who shows up and what they try, the groundwork is already there.
+
+## Documentation
+
+Full documentation lives at **[tala-wte.vtemlabs.com](https://tala-wte.vtemlabs.com)**:
+
+- **Field manual** - a chapter on every network type (Open, OWE, WEP, WPA, WPA2, WPA2 + 802.11r, WPS, WPA3, and Enterprise) covering how each works, how it breaks, and what you find in the field, plus a cross-referenced **wireless attack catalog** and a **toolkit** guide.
+- **Wireless reference** - a researched, cited deep dive into spectrum and regulation, RF propagation and density tuning, antennas and MIMO, the 802.11 standards and Wi-Fi generations, wireless and health (RF exposure, Faraday shielding, and radio tracking), and the future of wireless.
+- **Operational guides** - step-by-step walkthroughs from install through troubleshooting (networks, captive portals, credential sets, packet captures, the enterprise stack, client mode, and the pack), also browsable as the [GitHub wiki](https://github.com/vtemlabs/tala-wte/wiki).
 
 ## Background
 
@@ -89,9 +97,11 @@ Create and broadcast access points across the full range of security protocols, 
 | Network type    | Authentication          | Cipher             | Key or credential                           | Captive portal | Demonstrates                                                                     |
 | --------------- | ----------------------- | ------------------ | ------------------------------------------- | :------------: | -------------------------------------------------------------------------------- |
 | Open            | None                    | None               | None                                        |      Yes       | Rogue access points, evil-twin attacks, and captive-portal credential harvesting |
+| OWE             | None (unauthenticated)  | CCMP / AES         | Per-client Diffie-Hellman (no password)     |       No       | Per-client encryption on an open SSID, and the evil twin and transition downgrade it cannot stop |
 | WEP             | Shared key              | RC4, 40 or 104-bit | ASCII or hex, auto-fitted to a valid length |       No       | IV and keystream recovery with FMS, KoreK, and PTW                               |
 | WPA (TKIP)      | Pre-shared key          | TKIP over RC4      | Passphrase                                  |       No       | Legacy TKIP weaknesses and EAPOL handshake capture                               |
 | WPA2-Personal   | Pre-shared key          | CCMP / AES         | Passphrase                                  |       No       | 4-way handshake capture, offline dictionary attacks, and PMKID                   |
+| WPA2 + 802.11r  | Pre-shared key (FT-PSK) | CCMP / AES         | Passphrase                                  |       No       | Fast roaming across a mobility domain, FT handshake and PSK capture, and the FT KRACK variant |
 | WPA2 with WPS   | Pre-shared key plus WPS | CCMP / AES         | Passphrase, WPS enabled                     |       No       | WPS PIN brute force and Pixie Dust                                               |
 | WPA3-Personal   | SAE                     | CCMP / AES         | Passphrase                                  |       No       | SAE handshake behavior and the Dragonblood class of issues                       |
 | WPA3-Transition | SAE with PSK fallback   | CCMP / AES         | Passphrase                                  |       No       | Downgrade from WPA3 to WPA2 pre-shared key                                       |
@@ -148,11 +158,11 @@ A server can act as a pack leader and drive a pack of client members, so one ope
 
 ![Portal guide](images/portal-guide.png)
 
-- A library of realistic built-in templates: coffee shops, hotels, corporate guest pages, airports, in-flight, and ISP hotspots.
+- A library of 36 realistic built-in templates: coffee shops, hotels, corporate guest pages, airports, in-flight, and ISP hotspots.
 - Four ways to add a portal: clone a built-in template, start from scratch, clone a live page by URL, or upload an `.html` file or a `.zip` bundle.
 - A split editor with HTML source and a live preview.
 - Automatic capture wiring. Any imported login form is pointed at the capture endpoint and its username and password fields are detected, with no hand editing.
-- Optional credential validation. A portal can authenticate submitted credentials against the embedded directory before granting access, behaving like a real credentialed hotspot.
+- Typed portals and credential validation. A portal declares its auth type (login, voucher, room number, member ID, and more) and validates submissions against a **credential set** (a list of valid logins you generate or import) or the embedded directory, so it grants only on a real match and flags which captured credentials were valid.
 - Generic Terms of Service, Acceptable Use Policy, and Privacy Policy pages served by the portal, so the splash feels complete to a connecting client.
 - An in-app guide that walks through creating, editing, cloning, uploading, and assigning portals.
 
@@ -171,6 +181,7 @@ Start passive captures at the wireless (802.11 monitor) or network (IP) layer on
 - An embedded OpenLDAP directory with user and group management, a realistic password mix, and a built-in authentication test.
 - FreeRADIUS configured for EAP, wired so that hostapd routes 802.1X to RADIUS and RADIUS validates against LDAP.
 - A certificate authority for issuing the server and client certificates that EAP-TLS requires.
+- The whole stack provisions itself on first boot (CA, RADIUS server certificate, directory, and the freeradius-ldap wiring), so an enterprise SSID works without a manual setup step.
 
 ### Embedded terminal
 

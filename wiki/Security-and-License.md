@@ -32,7 +32,7 @@ There is no default login and no shared password baked into the build.
 
 ## License summary
 
-Tala WTE is free for personal and non-profit use. This is a summary; the controlling text is the full [LICENSE](https://github.com/vtemlabs/tala-wte/blob/main/LICENSE) file.
+Tala WTE is free for personal and non-profit use. This is a summary; the controlling text is the full [LICENSE](https://github.com/vtemlabs/tala-wte/blob/main/LICENSE) file. The full license text is also available on its own page: [Licensing](/licensing/).
 
 ### What is free
 

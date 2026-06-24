@@ -4,15 +4,15 @@ This assumes Tala WTE is already installed (see [[Installation]]) on a host that
 
 ## 1. Open the console and finish setup
 
-![The login and setup screen](images/login.png)
-
-![The dashboard](images/dashboard.png)
-
 Browse to `https://<host>:8443/`. The certificate is self-signed, so accept the browser warning.
 
 On a fresh install you get a setup wizard. Enter an admin email, a password (at least 10 characters), acknowledge the license, and create the account.
 
+> SCREENSHOT NEEDED: the first-run setup wizard (admin email field, password field, license acknowledgment, and the Create account button). This is the setup page, not the sign-in.
+
 After setup, the screen becomes the normal sign-in and you land on the dashboard.
+
+![The Tala WTE dashboard after setup](images/dashboard.png)
 
 ## 2. Create an Open network with a captive portal
 
