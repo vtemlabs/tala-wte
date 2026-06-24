@@ -1000,6 +1000,10 @@ textarea.input {
 @media (max-width: 1100px) {
 	.detail-layout {
 		flex-direction: column;
+		/* Stretch the stacked columns to full width so a long code line scrolls
+		   inside its <pre> instead of sizing the content stack to its widest line
+		   and overflowing the viewport on a phone. */
+		align-items: stretch;
 	}
 	.guide-panel,
 	.guide-panel.collapsed {
