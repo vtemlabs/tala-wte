@@ -372,8 +372,10 @@ func radiusConfigHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *
 		}
 
 		if req.SharedSecret != "" {
-			clientsConf := fmt.Sprintf("client localhost {\n\tipaddr = 127.0.0.1\n\tsecret = %s\n}\n", req.SharedSecret)
-			if err := os.WriteFile("/etc/freeradius/3.0/clients.conf", []byte(clientsConf), 0o640); err != nil {
+			// Use the canonical writer so the file keeps both the localhost client and the
+			// 192.168.0.0/16 namespace range; a localhost-only write would break enterprise
+			// EAP for networks running in their veth namespaces.
+			if err := sim.EnsureRADIUSClientsConf(req.SharedSecret); err != nil {
 				log.Printf("[radius] failed to write clients.conf: %v", err)
 				api.WriteErr(w, http.StatusInternalServerError, "failed to write FreeRADIUS config")
 				return
@@ -410,6 +412,12 @@ func captureStartHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *
 		}
 		if req.NetworkID == "" || req.Interface == "" {
 			api.WriteErr(w, http.StatusBadRequest, "network_id and interface required")
+			return
+		}
+		// NetworkID becomes the "wte-<id>" netns name passed to `ip netns exec`; constrain
+		// it to the record-id charset as defense-in-depth against argument injection.
+		if !regexp.MustCompile(`^[a-zA-Z0-9]+$`).MatchString(req.NetworkID) {
+			api.WriteErr(w, http.StatusBadRequest, "invalid network id")
 			return
 		}
 

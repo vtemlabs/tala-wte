@@ -710,7 +710,7 @@ func (a *Agent) genPing(ctx context.Context, opts TrafficOptions, gw string) {
 			targets = append(targets, "1.1.1.1", "8.8.8.8")
 		}
 		for _, t := range targets {
-			if exec.CommandContext(ctx, "ping", "-c", "1", "-W", "2", t).Run() == nil {
+			if exec.CommandContext(ctx, "ping", "-c", "1", "-W", "2", "--", t).Run() == nil {
 				a.inc(1, 0)
 			}
 		}
