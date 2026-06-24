@@ -14,15 +14,12 @@ import (
 	"github.com/vtemlabs/tala-wte/internal/sim"
 )
 
-// provisionEnterpriseOnStartup brings the WPA-Enterprise dependency stack (CA,
-// RADIUS server certificate, embedded LDAP directory, and freeradius-ldap wiring)
-// to a known-good state at boot. Without it a fresh install serves a 412 the first
-// time anyone starts an enterprise SSID (until the operator finds the provision
-// step), which reads as "enterprise is broken." Every provision step is idempotent
-// and skips itself when its invariant already holds, so this is a no-op on an
-// already-provisioned box and safe to run on every boot. Runs in its own
-// goroutine; any failure is logged and still surfaces through the normal
-// per-start preflight.
+// provisionEnterpriseOnStartup brings the WPA-Enterprise stack (CA, RADIUS server
+// certificate, embedded LDAP directory, and freeradius-ldap wiring) to a
+// known-good state at boot so a fresh install does not fail the first enterprise
+// SSID start. Each step is idempotent, so it is a no-op once provisioned and safe
+// to run on every boot; failures are logged and still surface in the per-start
+// preflight.
 func provisionEnterpriseOnStartup() {
 	if sim.CheckEnterprisePreflight().OK {
 		return

@@ -172,10 +172,8 @@ func main() {
 		// UI reflects a CA/certs created before this build (or by enterprise auto-provision).
 		reconcileCerts(app)
 
-		// Enterprise targets must work out of the box: provision the WPA-Enterprise
-		// dependency stack (CA, RADIUS server cert, embedded LDAP directory,
-		// freeradius-ldap wiring) in the background so launching an enterprise SSID
-		// never requires the operator to hand-run the provision step first.
+		// Provision the enterprise stack in the background so the first enterprise
+		// SSID works without a manual provision step.
 		go provisionEnterpriseOnStartup()
 
 		// Serve the SvelteKit static build (catches / and all sub-routes).

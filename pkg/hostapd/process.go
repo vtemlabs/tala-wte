@@ -142,12 +142,10 @@ func Start(ctx context.Context, confPath string, netnsName string, binary string
 
 		return nil, fmt.Errorf("hostapd failed to start: %s", summarizeHostapdFailure(lines))
 	case <-time.After(500 * time.Millisecond):
-		// Roll the live hostapd trace (driver init, WPS/EAP setup, AP-ENABLED, and
-		// per-station WPS/EAP exchanges) to a stable log so a target that beacons
-		// but still misbehaves -- e.g. WPS that never offers the WSC EAP method to
-		// an attacking station -- is diagnosable from the live trace, not just the
-		// startup snapshot. Cap retained lines so a long-lived AP cannot grow it
-		// without bound.
+		// Roll the live hostapd trace to a stable log so an AP that beacons but
+		// still misbehaves (for example WPS that never offers the WSC EAP method)
+		// stays diagnosable, not just the startup snapshot. Cap retained lines so a
+		// long-lived AP cannot grow it without bound.
 		go func() {
 			t := time.NewTicker(2 * time.Second)
 			defer t.Stop()
