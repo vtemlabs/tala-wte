@@ -8,9 +8,6 @@ package main
 
 import (
 	"log"
-	"net/http"
-	"net/http/httptest"
-	"strings"
 	"time"
 
 	"github.com/pocketbase/pocketbase"
@@ -56,26 +53,23 @@ func autoStartNetworks(app *pocketbase.PocketBase) {
 	if len(pendingAutostart) == 0 {
 		return
 	}
-	start := sim.StartHandler(app)
 	for _, id := range pendingAutostart {
 		rec, err := app.FindRecordById("networks", id)
 		if err != nil {
 			continue
 		}
 		ssid := rec.GetString("ssid")
-		req := httptest.NewRequest(http.MethodPost, "/", strings.NewReader(`{"auto_provision":true}`))
-		req.SetPathValue("id", id)
-		rr := httptest.NewRecorder()
-		start(rr, req)
-		if rr.Code == http.StatusOK {
-			log.Printf("[boot] restarted network %q", ssid)
+		// Same shared recovery path the runtime watchdog (sim.monitorSession) uses, so boot
+		// restore and live auto-recovery behave identically.
+		if err := sim.RestartNetwork(app, id); err != nil {
+			log.Printf("[boot] could not restart %q: %v", ssid, err)
+			rec.Set("status", "error")
+			if saveErr := app.Save(rec); saveErr != nil {
+				log.Printf("[boot] failed to mark %q errored: %v", ssid, saveErr)
+			}
 			continue
 		}
-		log.Printf("[boot] could not restart %q (HTTP %d): %s", ssid, rr.Code, strings.TrimSpace(rr.Body.String()))
-		rec.Set("status", "error")
-		if err := app.Save(rec); err != nil {
-			log.Printf("[boot] failed to mark %q errored: %v", ssid, err)
-		}
+		log.Printf("[boot] restarted network %q", ssid)
 	}
 	pendingAutostart = nil
 }

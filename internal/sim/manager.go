@@ -14,6 +14,7 @@ import (
 	"log"
 	"net"
 	"net/http"
+	"net/http/httptest"
 	"os"
 	"os/exec"
 	"runtime"
@@ -972,8 +973,14 @@ func LogsHandler(app *pocketbase.PocketBase) func(http.ResponseWriter, *http.Req
 	}
 }
 
-// monitorSession watches a running hostapd process and marks the network "error" if it crashes.
+// monitorSession watches a running hostapd process and AUTO-RECOVERS the network if it dies.
+// A flaky USB radio can periodically reset and re-enumerate its PHY, which kills hostapd; rather
+// than leave the network dark and marked "error", we tear the dead session down and re-run the
+// full start sequence with backoff so the AP keeps broadcasting across radio hiccups. A
+// periodically-resetting radio recovers on the first attempt each time; only a sustained,
+// repeated failure to restart (a genuinely dead radio) finally marks the network "error".
 func monitorSession(app *pocketbase.PocketBase, id string) {
+	const maxRecoveryAttempts = 6
 	ticker := time.NewTicker(3 * time.Second)
 	defer ticker.Stop()
 
@@ -983,43 +990,95 @@ func monitorSession(app *pocketbase.PocketBase, id string) {
 		mu.Unlock()
 
 		if !exists {
-			return
+			return // intentionally stopped (StopHandler removed it from the running map)
+		}
+		if session.Hostapd == nil || session.Hostapd.IsRunning() {
+			continue
 		}
 
-		if session.Hostapd != nil && !session.Hostapd.IsRunning() {
-			log.Printf("[sim][monitor] Hostapd crashed for network %s - marking as error", id)
+		log.Printf("[sim][monitor] hostapd exited for network %s - tearing down and auto-recovering (radio reset?)", id)
+		markNetworkStatus(app, id, "starting")
 
-			record, err := app.FindRecordById("networks", id)
-			if err == nil {
-				record.Set("status", "error")
-				if saveErr := app.Save(record); saveErr != nil {
-					log.Printf("[sim][monitor] failed to persist error status for %s: %v", id, saveErr)
-				}
+		// Tear the dead session down so a clean restart can re-claim the (possibly re-enumerated) radio.
+		mu.Lock()
+		if session.DNSMasq != nil {
+			if stopErr := session.DNSMasq.Stop(); stopErr != nil {
+				log.Printf("[sim][monitor] dnsmasq stop failed for %s: %v", id, stopErr)
 			}
-
-			mu.Lock()
-			if session.DNSMasq != nil {
-				if stopErr := session.DNSMasq.Stop(); stopErr != nil {
-					log.Printf("[sim][monitor] dnsmasq stop failed for %s: %v", id, stopErr)
-				}
-			}
-			if session.Portal != nil {
-				session.Portal.Stop()
-			}
-			if session.Veth != nil {
-				routing.TeardownVethTunnel(session.Veth)
-			}
-			if session.Namespace != nil {
-				quiesceRadioInNetns(id)
-				if delErr := session.Namespace.Delete(); delErr != nil {
-					log.Printf("[sim][monitor] namespace delete failed for %s: %v", id, delErr)
-				}
-			}
-			delete(running, id)
-			mu.Unlock()
-			return
 		}
+		if session.Portal != nil {
+			session.Portal.Stop()
+		}
+		if session.Veth != nil {
+			routing.TeardownVethTunnel(session.Veth)
+		}
+		if session.Namespace != nil {
+			quiesceRadioInNetns(id)
+			if delErr := session.Namespace.Delete(); delErr != nil {
+				log.Printf("[sim][monitor] namespace delete failed for %s: %v", id, delErr)
+			}
+		}
+		delete(running, id)
+		mu.Unlock()
+
+		// Re-run the start sequence with backoff (2s, 4s, 6s ... lets a USB reset settle).
+		recovered := false
+		for attempt := 1; attempt <= maxRecoveryAttempts; attempt++ {
+			if rec, err := app.FindRecordById("networks", id); err == nil && rec.GetString("status") == "stopped" {
+				log.Printf("[sim][monitor] network %s stopped during recovery - aborting", id)
+				return
+			}
+			time.Sleep(time.Duration(attempt) * 2 * time.Second)
+			if err := RestartNetwork(app, id); err != nil {
+				log.Printf("[sim][monitor] recovery attempt %d/%d for %s failed: %v", attempt, maxRecoveryAttempts, id, err)
+				continue
+			}
+			log.Printf("[sim][monitor] network %s auto-recovered on attempt %d (a fresh monitor now owns it)", id, attempt)
+			recovered = true
+			break
+		}
+		if !recovered {
+			log.Printf("[sim][monitor] auto-recovery exhausted for %s after %d attempts - marking error", id, maxRecoveryAttempts)
+			markNetworkStatus(app, id, "error")
+		}
+		return // a successful restart spawned a fresh monitorSession; this goroutine is done either way
 	}
+}
+
+// markNetworkStatus persists a status string for a network, logging any failure.
+func markNetworkStatus(app *pocketbase.PocketBase, id, status string) {
+	rec, err := app.FindRecordById("networks", id)
+	if err != nil {
+		return
+	}
+	rec.Set("status", status)
+	if saveErr := app.Save(rec); saveErr != nil {
+		log.Printf("[sim][monitor] failed to persist %q status for %s: %v", status, id, saveErr)
+	}
+}
+
+// RestartNetwork re-runs the full start sequence for a network by id, reusing StartHandler
+// verbatim via an internal request so the netns/PHY-move/hostapd/dnsmasq/portal bring-up lives
+// in exactly one place. It is the single shared recovery path used both at boot (autoStartNetworks
+// after a reboot) and at runtime (the monitorSession watchdog after a hostapd/radio crash). The
+// caller must ensure the network is not already in the running map so StartHandler does not
+// short-circuit on "already_running". auto_provision is requested so enterprise networks can
+// re-bootstrap their RADIUS/LDAP deps if needed.
+func RestartNetwork(app *pocketbase.PocketBase, id string) error {
+	req := httptest.NewRequest(http.MethodPost, "/api/wte/networks/"+id+"/start", strings.NewReader(`{"auto_provision":true}`))
+	req.SetPathValue("id", id)
+	rr := httptest.NewRecorder()
+	StartHandler(app)(rr, req)
+	if rr.Code != http.StatusOK {
+		return fmt.Errorf("start returned %d: %s", rr.Code, strings.TrimSpace(rr.Body.String()))
+	}
+	mu.Lock()
+	_, ok := running[id]
+	mu.Unlock()
+	if !ok {
+		return fmt.Errorf("start returned %d but network not in running map", rr.Code)
+	}
+	return nil
 }
 
 // StopAll stops all running sessions. Called during graceful shutdown.
