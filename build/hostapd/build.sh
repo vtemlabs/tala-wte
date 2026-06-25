@@ -2,8 +2,8 @@
 # Tala WTE - Wireless Training Environment
 # Copyright (c) 2026 VTEM Labs. All rights reserved.
 #
-# Builds the deliberately-weakened hostapd that Tala WTE embeds for opt-in
-# vulnerable lab targets. It is stock hostapd 2.11 with WPS enabled and two
+# Builds the capability-extended hostapd that Tala WTE embeds for opt-in lab
+# targets. It is stock hostapd 2.11 with WPS enabled, CONFIG_WEP enabled, and two
 # source changes (see pixie-dust.patch):
 #
 #   1. Pixie-Dust:  the WPS enrollee/registrar secret nonces (E-S1/E-S2) are
@@ -11,10 +11,13 @@
 #   2. PMKID:       the AP includes the RSN PMKID KDE in EAPOL msg 1/4 for
 #      WPA2-PSK (stock hostapd deliberately omits it), so a clientless PMKID
 #      capture (hcxdumptool -> hashcat 22000) works.
+#   3. WEP:         CONFIG_WEP=y (below) so a 'wep' network emits a REAL WEP
+#      beacon. Debian's stock hostapd is built without WEP and silently beacons
+#      open, so WEP key-recovery has no target without this build.
 #
-# Stock hostapd does neither, so a non-downgraded network is not vulnerable to
-# either attack. This build is used ONLY for networks that opt in (the
-# Pixie-Dust Downgrade or PMKID Exposed toggles); every other network uses
+# Stock hostapd does none of these, so a non-opted-in network behaves like a
+# modern AP. This build is used ONLY for networks that opt in (the Pixie-Dust
+# Downgrade, PMKID Exposed, or Real WEP toggles); every other network uses
 # system hostapd unchanged.
 #
 # Run it once on each target architecture: an x86_64 box produces hostapd-amd64,
@@ -54,6 +57,12 @@ cd "$SRC/hostapd"
 cp defconfig .config
 # hostapd ships WPS commented out; enable it so the AP answers external registrars.
 sed -i 's/^#CONFIG_WPS=y/CONFIG_WPS=y/' .config
+# 3. WEP: modern hostapd (2.10+) ships WEP disabled, and Debian's stock hostapd is
+#    built without it, so a 'wep' network falls back to system hostapd and beacons
+#    OPEN (no Privacy bit). Enable CONFIG_WEP here so this embedded build emits a real,
+#    attackable WEP beacon when a network opts in via the wep_real toggle. Append (not
+#    sed) so it works regardless of whether defconfig carries a commented placeholder.
+echo "CONFIG_WEP=y" >> .config
 
 make -j"$(nproc)" hostapd
 strip hostapd

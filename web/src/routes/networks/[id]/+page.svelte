@@ -321,6 +321,14 @@
                 </div>
               </div>
             {/if}
+            {#if net.protocol === 'wep'}
+              <div class="meta-row">
+                <div class="meta-key">WEP Beacon</div>
+                <div class="meta-val">
+                  {net.wep_real ? 'Real (Privacy bit, attackable)' : 'Open (system hostapd cannot do WEP)'}
+                </div>
+              </div>
+            {/if}
             <div class="meta-row">
               <div class="meta-key">Band</div>
               <div class="meta-val">{net.band ?? '2.4'} GHz</div>

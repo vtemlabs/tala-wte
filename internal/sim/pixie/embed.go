@@ -4,13 +4,15 @@
 // use require a license from VTEM Labs. The Software may not be copied or
 // redistributed. See the LICENSE file.
 
-// Package pixie embeds the deliberately-weakened hostapd that Tala WTE uses for
-// opt-in vulnerable lab targets, and extracts it on demand. It is hostapd 2.11
-// with two changes: the WPS enrollee/registrar secret nonces (E-S1/E-S2) zeroed
-// so pixiewps recovers the WPS PIN offline, and the RSN PMKID KDE emitted in
-// EAPOL msg 1/4 for WPA2-PSK so the PMKID is clientlessly capturable. Stock
-// hostapd does neither; this build is used ONLY for networks that opt in
-// (wps_pixie or pmkid_exposed). Every other network uses system hostapd.
+// Package pixie embeds the capability-extended hostapd that Tala WTE uses for
+// opt-in lab targets, and extracts it on demand. It is hostapd 2.11 with three
+// changes: the WPS enrollee/registrar secret nonces (E-S1/E-S2) zeroed so
+// pixiewps recovers the WPS PIN offline; the RSN PMKID KDE emitted in EAPOL msg
+// 1/4 for WPA2-PSK so the PMKID is clientlessly capturable; and CONFIG_WEP
+// compiled in so a WEP network emits a real, attackable WEP beacon (Debian's
+// stock hostapd is built without WEP and silently beacons open). Stock hostapd
+// does none of these; this build is used ONLY for networks that opt in
+// (wps_pixie, pmkid_exposed, or wep_real). Every other network uses system hostapd.
 package pixie
 
 import (

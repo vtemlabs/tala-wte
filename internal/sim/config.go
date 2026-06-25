@@ -253,6 +253,20 @@ func buildConfig(record *core.Record, ifName, ifMAC, nsGatewayIP string) *hostap
 		cfg.IEEE80211N = false
 		cfg.IEEE80211AC = false
 		cfg.IEEE80211AX = false
+		// Debian's stock hostapd is built without CONFIG_WEP, so system hostapd
+		// silently beacons a WEP network as OPEN (no Privacy bit): clients cannot
+		// WEP-associate and WEP key-recovery has no target. When wep_real is set,
+		// route this network to the embedded WEP-capable hostapd so the AP emits a
+		// real, attackable WEP beacon. Off: keep system hostapd (demonstrates that a
+		// modern AP cannot actually do WEP). Opt-in toggle, mirrors wps_pixie / pmkid_exposed.
+		if record.GetBool("wep_real") {
+			if bin, err := pixie.HostapdPath(); err != nil {
+				log.Printf("[sim] WEP network %q: real WEP requested but embedded hostapd unavailable: %v (system hostapd cannot broadcast WEP; AP will be open)", ssid, err)
+			} else {
+				cfg.Binary = bin
+				log.Printf("[sim] WEP network %q: real WEP ON, using embedded hostapd %s (Privacy beacon, WEP-key-recoverable)", ssid, bin)
+			}
+		}
 	case "wpa":
 		cfg.Protocol = hostapd.ProtocolWPA
 		cfg.Passphrase = passphrase

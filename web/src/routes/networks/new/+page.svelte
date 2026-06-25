@@ -98,6 +98,7 @@
   let hidden = $state(false);
   let wpsPixie = $state(false);
   let pmkidExposed = $state(false);
+  let wepReal = $state(true); // WEP networks default to a real, attackable beacon (system hostapd cannot do WEP)
   let subnet = $state('10.0.0.0/24');
   let portalEnabled = $state(false);
   let selectedPortalId = $state('');
@@ -283,6 +284,7 @@
         hidden,
         wps_pixie: isWps ? wpsPixie : false,
         pmkid_exposed: isWpa2 ? pmkidExposed : false,
+        wep_real: isWEP ? wepReal : false,
         subnet,
         portal_enabled: canHavePortal ? portalEnabled : false,
         portal_html: canHavePortal && portalEnabled ? selectedPortalHTML : '',
@@ -543,6 +545,21 @@
               </div>
             </div>
             <input type="checkbox" bind:checked={pmkidExposed} />
+          </div>
+        {/if}
+
+        {#if isWEP}
+          <div class="toggle-field">
+            <div>
+              <div class="toggle-name">Real WEP Beacon</div>
+              <div class="field-desc">
+                Broadcast a genuine WEP beacon (Privacy bit) using the embedded WEP-capable hostapd,
+                so clients can WEP-associate and WEP key-recovery has a real target. Leave on for a
+                working WEP lab. Turn off to use the system hostapd, which is built without WEP and
+                beacons the network as open - useful to demonstrate that a modern AP cannot do WEP.
+              </div>
+            </div>
+            <input type="checkbox" bind:checked={wepReal} />
           </div>
         {/if}
 
