@@ -355,7 +355,10 @@
       badge: 'badge-open',
       overview:
         'Opportunistic Wireless Encryption (RFC 8110). An open SSID any device joins with no password, but each client negotiates a per-session Diffie-Hellman key so traffic is encrypted over the air. PMF is mandatory. Marketed as "Enhanced Open". Pick this over Open when you want passwordless guest access without cleartext sniffing; it still authenticates nothing.',
-      provides: ['Per-client over-the-air encryption', 'Mandatory management-frame protection (PMF)'],
+      provides: [
+        'Per-client over-the-air encryption',
+        'Mandatory management-frame protection (PMF)'
+      ],
       doesNotProvide: [
         'Authentication of the AP (no credential to verify)',
         'Protection against an active evil twin',
@@ -383,7 +386,10 @@
       badge: 'badge-wpa2',
       overview:
         'WPA2-PSK with 802.11r Fast BSS Transition. The AP advertises a mobility domain and pre-derives a PMK-R0/PMK-R1 key hierarchy so clients roam between APs in milliseconds without a full 4-way each time. Choose it for multi-AP/roaming targets; it changes roaming only, not PSK strength.',
-      provides: ['Sub-50ms roaming between APs in the mobility domain', 'Standard WPA2-PSK confidentiality'],
+      provides: [
+        'Sub-50ms roaming between APs in the mobility domain',
+        'Standard WPA2-PSK confidentiality'
+      ],
       doesNotProvide: [
         'Any increase in PSK strength over plain WPA2',
         'Protection when the PSK is weak or reused'
@@ -410,7 +416,10 @@
       badge: 'badge-open',
       overview:
         'The realistic OWE deployment: one radio beacons an open SSID plus a hidden companion OWE BSS that cross-reference each other. OWE-capable clients use the encrypted BSS; legacy clients fall back to the open one. Pick this over plain OWE to mirror how Enhanced Open actually ships and to practise the downgrade.',
-      provides: ['Encryption for OWE-capable clients', 'Backward compatibility for legacy clients (open)'],
+      provides: [
+        'Encryption for OWE-capable clients',
+        'Backward compatibility for legacy clients (open)'
+      ],
       doesNotProvide: [
         'Any protection for clients that land on the open BSS',
         'AP authentication (nothing to verify)',
@@ -426,7 +435,11 @@
           desc: 'Neither BSS authenticates the AP, so a rogue open/OWE AP plus a deauth burst peels clients off the real one.'
         }
       ],
-      tools: ['TALA captive_portal (owe_transition)', 'hostapd (rogue open/OWE)', 'aireplay-ng (deauth)'],
+      tools: [
+        'TALA captive_portal (owe_transition)',
+        'hostapd (rogue open/OWE)',
+        'aireplay-ng (deauth)'
+      ],
       useCases: [
         'Realistic Enhanced Open guest Wi-Fi (open + OWE)',
         'Validating the OWE-transition downgrade end to end',

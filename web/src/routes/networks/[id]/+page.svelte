@@ -325,7 +325,9 @@
               <div class="meta-row">
                 <div class="meta-key">WEP Beacon</div>
                 <div class="meta-val">
-                  {net.wep_real ? 'Real (Privacy bit, attackable)' : 'Open (system hostapd cannot do WEP)'}
+                  {net.wep_real
+                    ? 'Real (Privacy bit, attackable)'
+                    : 'Open (system hostapd cannot do WEP)'}
                 </div>
               </div>
             {/if}
