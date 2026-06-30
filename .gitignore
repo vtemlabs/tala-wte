@@ -87,7 +87,8 @@ dist/
 bin/
 
 # ─── References ──────────────────────────────────────────────────────────────
-docs/
+docs/*
+!docs/agent/
 # Exclude root-level binary and credentials (anchor with leading slash so
 # this does not also match the cmd/server/ source directory).
 /server
